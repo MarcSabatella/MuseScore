@@ -118,7 +118,8 @@ void Score::endCmd()
       foreach (Score* s, scoreList()) {
             if (s->layoutAll()) {
                   s->_updateAll  = true;
-                  s->doLayout();
+                  if (s == this)
+                        s->doLayout();
                   }
             const InputState& is = s->inputState();
             if (is.noteEntryMode() && is.segment())
@@ -153,7 +154,8 @@ void Score::update()
       foreach(Score* s, scoreList()) {
             if (s->layoutAll()) {
                   s->setUpdateAll(true);
-                  s->doLayout();
+                  if (s == this)
+                        s->doLayout();
                   }
             s->end1();
             }

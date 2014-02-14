@@ -1488,6 +1488,7 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       QString fileName = cs ? cs->fileInfo()->filePath() : "";
       midiPanelOnSwitchToFile(fileName);
 
+      cs->doLayout();
       updateLayer();
       updatePlayMode();
       if (seq)
