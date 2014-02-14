@@ -193,7 +193,8 @@ void Score::endUndoRedo()
       foreach (Score* score, scoreList()) {
             if (score->layoutAll()) {
                   score->setUndoRedo(true);
-                  score->doLayout();
+                  if (score == this)
+                        score->doLayout();
                   score->setUndoRedo(false);
                   score->setUpdateAll(true);
                   }
