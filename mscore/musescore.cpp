@@ -1488,7 +1488,6 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       QString fileName = cs ? cs->fileInfo()->filePath() : "";
       midiPanelOnSwitchToFile(fileName);
 
-      cs->doLayout();
       updateLayer();
       updatePlayMode();
       if (seq)
@@ -1532,6 +1531,7 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       else
             viewModeCombo->setCurrentIndex(1);
 
+      cs->doLayout();
       selectionChanged(cs->selection().state());
 
 // printf("setCurrentScoreView\n");
