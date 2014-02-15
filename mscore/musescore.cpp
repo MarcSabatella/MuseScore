@@ -1531,7 +1531,8 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       else
             viewModeCombo->setCurrentIndex(1);
 
-      cs->doLayout();
+      if (cs->layoutAll())
+            cs->doLayout();
       selectionChanged(cs->selection().state());
 
 // printf("setCurrentScoreView\n");
