@@ -111,7 +111,10 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
       int endTrack   = startTrack + VOICES;
       int voices     = 0;
       QList<Note*> notes;
+      Note* lowestUpStemNote = 0;
+
       for (int track = startTrack; track < endTrack; ++track) {
+
             Element* e = segment->element(track);
             if (e && (e->type() == Element::CHORD)) {
                   ++voices;
@@ -119,11 +122,316 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
                   for (Chord* c : chord->graceNotes())
                         layoutChords1(c->notes(), 1, staff, 0);
                   notes.append(chord->notes());
+
+                  if (mscVersion() > 114) {
+
+                        if (chord->up() && (!lowestUpStemNote || chord->downNote()->line() > lowestUpStemNote->line()))
+                              lowestUpStemNote = chord->downNote();
+
+                        // resolve conflicts within voices by mirroring noteheads
+                        // TODO: factor this into new function
+                        int startIdx, endIdx, incIdx;
+
+                        // loop in correct direction so that first encountered notehead wins conflict
+                        if (chord->up()) {
+                              // loop bottom up
+                              startIdx = 0;
+                              endIdx = chord->notes().size();
+                              incIdx = 1;
+                              }
+                        else {
+                              // loop top down
+                              startIdx = chord->notes().size() - 1;
+                              endIdx = -1;
+                              incIdx = -1;
+                              }
+
+                        int ll        = 1000;         // line distance to previous note head
+                                                      // hack: start high so first note won't show as conflict
+                        bool isLeft   = chord->up();  // is note head on left?
+                        bool mirror   = false;        // do we need to mirror this notehead?
+                        // int move1     = chord->staffMove();
+                        // NoteHeadGroup lastHeadGroup  = NoteHeadGroup::HEAD_INVALID; // head group of previous note
+                        // NoteHeadType lastHeadType    = NoteHeadType::HEAD_AUTO;     // head type of previous note
+
+                        for (int idx = startIdx; idx != endIdx; idx += incIdx) {
+
+                              Note* note    = chord->notes()[idx];            // current note
+                              int line      = note->line();                   // line of current note
+                              int ticks     = chord->actualTicks();           // duration of current note
+                              // int move      = chord->staffMove();
+
+                              //NoteHeadGroup headGroup = note->headGroup();    // head group of current note
+                              // calculate head type of current note if group is AUTO
+                              //NoteHeadType headType   =  (note->headType() == NoteHeadType::HEAD_AUTO)
+                              //   ? note->chord()->durationType().headType() : NoteHeadType(int(note->headType()) - 1);
+
+                              // there is a conflict
+                              // if this same or adjacent line as previous note
+                              // since we are only processing a single chord
+                              // we no longer need to check for staffMove()
+                              bool conflict = (qAbs(ll - line) < 2);    // && (move1 == move);
+
+                              // this note is on opposite side of stem as previous note
+                              // if there is a conflict
+                              // or if this the first note *after* a conflict
+                              if (conflict || (chord->up() != isLeft))
+                                    isLeft = !isLeft;
+
+                              // we need to mirror this note
+                              // if it's not on the correct side
+                              // previously we also skipped the mirror
+                              // if it shared a note head with previous note
+                              // but it's been suggested that it would be better
+                              // to show the unison more clearly in a single voice chord
+                              bool nmirror  = (chord->up() != isLeft);
+
+                              // two notes can *possibly* share a notehead if on same line and have same group and type
+                              // however, we will only actually do this if user mirror
+                              bool sameHead = (ll == line) && (nmirror == mirror);
+
+                              // we will potentially hide note and dots
+                              // for notes sharing a head
+                              // we will only show them if one is nudged
+                              note->setHidden(false);
+                              note->setDotsHidden(false);
+
+                              // now start the actual layout
+
+                              chord->rxpos() = 0.0;
+
+                              // handle conflict
+                              if (conflict && (nmirror == mirror)) {          // && idx
+                                    if (sameHead) {
+                                          Note* pnote = notes[idx-incIdx];    // idx-1
+                                          if (!(pnote->parent()->isNudged() || note->parent()->isNudged())) {
+                                                if (ticks > pnote->chord()->actualTicks()) {
+                                                      pnote->setHidden(true);
+                                                      if (chord->dots() == pnote->chord()->dots())
+                                                            pnote->setDotsHidden(true);
+                                                      // TODO: pnote->setAccidentalType(ACC_NONE);
+                                                      }
+                                                else {
+                                                      // TODO: note->setAccidentalType(ACC_NONE);
+                                                      note->setHidden(true);
+                                                      if (chord->dots() == pnote->chord()->dots())
+                                                            note->setDotsHidden(true);
+                                                      }
+                                                }
+                                          }
+                                    else {
+                                          qreal x = note->headWidth() - note->point(styleS(ST_stemWidth));
+                                          if ((line > ll) || !chord->up())
+                                                note->chord()->rxpos() = x;
+                                          else
+                                                notes[idx-incIdx]->chord()->rxpos() = x;
+                                          note->rxpos() = 0.0;
+                                          }
+                                    }
+                              if (note->userMirror() == MScore::DH_AUTO) {
+                                    mirror = nmirror;
+                                    }
+                              else {
+                                    mirror = note->chord()->up();
+                                    if (note->userMirror() == MScore::DH_LEFT)
+                                          mirror = !mirror;
+                                    }
+                              note->setMirror(mirror);
+                              ll            = line;
+                              // lastHeadGroup = headGroup;
+                              // lastHeadType  = headType;
+                              }
+                        }
                   }
             }
+
       if (notes.isEmpty())
             return;
-      layoutChords1(notes, voices, staff, segment);
+
+      if (mscVersion() <= 114)
+            layoutChords1(notes, voices, staff, segment);
+      else {
+
+            if (lowestUpStemNote) {
+                  // move downstem chords to right if conflict exists
+                  for (int track = startTrack; track < endTrack; ++track) {
+                        Element* e = segment->element(track);
+                        if (e && (e->type() == Element::CHORD)) {
+                              Chord* chord = static_cast<Chord*>(e);
+                              if (!chord->up()) {
+                                    if (chord->upNote()->line() - lowestUpStemNote->line() < 2) {
+                                          // this chord needs to be moved
+                                          // TODO: calculate amount
+                                          chord->rxpos() = lowestUpStemNote->headWidth();
+                                          }
+                                    }
+                              }
+                        }
+                  }
+
+            //---------------------------------------------------
+            //    layout accidentals
+            //    find column for dots
+            //---------------------------------------------------
+
+            std::vector<AcEl> aclist;
+
+            qreal stepDistance = staff->spatium() * .5;
+            int stepOffset     = staff->staffType()->stepOffset();
+
+            qreal lx       = 10000.0;     // leftmost note head position
+            qreal dotPosX  = 0.0;
+
+            int nNotes = notes.size();
+            for (int i = nNotes-1; i >= 0; --i) {
+                  Note* note     = notes[i];
+                  Accidental* ac = note->accidental();
+                  if (ac) {
+                        ac->layout();
+                        AcEl acel;
+                        acel.note = note;
+                        acel.x    = 0.0;
+                        aclist.push_back(acel);
+                        }
+                  qreal hw = note->headWidth();
+
+                  Chord* chord = note->chord();
+                  bool _up     = chord->up();
+                  qreal stemX  = chord->stemPosX();
+
+                  qreal stemWidth5;
+                  if (chord->stem()) {
+                        stemWidth5 = chord->stem()->lineWidth() * .5;
+                        chord->stem()->rxpos() = _up ? stemX - stemWidth5 : stemWidth5;
+                        }
+                  else
+                        stemWidth5 = 0.0;
+
+                  qreal x;
+                  if (note->mirror()) {
+                        if (_up)
+                              x = stemX - stemWidth5 * 2;
+                        else
+                              x = stemX - hw + stemWidth5 * 2;
+                        }
+                  else {
+                        NoteHeadType ht = chord->durationType().headType();
+                        if (ht == NoteHeadType::HEAD_WHOLE || ht == NoteHeadType::HEAD_BREVIS) {
+                              // center whole note
+                              qreal xd = (hw - noteHeadWidth() * chord->mag()) * .5;
+                              if (_up)
+                                    x = stemX - hw + xd;
+                              else
+                                    x = -xd;
+
+                              if(chord->stem())
+                                    chord->stem()->rxpos() +=  (_up ?  xd  : -xd);
+                              }
+                        else {
+                              if (_up)
+                                    x = stemX - hw;
+                              else
+                                    x = 0.0;
+                              }
+                        }
+                  note->rypos()  = (note->line() + stepOffset) * stepDistance;
+                  note->rxpos()  = x;
+                  if (x < lx)
+                        lx = x;
+
+                  //if (chord->stem())
+                  //      chord->stem()->rxpos() = _up ? x + hw - stemWidth5 : x + stemWidth5;
+
+                  qreal xx = x + hw + note->chord()->pos().x();
+                  if (xx > dotPosX)
+                        dotPosX = xx;
+                  }
+
+            if (segment)
+                  segment->setDotPosX(staff->idx(), dotPosX);
+
+            int nAcc = aclist.size();
+            if (nAcc == 0)
+                  return;
+            qreal pd  = point(styleS(ST_accidentalDistance));
+            qreal pnd = point(styleS(ST_accidentalNoteDistance));
+
+            //
+            // layout top accidental
+            //
+            Note* note      = aclist[0].note;
+            Accidental* acc = note->accidental();
+            qreal x         = -pnd * acc->mag() - acc->width() - acc->bbox().x();
+            aclist[0].x     = x;
+
+            //
+            // layout bottom accidental
+            //
+            if (nAcc > 1) {
+                  note   = aclist[nAcc-1].note;         // last note
+                  acc    = note->accidental();
+                  int l1 = aclist[0].note->line();
+                  int l2 = note->line();
+
+                  int st1   = aclist[0].note->accidental()->accidentalType();
+                  int ldiff = st1 == Accidental::ACC_FLAT ? 4 : 5;
+
+                  if (qAbs(l1-l2) > ldiff) {
+                        aclist[nAcc-1].x = -pnd * acc->mag() - acc->width() - acc->bbox().x();
+                        }
+                  else {
+                        int st2   = acc->accidentalType();
+                        if ((st1 == Accidental::ACC_FLAT) && (st2 == Accidental::ACC_FLAT) && (qAbs(l1-l2) > 2))
+                              aclist[nAcc-1].x = aclist[0].x - acc->width() * .5;
+                        else
+                              aclist[nAcc-1].x = aclist[0].x - acc->width() - pd;
+                        }
+                  }
+
+            //
+            // layout middle accidentals
+            //
+            if (nAcc > 2) {
+                  int n = nAcc - 1;
+                  for (int i = 1; i < n; ++i) {
+                        note = aclist[i].note;
+                        acc  = note->accidental();
+                        int l1 = aclist[i-1].note->line();
+                        int l2 = note->line();
+                        int l3 = aclist[n].note->line();
+                        qreal x = 0.0;
+
+                        int st1 = aclist[i-1].note->accidental()->accidentalType();
+                        int st2 = acc->accidentalType();
+
+                        int ldiff = st1 == Accidental::ACC_FLAT ? 4 : 5;
+                        if (qAbs(l1-l2) <= ldiff) {   // overlap accidental above
+                              if ((st1 == Accidental::ACC_FLAT) && (st2 == Accidental::ACC_FLAT) && (qAbs(l1-l2) > 2))
+                                    x = aclist[i-1].x + acc->width() * .5;    // undercut flats
+                              else
+                                    x = aclist[i-1].x;
+                              }
+
+                        ldiff = acc->accidentalType() == Accidental::ACC_FLAT ? 4 : 5;
+                        if (qAbs(l2-l3) <= ldiff) {       // overlap accidental below
+                              if (aclist[n].x < x)
+                                    x = aclist[n].x;
+                              }
+                        if (x == 0.0 || x > acc->width())
+                              x = -pnd * acc->mag() - acc->bbox().x();
+                        else
+                              x -= pd * acc->mag();   // accidental distance
+                        aclist[i].x = x - acc->width() - acc->bbox().x();
+                        }
+                  }
+
+            for (const AcEl& e : aclist) {
+                  Note* note = e.note;
+                  qreal x    = e.x + lx - note->x();
+                  note->accidental()->setPos(x, 0);
+                  note->accidental()->adjustReadPos();
+                  }
+            }
       }
 
 void Score::layoutChords1(QList<Note*>& notes, int voices, Staff* staff, Segment* segment)
