@@ -48,6 +48,7 @@
 #include "harmony.h"
 #include "ottava.h"
 #include "notedot.h"
+#include "element.h"
 
 namespace Ms {
 
@@ -96,7 +97,8 @@ struct AcEl {
 
 //---------------------------------------------------------
 //   layoutChords1
-//    - calculate displaced note heads
+//    - layout upstem and downstem chords
+//    - offset as necessary to avoid conflict
 //---------------------------------------------------------
 
 void Score::layoutChords1(Segment* segment, int staffIdx)
@@ -109,393 +111,296 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
 
       int startTrack = staffIdx * VOICES;
       int endTrack   = startTrack + VOICES;
-      int voices     = 0;
-      QList<Note*> notes;
-      Note* lowestUpStemNote = 0;
+      QList<Note*> upStemNotes, downStemNotes;
 
       for (int track = startTrack; track < endTrack; ++track) {
-
             Element* e = segment->element(track);
             if (e && (e->type() == Element::CHORD)) {
-                  ++voices;
                   Chord* chord = static_cast<Chord*>(e);
-                  for (Chord* c : chord->graceNotes())
-                        layoutChords1(c->notes(), 1, staff, 0);
-                  notes.append(chord->notes());
-
-                  if (mscVersion() > 114) {
-
-                        if (chord->up() && (!lowestUpStemNote || chord->downNote()->line() > lowestUpStemNote->line()))
-                              lowestUpStemNote = chord->downNote();
-
-                        // resolve conflicts within voices by mirroring noteheads
-                        // TODO: factor this into new function
-                        int startIdx, endIdx, incIdx;
-
-                        // loop in correct direction so that first encountered notehead wins conflict
-                        if (chord->up()) {
-                              // loop bottom up
-                              startIdx = 0;
-                              endIdx = chord->notes().size();
-                              incIdx = 1;
-                              }
-                        else {
-                              // loop top down
-                              startIdx = chord->notes().size() - 1;
-                              endIdx = -1;
-                              incIdx = -1;
-                              }
-
-                        int ll        = 1000;         // line distance to previous note head
-                                                      // hack: start high so first note won't show as conflict
-                        bool isLeft   = chord->up();  // is note head on left?
-                        bool mirror   = false;        // do we need to mirror this notehead?
-                        // int move1     = chord->staffMove();
-                        // NoteHeadGroup lastHeadGroup  = NoteHeadGroup::HEAD_INVALID; // head group of previous note
-                        // NoteHeadType lastHeadType    = NoteHeadType::HEAD_AUTO;     // head type of previous note
-
-                        for (int idx = startIdx; idx != endIdx; idx += incIdx) {
-
-                              Note* note    = chord->notes()[idx];            // current note
-                              int line      = note->line();                   // line of current note
-                              int ticks     = chord->actualTicks();           // duration of current note
-                              // int move      = chord->staffMove();
-
-                              //NoteHeadGroup headGroup = note->headGroup();    // head group of current note
-                              // calculate head type of current note if group is AUTO
-                              //NoteHeadType headType   =  (note->headType() == NoteHeadType::HEAD_AUTO)
-                              //   ? note->chord()->durationType().headType() : NoteHeadType(int(note->headType()) - 1);
-
-                              // there is a conflict
-                              // if this same or adjacent line as previous note
-                              // since we are only processing a single chord
-                              // we no longer need to check for staffMove()
-                              bool conflict = (qAbs(ll - line) < 2);    // && (move1 == move);
-
-                              // this note is on opposite side of stem as previous note
-                              // if there is a conflict
-                              // or if this the first note *after* a conflict
-                              if (conflict || (chord->up() != isLeft))
-                                    isLeft = !isLeft;
-
-                              // we need to mirror this note
-                              // if it's not on the correct side
-                              // previously we also skipped the mirror
-                              // if it shared a note head with previous note
-                              // but it's been suggested that it would be better
-                              // to show the unison more clearly in a single voice chord
-                              bool nmirror  = (chord->up() != isLeft);
-
-                              // two notes can *possibly* share a notehead if on same line and have same group and type
-                              // however, we will only actually do this if user mirror
-                              bool sameHead = (ll == line) && (nmirror == mirror);
-
-                              // we will potentially hide note and dots
-                              // for notes sharing a head
-                              // we will only show them if one is nudged
-                              note->setHidden(false);
-                              note->setDotsHidden(false);
-
-                              // now start the actual layout
-
-                              chord->rxpos() = 0.0;
-
-                              // handle conflict
-                              if (conflict && (nmirror == mirror)) {          // && idx
-                                    if (sameHead) {
-                                          Note* pnote = notes[idx-incIdx];    // idx-1
-                                          if (!(pnote->parent()->isNudged() || note->parent()->isNudged())) {
-                                                if (ticks > pnote->chord()->actualTicks()) {
-                                                      pnote->setHidden(true);
-                                                      if (chord->dots() == pnote->chord()->dots())
-                                                            pnote->setDotsHidden(true);
-                                                      // TODO: pnote->setAccidentalType(ACC_NONE);
-                                                      }
-                                                else {
-                                                      // TODO: note->setAccidentalType(ACC_NONE);
-                                                      note->setHidden(true);
-                                                      if (chord->dots() == pnote->chord()->dots())
-                                                            note->setDotsHidden(true);
-                                                      }
-                                                }
-                                          }
-                                    else {
-                                          qreal x = note->headWidth() - note->point(styleS(ST_stemWidth));
-                                          if ((line > ll) || !chord->up())
-                                                note->chord()->rxpos() = x;
-                                          else
-                                                notes[idx-incIdx]->chord()->rxpos() = x;
-                                          note->rxpos() = 0.0;
-                                          }
-                                    }
-                              if (note->userMirror() == MScore::DH_AUTO) {
-                                    mirror = nmirror;
-                                    }
-                              else {
-                                    mirror = note->chord()->up();
-                                    if (note->userMirror() == MScore::DH_LEFT)
-                                          mirror = !mirror;
-                                    }
-                              note->setMirror(mirror);
-                              ll            = line;
-                              // lastHeadGroup = headGroup;
-                              // lastHeadType  = headType;
-                              }
+                  for (Chord* c : chord->graceNotes()) {
+                        // layout grace note noteheads
+                        layoutChords2(c->notes(), c->up());
+                        // layout grace note chords
+                        layoutChords3(c->notes(), staff, 0);
                         }
+                  if (chord->up())
+                        upStemNotes.append(chord->notes());
+                  else
+                        downStemNotes.append(chord->notes());
                   }
             }
 
-      if (notes.isEmpty())
+      if (upStemNotes.isEmpty() && downStemNotes.isEmpty())
             return;
 
-      if (mscVersion() <= 114)
-            layoutChords1(notes, voices, staff, segment);
-      else {
+      // TODO: use track as secondary sort criteria?
+      // otherwise there might be issues with unisons between voices
+      // in some corner cases
 
-            if (lowestUpStemNote) {
-                  // move downstem chords to right if conflict exists
-                  for (int track = startTrack; track < endTrack; ++track) {
-                        Element* e = segment->element(track);
-                        if (e && (e->type() == Element::CHORD)) {
-                              Chord* chord = static_cast<Chord*>(e);
-                              if (!chord->up()) {
-                                    if (chord->upNote()->line() - lowestUpStemNote->line() < 2) {
-                                          // this chord needs to be moved
-                                          // TODO: calculate amount
-                                          chord->rxpos() = lowestUpStemNote->headWidth();
+      // layout upstem noteheads
+      if (upStemNotes.size() > 1) {
+            qSort(upStemNotes.begin(), upStemNotes.end(),
+               [](Note* n1, const Note* n2) ->bool {return n1->line() > n2->line(); } );
+            }
+      if (!upStemNotes.isEmpty())
+            layoutChords2(upStemNotes, true);
+
+      // layout downstem noteheads
+      if (downStemNotes.size() > 1) {
+            qSort(downStemNotes.begin(), downStemNotes.end(),
+               [](Note* n1, const Note* n2) ->bool {return n1->line() > n2->line(); } );
+            }
+      if (!downStemNotes.isEmpty())
+            layoutChords2(downStemNotes, false);
+
+      // handle conflict between upstem and downstem chords
+
+      if (!upStemNotes.isEmpty() && !downStemNotes.isEmpty()) {
+            Note* bottomUpNote = upStemNotes.first();
+            Note* topDownNote = downStemNotes.last();
+            int separation = topDownNote->line() - bottomUpNote->line();
+            qreal sp = staff->spatium();
+            qreal downOffset = 0.0;
+            qreal upOffset = 0.0;
+
+            // whole note and larger values are centered later on
+            // this throws off the chord offsets
+            // so account for the discrepancy as best we can
+            qreal qHw = segment->symWidth(SymId::noteheadBlack);
+            qreal wHw = segment->symWidth(SymId::noteheadWhole);
+            qreal wholeNoteAdjust = (wHw - qHw) / 2.0;
+
+            if (separation == 1) {
+                  // second
+                  downOffset = bottomUpNote->headWidth();
+                  // align stem if present, leave extra room if not
+                  if (topDownNote->chord()->stem())
+                        downOffset -= topDownNote->chord()->stem()->width();
+                  }
+
+            else if (separation < 1) {
+
+                  // overlap (possibly unison)
+
+                  // build list of overlapping notes
+                  QList<Note*> overlapNotes;
+                  // upstem notes
+                  qreal maxUpWidth = 0.0;
+                  for (int i = 0, n = upStemNotes.size(); i < n; ++i) {
+                        qreal w = upStemNotes[i]->headWidth();
+                        if (upStemNotes[i]->chord()->durationType() >= TDuration::V_WHOLE)
+                              w -= wholeNoteAdjust;
+                        maxUpWidth = qMax(maxUpWidth, w);
+                        if (upStemNotes[i]->line() >= topDownNote->line() - 1)
+                              overlapNotes.append(upStemNotes[i]);
+                        else
+                              break;
+                        }
+                  // downstem notes
+                  qreal maxDownWidth = 0.0;
+                  for (int i = downStemNotes.size() - 1; i >= 0; --i) {
+                        qreal w = downStemNotes[i]->headWidth();
+                        if (downStemNotes[i]->chord()->durationType() >= TDuration::V_WHOLE)
+                              w -= 0.2 * wholeNoteAdjust;
+                        maxDownWidth = qMax(maxDownWidth, w);
+                        if (downStemNotes[i]->line() <= bottomUpNote->line() + 1)
+                              overlapNotes.append(downStemNotes[i]);
+                        else
+                              break;
+                        }
+                  qSort(overlapNotes.begin(), overlapNotes.end(),
+                     [](Note* n1, const Note* n2) ->bool {return n1->line() > n2->line(); } );
+
+                  // determine nature of overlap
+                  bool shareHeads = true;       // can all overlapping notes share heads?
+                  bool matchPending = false;    // looking for a unison match
+                  bool conflictUnison = false;  // unison found
+                  bool conflictSecond = false;  // second found
+                  int lastLine = 1000;
+                  Note* p = overlapNotes[0];
+                  for (int i = 0, count = overlapNotes.size(); i < count; ++i) {
+                        Note* n = overlapNotes[i];
+                        if (n->mirror()) {
+                              // don't try to share heads if there is any mirroring
+                              shareHeads = false;
+                              // don't worry about conflicts involving mirrored notes
+                              continue;
+                              }
+                        int line = n->line();
+                        int d = lastLine - line;
+                        switch (d) {
+                              case 0:
+                                    // unison
+                                    conflictUnison = true;
+                                    matchPending = false;
+                                    if (n->headGroup() != p->headGroup() || n->headType() != p->headType() || n->chord()->durationType() != p->chord()->durationType()
+                                        || n->tpc() != p->tpc() || n->mirror() || p->mirror())
+                                          shareHeads = false;
+                                    break;
+                              case 1:
+                                    // second
+                                    conflictSecond = true;
+                                    shareHeads = false;
+                                    break;
+                              default:
+                                    // no conflict
+                                    if (matchPending)
+                                          shareHeads = false;
+                                    matchPending = true;
+                              }
+                        p = n;
+                        lastLine = line;
+                        }
+                  if (matchPending)
+                        shareHeads = false;
+
+                  // calculate offsets
+                  if (shareHeads) {
+                        // TODO: make sure we hide the note that would have been underneath
+                        // otherwise nudge might not appear to work since you aren't moving the visible note
+                        // do we really even *need* to hide noteheads of overlap?
+                        for (int i = overlapNotes.size() - 1; i >= 1; i -= 2) {
+                              Note* p = overlapNotes[i-1];
+                              Note* n = overlapNotes[i];
+                              if (!(p->chord()->isNudged() || n->chord()->isNudged())) {
+                                    if (n->chord()->actualTicks() > p->chord()->actualTicks()) {
+                                          p->setHidden(true);
+                                          if (n->chord()->dots() == p->chord()->dots())
+                                                p->setDotsHidden(true);
+                                          // TODO: p->setAccidentalType(ACC_NONE);
+                                          }
+                                    else {
+                                          n->setHidden(true);
+                                          if (n->chord()->dots() == p->chord()->dots())
+                                                n->setDotsHidden(true);
+                                          // TODO: n->setAccidentalType(ACC_NONE);
                                           }
                                     }
                               }
                         }
-                  }
-
-            //---------------------------------------------------
-            //    layout accidentals
-            //    find column for dots
-            //---------------------------------------------------
-
-            std::vector<AcEl> aclist;
-
-            qreal stepDistance = staff->spatium() * .5;
-            int stepOffset     = staff->staffType()->stepOffset();
-
-            qreal lx       = 10000.0;     // leftmost note head position
-            qreal dotPosX  = 0.0;
-
-            int nNotes = notes.size();
-            for (int i = nNotes-1; i >= 0; --i) {
-                  Note* note     = notes[i];
-                  Accidental* ac = note->accidental();
-                  if (ac) {
-                        ac->layout();
-                        AcEl acel;
-                        acel.note = note;
-                        acel.x    = 0.0;
-                        aclist.push_back(acel);
-                        }
-                  qreal hw = note->headWidth();
-
-                  Chord* chord = note->chord();
-                  bool _up     = chord->up();
-                  qreal stemX  = chord->stemPosX();
-
-                  qreal stemWidth5;
-                  if (chord->stem()) {
-                        stemWidth5 = chord->stem()->lineWidth() * .5;
-                        chord->stem()->rxpos() = _up ? stemX - stemWidth5 : stemWidth5;
-                        }
+                  else if (conflictUnison && separation == 0)
+                        downOffset = maxUpWidth + 0.3 * sp;
+                  else if (conflictUnison)
+                        upOffset = maxDownWidth + 0.3 * sp;
+                  else if (conflictSecond)
+                        upOffset = maxDownWidth + 0.2 * sp;
                   else
-                        stemWidth5 = 0.0;
-
-                  qreal x;
-                  if (note->mirror()) {
-                        if (_up)
-                              x = stemX - stemWidth5 * 2;
-                        else
-                              x = stemX - hw + stemWidth5 * 2;
-                        }
-                  else {
-                        NoteHeadType ht = chord->durationType().headType();
-                        if (ht == NoteHeadType::HEAD_WHOLE || ht == NoteHeadType::HEAD_BREVIS) {
-                              // center whole note
-                              qreal xd = (hw - noteHeadWidth() * chord->mag()) * .5;
-                              if (_up)
-                                    x = stemX - hw + xd;
-                              else
-                                    x = -xd;
-
-                              if(chord->stem())
-                                    chord->stem()->rxpos() +=  (_up ?  xd  : -xd);
-                              }
-                        else {
-                              if (_up)
-                                    x = stemX - hw;
-                              else
-                                    x = 0.0;
-                              }
-                        }
-                  note->rypos()  = (note->line() + stepOffset) * stepDistance;
-                  note->rxpos()  = x;
-                  if (x < lx)
-                        lx = x;
-
-                  //if (chord->stem())
-                  //      chord->stem()->rxpos() = _up ? x + hw - stemWidth5 : x + stemWidth5;
-
-                  qreal xx = x + hw + note->chord()->pos().x();
-                  if (xx > dotPosX)
-                        dotPosX = xx;
+                        upOffset = topDownNote->chord()->stem()->width() + 0.3 * sp;
                   }
 
-            if (segment)
-                  segment->setDotPosX(staff->idx(), dotPosX);
-
-            int nAcc = aclist.size();
-            if (nAcc == 0)
-                  return;
-            qreal pd  = point(styleS(ST_accidentalDistance));
-            qreal pnd = point(styleS(ST_accidentalNoteDistance));
-
-            //
-            // layout top accidental
-            //
-            Note* note      = aclist[0].note;
-            Accidental* acc = note->accidental();
-            qreal x         = -pnd * acc->mag() - acc->width() - acc->bbox().x();
-            aclist[0].x     = x;
-
-            //
-            // layout bottom accidental
-            //
-            if (nAcc > 1) {
-                  note   = aclist[nAcc-1].note;         // last note
-                  acc    = note->accidental();
-                  int l1 = aclist[0].note->line();
-                  int l2 = note->line();
-
-                  int st1   = aclist[0].note->accidental()->accidentalType();
-                  int ldiff = st1 == Accidental::ACC_FLAT ? 4 : 5;
-
-                  if (qAbs(l1-l2) > ldiff) {
-                        aclist[nAcc-1].x = -pnd * acc->mag() - acc->width() - acc->bbox().x();
-                        }
-                  else {
-                        int st2   = acc->accidentalType();
-                        if ((st1 == Accidental::ACC_FLAT) && (st2 == Accidental::ACC_FLAT) && (qAbs(l1-l2) > 2))
-                              aclist[nAcc-1].x = aclist[0].x - acc->width() * .5;
-                        else
-                              aclist[nAcc-1].x = aclist[0].x - acc->width() - pd;
-                        }
-                  }
-
-            //
-            // layout middle accidentals
-            //
-            if (nAcc > 2) {
-                  int n = nAcc - 1;
-                  for (int i = 1; i < n; ++i) {
-                        note = aclist[i].note;
-                        acc  = note->accidental();
-                        int l1 = aclist[i-1].note->line();
-                        int l2 = note->line();
-                        int l3 = aclist[n].note->line();
-                        qreal x = 0.0;
-
-                        int st1 = aclist[i-1].note->accidental()->accidentalType();
-                        int st2 = acc->accidentalType();
-
-                        int ldiff = st1 == Accidental::ACC_FLAT ? 4 : 5;
-                        if (qAbs(l1-l2) <= ldiff) {   // overlap accidental above
-                              if ((st1 == Accidental::ACC_FLAT) && (st2 == Accidental::ACC_FLAT) && (qAbs(l1-l2) > 2))
-                                    x = aclist[i-1].x + acc->width() * .5;    // undercut flats
-                              else
-                                    x = aclist[i-1].x;
+            // apply offsets
+            for (int track = startTrack; track < endTrack; ++track) {
+                  Element* e = segment->element(track);
+                  if (e && (e->type() == Element::CHORD)) {
+                        Chord* chord = static_cast<Chord*>(e);
+                        if (chord->up() && upOffset != 0.0) {
+                              chord->rxpos() += upOffset;
+                              if (chord->durationType() >= TDuration::V_WHOLE)
+                                    chord->rxpos() += wholeNoteAdjust;
                               }
-
-                        ldiff = acc->accidentalType() == Accidental::ACC_FLAT ? 4 : 5;
-                        if (qAbs(l2-l3) <= ldiff) {       // overlap accidental below
-                              if (aclist[n].x < x)
-                                    x = aclist[n].x;
+                        else if (!chord->up() && downOffset != 0.0) {
+                              chord->rxpos() += downOffset;
+                              if (chord->durationType() >= TDuration::V_WHOLE)
+                                    chord->rxpos() += wholeNoteAdjust + 0.1 * sp;   // a little extra to separate more from previous stem
                               }
-                        if (x == 0.0 || x > acc->width())
-                              x = -pnd * acc->mag() - acc->bbox().x();
-                        else
-                              x -= pd * acc->mag();   // accidental distance
-                        aclist[i].x = x - acc->width() - acc->bbox().x();
                         }
-                  }
-
-            for (const AcEl& e : aclist) {
-                  Note* note = e.note;
-                  qreal x    = e.x + lx - note->x();
-                  note->accidental()->setPos(x, 0);
-                  note->accidental()->adjustReadPos();
                   }
             }
+
+      // layout chords
+      QList<Note*> notes;
+      notes.append(upStemNotes);
+      notes.append(downStemNotes);
+      if (notes.size() > 1)
+            qSort(notes.begin(), notes.end(),
+               [](Note* n1, const Note* n2) ->bool {return n1->line() > n2->line(); } );
+      layoutChords3(notes, staff, segment);
+
       }
 
-void Score::layoutChords1(QList<Note*>& notes, int voices, Staff* staff, Segment* segment)
+//---------------------------------------------------------
+//   layoutChords2
+//    - determined which notes need mirroring
+//---------------------------------------------------------
+
+void Score::layoutChords2(QList<Note*>& notes, bool up)
       {
       int startIdx, endIdx, incIdx;
 
-      if (notes[0]->chord()->up() || (voices > 1)) {
+      // loop in correct direction so that first encountered notehead wins conflict
+      if (up) {
+            // loop bottom up
             startIdx = 0;
-            incIdx   = 1;
-            endIdx   = notes.size();
-            for (int i = 0; i < endIdx-1; ++i) {
-                  if ((notes[i]->line() == notes[i+1]->line())
-                     && (notes[i]->track() != notes[i+1]->track())
-                     && (!notes[i]->chord()->up() && notes[i+1]->chord()->up())
-                     ) {
-                        Note* n = notes[i];
-                        notes[i] = notes[i+1];
-                        notes[i+1] = n;
-                        }
-                  }
+            endIdx = notes.size();
+            incIdx = 1;
             }
       else {
+            // loop top down
             startIdx = notes.size() - 1;
-            incIdx   = -1;
-            endIdx   = -1;
+            endIdx = -1;
+            incIdx = -1;
             }
 
-      int ll        = 1000;      // line distance to previous note head
-      bool isLeft   = notes[startIdx]->chord()->up();
-      int move1     = notes[startIdx]->chord()->staffMove();
-      bool mirror   = false;
-      NoteHeadGroup lastHeadGroup  = NoteHeadGroup::HEAD_INVALID;
-      NoteHeadType lastHeadType    = NoteHeadType::HEAD_AUTO;
+      int ll        = 1000;         // line distance to previous note head
+                                    // hack: start high so first note won't show as conflict
+      bool mirror   = false;        // do we need to mirror this notehead?
+      bool isLeft   = notes[startIdx]->chord()->up();             // is note head on left?
+      int move1     = notes[startIdx]->chord()->staffMove();      // chord moved to staff above or below
 
       for (int idx = startIdx; idx != endIdx; idx += incIdx) {
-            Note* note    = notes[idx];
+
+            Note* note    = notes[idx];                     // current note
+            int line      = note->line();                   // line of current note
             Chord* chord  = note->chord();
+            int ticks     = chord->actualTicks();           // duration of current note
             int move      = chord->staffMove();
-            int line      = note->line();
-            int ticks     = chord->actualTicks();
-            NoteHeadGroup headGroup = note->headGroup();
-            NoteHeadType headType   =  (note->headType() == NoteHeadType::HEAD_AUTO)
-               ? note->chord()->durationType().headType() : NoteHeadType(int(note->headType()) - 1);
 
+            //NoteHeadGroup headGroup = note->headGroup();    // head group of current note
+            // calculate head type of current note if group is AUTO
+            //NoteHeadType headType   =  (note->headType() == NoteHeadType::HEAD_AUTO)
+            //   ? note->chord()->durationType().headType() : NoteHeadType(int(note->headType()) - 1);
+
+            // there is a conflict
+            // if this same or adjacent line as previous note
             bool conflict = (qAbs(ll - line) < 2) && (move1 == move);
-            bool sameHead = (ll == line) && (headGroup == lastHeadGroup) && (headType == lastHeadType);
-            if ((chord->up() != isLeft) || conflict)
-                  isLeft = !isLeft;
-            bool nmirror  = (chord->up() != isLeft) && !sameHead;
 
+            // this note is on opposite side of stem as previous note
+            // if there is a conflict
+            // or if this the first note *after* a conflict
+            if (conflict || (chord->up() != isLeft))
+                  isLeft = !isLeft;
+
+            // we need to mirror this note
+            // if it's not on the correct side
+            // previously we also skipped the mirror
+            // if it shared a note head with previous note
+            // but it's been suggested that it would be better
+            // to show the unison more clearly in a single voice chord
+            bool nmirror  = (chord->up() != isLeft);
+
+            // two notes can *possibly* share a notehead if on same line and have same group and type
+            // however, we will only actually do this if user mirror
+            bool sameHead = (ll == line) && (nmirror == mirror);
+
+            // we will potentially hide note and dots
+            // for notes sharing a head
+            // we will only show them if one is nudged
             note->setHidden(false);
             note->setDotsHidden(false);
 
+            // now start the actual layout
+
             chord->rxpos() = 0.0;
 
-            if (conflict && (nmirror == mirror) && idx) {
+            // handle conflict
+            if (conflict && (nmirror == mirror)) {          // && idx
                   if (sameHead) {
-                        Note* pnote = notes[idx-1];
+                        Note* pnote = notes[idx-incIdx];    // idx-1
                         if (!(pnote->parent()->isNudged() || note->parent()->isNudged())) {
                               if (ticks > pnote->chord()->actualTicks()) {
                                     pnote->setHidden(true);
                                     if (chord->dots() == pnote->chord()->dots())
                                           pnote->setDotsHidden(true);
-
                                     // TODO: pnote->setAccidentalType(ACC_NONE);
                                     }
                               else {
@@ -526,9 +431,19 @@ void Score::layoutChords1(QList<Note*>& notes, int voices, Staff* staff, Segment
             note->setMirror(mirror);
             move1         = move;
             ll            = line;
-            lastHeadGroup = headGroup;
-            lastHeadType  = headType;
+            // lastHeadGroup = headGroup;
+            // lastHeadType  = headType;
             }
+
+      }
+
+//---------------------------------------------------------
+//   layoutChords3
+//    - calculate positions of notes, accidentals, dots
+//---------------------------------------------------------
+
+void Score::layoutChords3(QList<Note*>& notes, Staff* staff, Segment* segment)
+      {
 
       //---------------------------------------------------
       //    layout accidentals
@@ -692,6 +607,7 @@ void Score::layoutChords1(QList<Note*>& notes, int voices, Staff* staff, Segment
             note->accidental()->setPos(x, 0);
             note->accidental()->adjustReadPos();
             }
+
       }
 
 //---------------------------------------------------------
