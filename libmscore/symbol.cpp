@@ -45,7 +45,8 @@ Symbol::Symbol(Score* s, SymId sy)
 Symbol::Symbol(const Symbol& s)
    : BSymbol(s)
       {
-      _sym   = s._sym;
+      _sym       = s._sym;
+      _scoreFont = s._scoreFont;
       setZ(int(Element::Type::SYMBOL) * 100);
       }
 

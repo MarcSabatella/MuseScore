@@ -58,6 +58,24 @@ Rest::Rest(Score* s, const TDuration& d)
       }
 
 //---------------------------------------------------------
+//   linkedClone
+//---------------------------------------------------------
+
+Rest* Rest::linkedClone()
+      {
+      Rest* rest = new Rest(*this);
+      linkTo(rest);
+      int n = _lyricsList.size();
+      for (int i = 0; i < n; ++i)
+            _lyricsList[i]->linkTo(rest->lyricsList()[i]);
+      n = _articulations.size();
+      for (int i = 0; i < n; ++i)
+            _articulations[i]->linkTo(rest->articulations()[i]);
+
+      return rest;
+      }
+
+//---------------------------------------------------------
 //   Rest::draw
 //---------------------------------------------------------
 

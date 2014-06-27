@@ -381,7 +381,7 @@ void cloneStaves(Score* oscore, Score* score, const QList<int>& map)
                               continue;
                         }
                   Element* ne;
-                  if (e->type() == Element::Type::TEXT) // clone the title, subtitle etc...
+                  if (e->type() == Element::Type::TEXT || e->type() == Element::Type::LAYOUT_BREAK) // link the title, subtitle etc...
                         ne = e->linkedClone();
                   else
                         ne = e->clone();

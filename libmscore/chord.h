@@ -105,8 +105,8 @@ class Chord : public ChordRest {
       ~Chord();
       Chord &operator=(const Chord&);
 
-      virtual Chord* clone() const       { return new Chord(*this); }
-      virtual Chord* linkedClone();
+      virtual Chord* clone() const override      { return new Chord(*this); }
+      virtual Chord* linkedClone() override;
 
       virtual void setScore(Score* s);
       virtual Element::Type type() const         { return Element::Type::CHORD; }

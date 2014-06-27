@@ -257,16 +257,35 @@ Chord* Chord::linkedClone()
       Chord* chord = new Chord(*this);
       linkTo(chord);
       int n = notes().size();
-      for (int i = 0; i < n; ++i)
-            _notes[i]->linkTo(chord->_notes[i]);
+      for (int i = 0; i < n; ++i) {
+            Note* note = _notes[i];
+            Note* lnote = chord->_notes[i];
+            note->linkTo(lnote);
+            int nn = note->el().size();
+            for (int j = 0; j < nn; ++j)
+                  note->el()[j]->linkTo(lnote->el()[j]);
+            }
       n = _graceNotes.size();
       for (int i = 0; i < n; ++i)
             _graceNotes[i]->linkTo(chord->_graceNotes[i]);
-      for (int i = 0; i < _el.size(); ++i) { // TODO deal with slurs
+      n = _el.size();
+      for (int i = 0; i < n; ++i) { // TODO deal with slurs
             if (_el[i]->type() == Element::Type::CHORDLINE) {
                   _el[i]->linkTo(chord->el()[i]);
                   }
             }
+      n = _lyricsList.size();
+      for (int i = 0; i < n; ++i)
+            _lyricsList[i]->linkTo(chord->lyricsList()[i]);
+      n = _articulations.size();
+      for (int i = 0; i < n; ++i)
+            _articulations[i]->linkTo(chord->articulations()[i]);
+      if (_arpeggio)
+            _arpeggio->linkTo(chord->arpeggio());
+      if (_glissando)
+            _glissando->linkTo(chord->glissando());
+      if (_tremolo && !_tremolo->twoNotes())
+            _tremolo->linkTo(chord->tremolo());
 
       return chord;
       }
