@@ -331,6 +331,7 @@ void cloneStaves(Score* oscore, Score* score, const QList<int>& map)
                                                       nn->setTieFor(tie);
                                                       tie->setStartNote(nn);
                                                       tie->setTrack(nn->track());
+                                                      on->tieFor()->linkTo(tie);
                                                       tieMap.add(on->tieFor(), tie);
                                                       }
                                                 if (on->tieBack()) {
