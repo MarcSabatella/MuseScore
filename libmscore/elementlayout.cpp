@@ -72,7 +72,8 @@ void ElementLayout::layout(Element* e) const
             else if (_align & AlignmentFlags::HCENTER)
                   p.setX(-(w * .5));
             }
-      e->setPos(p + o);
+      e->rxpos() += p.x() + o.x();
+      e->rypos() += p.y() + o.y();
       }
 
 //---------------------------------------------------------
