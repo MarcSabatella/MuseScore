@@ -41,7 +41,6 @@ ChordRest* nextChordRest(ChordRest* cr)
       if (!cr)
             return 0;
 
-      bool skipGraceNotes = cr->score()->noteEntryMode();
       if (cr->isGrace()) {
             //
             // cr is a grace note
@@ -77,7 +76,7 @@ ChordRest* nextChordRest(ChordRest* cr)
       else {
             //
             // cr is not a grace note
-            if (cr->type() == Element::Type::CHORD && !skipGraceNotes) {
+            if (cr->type() == Element::Type::CHORD) {
                   Chord* c = static_cast<Chord*>(cr);
                   if (!c->graceNotes().empty()) {
                         QList<Chord*> graceNotesAfter;
@@ -94,7 +93,7 @@ ChordRest* nextChordRest(ChordRest* cr)
       for (Segment* seg = cr->segment()->next1(st); seg; seg = seg->next1(st)) {
             ChordRest* e = static_cast<ChordRest*>(seg->element(track));
             if (e) {
-                  if (e->type() == Element::Type::CHORD && !skipGraceNotes) {
+                  if (e->type() == Element::Type::CHORD) {
                         Chord* c = static_cast<Chord*>(e);
                         if (!c->graceNotes().empty()) {
                               QList<Chord*> graceNotesBefore;
@@ -120,7 +119,6 @@ ChordRest* prevChordRest(ChordRest* cr)
       if (!cr)
             return 0;
 
-      bool skipGraceNotes = cr->score()->noteEntryMode();
       if (cr->isGrace()) {
             //
             // cr is a grace note
@@ -154,7 +152,7 @@ ChordRest* prevChordRest(ChordRest* cr)
       else {
             //
             // cr is not a grace note
-            if (cr->type() == Element::Type::CHORD && !skipGraceNotes) {
+            if (cr->type() == Element::Type::CHORD) {
                   Chord* c = static_cast<Chord*>(cr);
                   if (!c->graceNotes().empty()) {
                         QList<Chord*> graceNotesBefore;
@@ -170,7 +168,7 @@ ChordRest* prevChordRest(ChordRest* cr)
       for (Segment* seg = cr->segment()->prev1(st); seg; seg = seg->prev1(st)) {
             ChordRest* e = static_cast<ChordRest*>(seg->element(track));
             if (e) {
-                  if (e->type() == Element::Type::CHORD && !skipGraceNotes) {
+                  if (e->type() == Element::Type::CHORD) {
                         Chord* c = static_cast<Chord*>(e);
                         if (!c->graceNotes().empty()) {
                               QList<Chord*> graceNotesAfter;
