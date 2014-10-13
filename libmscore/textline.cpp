@@ -103,6 +103,10 @@ void TextLineSegment::draw(QPainter* painter) const
                   painter->translate(-_endText->pos());
                   }
             }
+
+      if (textlineLineWidth == 0.0)
+            return;
+
       QPen pen(normalColor ? tl->lineColor() : color, textlineLineWidth, tl->lineStyle());
       painter->setPen(pen);
 
