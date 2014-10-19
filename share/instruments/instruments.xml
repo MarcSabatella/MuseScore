@@ -23,6 +23,10 @@
             <velocity>100</velocity>
             <gateTime>50</gateTime>
       </Articulation>
+      <Articulation name="staccatissimo">
+            <velocity>100</velocity>
+            <gateTime>25</gateTime>
+      </Articulation>
       <Articulation name="tenuto">
             <velocity>100</velocity>
             <gateTime>100</gateTime>
