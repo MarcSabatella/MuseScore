@@ -160,6 +160,10 @@ InspectorNote::InspectorNote(QWidget* parent)
 void InspectorNote::setElement()
       {
       Note* note = static_cast<Note*>(inspector->element());
+      if (note->type() != Element::Type::NOTE) {
+            qDebug("trying to set InspectorNote to a non-note");
+            return;
+            }
       dot1->setEnabled(note->dot(0));
       dot2->setEnabled(note->dot(1));
       dot3->setEnabled(note->dot(2));

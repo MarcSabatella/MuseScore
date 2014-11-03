@@ -317,10 +317,28 @@ void InspectorBase::valueChanged(int idx, bool reset)
       P_TYPE pt     = propertyType(id);
       QVariant val2 = getValue(ii);
       Score* score  = inspector->element()->score();
+      bool range    = score->selection().isRange();
 
       score->startCmd();
       foreach (Element* e, inspector->el()) {
-            for (int i = 0; i < ii.parent; ++i)
+
+            // apply property to ancestor as defined for the given element/property type
+            // HACK: for rests within range selection, adjust some parent values so chord properties apply to rests
+            int parent = ii.parent;
+            if (range && e->type() == Element::Type::REST) {
+                  switch (id) {
+                        case P_ID::SMALL:
+                              parent = 0;
+                              break;
+                        case P_ID::LEADING_SPACE:
+                        case P_ID::TRAILING_SPACE:
+                              parent = 1;
+                              break;
+                        default:
+                              break;
+                        }
+                  }
+            for (int i = 0; i < parent; ++i)
                   e = e->parent();
 
             // reset sets property style UNSTYLED to STYLED
@@ -332,6 +350,15 @@ void InspectorBase::valueChanged(int idx, bool reset)
                   ps = PropertyStyle::UNSTYLED;
 
             QVariant val1 = e->getProperty(id);
+
+            // for range selections, if current element is not a note, only go on if property is defined
+            // HACK: propertyDefault().isNull() is not the same as "not defined" since some properties have valid null defaults
+            // but that won't matter since only the most basic element properties will be settable for non-notes when a range is selected
+            // and these properties all have non-null defaults except USER_OFF
+            // so we check for that explicitly
+            if (range && e->type() != Element::Type::NOTE && id != P_ID::USER_OFF && e->propertyDefault(id).isNull())
+                  continue;
+
             if (pt == P_TYPE::SIZE || pt == P_TYPE::SCALE || pt == P_TYPE::SIZE_MM) {
                   qreal v   = val2.toDouble();
                   QSizeF sz = val1.toSizeF();

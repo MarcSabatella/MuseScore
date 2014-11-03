@@ -133,8 +133,13 @@ void Inspector::setElements(const QList<Element*>& l)
 
             bool sameTypes = true;
             foreach(Element* ee, _el) {
-                  if (_element->type() != ee->type())
+                  if (_element->type() != ee->type()) {
                         sameTypes = false;
+                        // set _element to first note in mixed selection
+                        if (ee->type() == Element::Type::NOTE && _element->type() != Element::Type::NOTE)
+                              _element = ee;
+
+                        }
                   else {
                         // HACK:
                         if (ee->type() == Element::Type::NOTE
@@ -142,10 +147,10 @@ void Inspector::setElements(const QList<Element*>& l)
                               sameTypes = false;
                         }
                   }
-            if (!sameTypes)
+            if (!sameTypes && _element && _element->score() && !_element->score()->selection().isRange())
                   ie = new InspectorGroupElement(this);
             else if (_element) {
-                  switch(_element->type()) {
+                  switch (_element->type()) {
                         case Element::Type::FBOX:
                         case Element::Type::TBOX:
                         case Element::Type::VBOX:
@@ -275,7 +280,7 @@ void Inspector::setElements(const QList<Element*>& l)
                         }
                   }
             }
-      _element = e;
+      // _element = e;
       ie->setElement();
       }
 
