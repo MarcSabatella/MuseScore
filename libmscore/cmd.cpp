@@ -72,6 +72,7 @@
 #include "accidental.h"
 #include "sequencer.h"
 #include "tremolo.h"
+#include "rehearsalmark.h"
 
 namespace Ms {
 
@@ -2357,6 +2358,8 @@ void Score::cmd(const QAction* a)
             cmdSlashFill();
       else if (cmd == "slash-rhythm")
             cmdSlashRhythm();
+      else if (cmd == "resequence-rehearsal-marks")
+            cmdResequenceRehearsalMarks();
       else
             qDebug("unknown cmd <%s>", qPrintable(cmd));
       }
@@ -2551,9 +2554,6 @@ void Score::cmdImplode()
                         Element* src = s->element(srcTrack);
                         if (src && src->type() == Element::Type::CHORD) {
                               Chord* srcChord = static_cast<Chord*>(src);
-                              // when combining voices, skip if not same duration
-                              if ((trackInc == 1) && (srcChord->duration() != dstChord->duration()))
-                                    continue;
                               // add notes
                               foreach (Note* n, srcChord->notes()) {
                                     NoteVal nv(n->pitch());
@@ -2583,9 +2583,9 @@ void Score::cmdImplode()
                               undoRemoveElement(src);
                         }
                   }
-            else if (dst && trackInc == 1) {
-                  // destination track has something, but it isn't a chord
-                  // remove everything from other voices if in "voice mode"
+            else if (trackInc == 1) {
+                  // destination track has either a rest or nothing
+                  // either way, remove everything from other voices if in "voice mode"
                   for (int i = 1; i < VOICES; ++i) {
                         Element* e = s->element(dstTrack + i);
                         if (e)
@@ -2709,6 +2709,73 @@ void Score::cmdSlashRhythm()
                   }
             }
       setLayoutAll(true);
+      }
+
+//---------------------------------------------------------
+//   cmdResequenceRehearsalMarks
+///   resequences rehearsal marks
+//---------------------------------------------------------
+
+void Score::cmdResequenceRehearsalMarks()
+      {
+      if (selection().isNone())
+            cmdSelectAll();
+      else if (!selection().isRange())
+            return;
+
+      QString last;
+      bool useNumbers = false;
+      bool useMeasureNumbers = false;
+      for (Segment* s = selection().startSegment(); s && s != selection().endSegment(); s = s->next1()) {
+            for (Element* e : s->annotations()) {
+                  if (e->type() == Element::Type::REHEARSAL_MARK) {
+                        RehearsalMark* rm = static_cast<RehearsalMark*>(e);
+                        if (last.isNull()) {
+                              last = rm->text();
+                              // make sure initial rehearsal mark is something we can sequence
+                              if ((last.length() == 1 && last[0].isLetter())
+                                  || (last.length() == 2 && last[0] == last[1] && last[0].isLetter())) {
+                                    continue;
+                                    }
+                              // not a single or double letter
+                              bool ok;
+                              int n = last.toInt(&ok);
+                              if (!ok)
+                                    return;
+                              useNumbers = true;
+                              if (n == s->measure()->no() + 1)
+                                    useMeasureNumbers = true;
+                              continue;
+                              }
+                        else if (useMeasureNumbers) {
+                              int n = s->measure()->no() + 1;
+                              last = QString("%1").arg(n);
+                              }
+                        else if (useNumbers) {
+                              int n = last.toInt() + 1;
+                              last = QString("%1").arg(n);
+                              }
+                        else if (last.length() == 1) {
+                              if (last == "Z")
+                                    last = "AA";
+                              else if (last == "z")
+                                    last = "aa";
+                              else
+                                    last = QChar::fromLatin1(last[0].toLatin1() + 1);
+                              }
+                        else if (last.length() == 2) {
+                              if (last.toUpper() != "ZZ") {
+                                    QString c = QChar::fromLatin1(last[0].toLatin1() + 1);
+                                    last = c + c;
+                                    }
+                              else
+                                    return;
+                              }
+                        for (Element* le : rm->linkList())
+                              le->undoChangeProperty(P_ID::TEXT, last);
+                        }
+                  }
+            }
       }
 
 }
