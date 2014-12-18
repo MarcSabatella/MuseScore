@@ -439,7 +439,41 @@ int Rest::computeLineOffset()
       {
       int lineOffset = 0;
       int lines = staff() ? staff()->lines() : 5;
-      if (segment() && measure() && measure()->mstaff(staffIdx())->hasVoices) {
+      Segment* s = segment();
+      bool offsetVoices = s && measure() && measure()->mstaff(staffIdx())->hasVoices;
+      if (offsetVoices && voice() <= 1) {
+            // merge matching rests in voices 1 & 2 if nothing in any other voice
+            bool matchFound = false;
+            bool nothingElse = true;
+            int baseTrack = staffIdx() * VOICES;
+            for (int v = 0; v < VOICES; ++v) {
+                  if (v == voice())
+                        continue;
+                  Element* e = s->element(baseTrack + v);
+                  if (v <= 1) {
+                        // try to find match in other voice (1 or 2)
+                        if (e && e->type() == Element::Type::REST) {
+                              Rest* r = static_cast<Rest*>(e);
+                              if (r->globalDuration() == globalDuration()) {
+                                    matchFound = true;
+                                    continue;
+                                    }
+                              }
+                        // no match found; no sense looking for anything else
+                        break;
+                        }
+                  else {
+                        // if anything in another voice, do not merge
+                        if (e) {
+                              nothingElse = false;
+                              break;
+                              }
+                        }
+                  }
+            if (matchFound && nothingElse)
+                  offsetVoices = false;
+            }
+      if (offsetVoices) {
             // move rests in a multi voice context
             bool up = (voice() == 0) || (voice() == 2);       // TODO: use style values
             switch(durationType().type()) {
