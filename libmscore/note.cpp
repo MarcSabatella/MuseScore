@@ -1708,6 +1708,8 @@ bool Note::dotIsUp() const
 void Note::updateAccidental(AccidentalState* as)
       {
       int relLine = absStep(tpc(), epitch());
+      // accidentals should take ottava into account
+      int accLine = absStep(tpc(), epitch() + staff()->pitchOffset(chord()->segment()->tick()));
 
       // don't touch accidentals that don't concern tpc such as
       // quarter tones
@@ -1715,9 +1717,13 @@ void Note::updateAccidental(AccidentalState* as)
             // calculate accidental
             Accidental::Type acci = Accidental::Type::NONE;
 
-            AccidentalVal accVal = tpc2alter(tpc());
-            if ((accVal != as->accidentalVal(relLine)) || hidden() || as->tieContext(relLine)) {
-                  as->setAccidentalVal(relLine, accVal, _tieBack != 0);
+            AccidentalVal accVal    = tpc2alter(tpc());
+            AccidentalVal stateVal1 = as->accidentalVal(accLine);
+            AccidentalVal stateVal2 = (accLine == relLine) ? stateVal1 : as->accidentalVal(relLine);
+            if ((accVal !=  stateVal1 || stateVal2 != stateVal1) || hidden() || as->tieContext(accLine)) {
+                  as->setAccidentalVal(accLine, accVal, _tieBack != 0);
+                  if (relLine != accLine)
+                        as->setAccidentalVal(relLine, accVal, _tieBack != 0);
                   if (_tieBack)
                         acci = Accidental::Type::NONE;
                   else {
@@ -1767,7 +1773,7 @@ void Note::updateAccidental(AccidentalState* as)
             // ultimetely, they should probably get their own state
             // for now, at least change state to natural, so subsequent notes playback as might be expected
             // this is an incompatible change, but better to break it for 2.0 than wait until later
-            as->setAccidentalVal(relLine, AccidentalVal::NATURAL, _tieBack != 0);
+            as->setAccidentalVal(accLine, AccidentalVal::NATURAL, _tieBack != 0);
             }
 
       updateRelLine(relLine, true);
