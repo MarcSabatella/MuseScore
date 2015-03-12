@@ -2413,7 +2413,7 @@ void Score::hideEmptyStaves(System* system, bool isFirstSystem)
                   if (s->show()) {
                         systemIsEmpty = false;
                         }
-                  if (!s->show()) {
+                  else {
                         Measure* m = system->firstMeasure();
                         Segment* kss = m ? m->findSegment(Segment::Type::KeySig, m->tick()) : 0;
                         if (kss) {
