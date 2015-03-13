@@ -795,11 +795,17 @@ void SLine::layout()
                   qreal offset = 0.0;
                   qreal minLen = 0.0;
                   if (anchor() == Anchor::SEGMENT || anchor() == Anchor::MEASURE) {
-                        // start line just after previous element (eg, key signature)
+                        // start line just after previous segment (eg, key signature)
                         firstCRSeg = firstCRSeg->prev();
-                        Element* e = firstCRSeg ? firstCRSeg->element(staffIdx() * VOICES) : nullptr;
-                        if (e)
-                              offset = e->width();
+                        if (firstCRSeg) {
+                              for (Staff* staff : score()->staves()) {
+                                    if (!staff->show() || !system->staff(staff->idx())->show())
+                                          continue;
+                                    Element* e = firstCRSeg->element(staff->idx() * VOICES);
+                                    if (e)
+                                          offset = qMax(offset, e->width());
+                                    }
+                              }
                         // enforcing a minimum length would be possible but inadvisable
                         // the line length calculations are tuned well enough that this should not be needed
                         //if (type() != Element::Type::PEDAL)
