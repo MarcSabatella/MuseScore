@@ -326,6 +326,29 @@ void Selection::remove(Element* el)
 void Selection::add(Element* el)
       {
       _el.append(el);
+      switch (el->type()) {
+            case Element::Type::KEYSIG:
+            case Element::Type::TIMESIG:
+            //case Element::Type::CLEF:
+                  {
+                  // check for mmrest, select corresponding version
+                  Segment* s = static_cast<Segment*>(el->parent());
+                  Measure* m = s->measure();
+                  Measure* mm = 0;
+                  if (m->isMMRest())
+                        mm = m->mmRestFirst();
+                  else if (m->hasMMRest())
+                        mm = m->mmRest();
+                  if (mm) {
+                        Segment* ss = mm->first(s->segmentType());
+                        Element* ee = ss ? ss->element(el->track()) : nullptr;
+                        if (ee)
+                              _el.append(ee);
+                        }
+                  }
+            default:
+                  ;
+            }
       update();
       }
 
