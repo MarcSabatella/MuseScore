@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -95,7 +95,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoBelow</subtype>
             </Articulation>
           <Note>
             <pitch>60</pitch>
@@ -105,7 +105,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoBelow</subtype>
             </Articulation>
           <Note>
             <pitch>62</pitch>
@@ -115,7 +115,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoBelow</subtype>
             </Articulation>
           <Note>
             <pitch>64</pitch>
@@ -125,13 +125,17 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoBelow</subtype>
             </Articulation>
           <Note>
             <pitch>65</pitch>
             <tpc>13</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="2">
         <TimeSig>
@@ -142,7 +146,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoBelow</subtype>
             </Articulation>
           <Note>
             <pitch>67</pitch>
@@ -152,7 +156,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoBelow</subtype>
             </Articulation>
           <Note>
             <pitch>69</pitch>
@@ -162,7 +166,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>71</pitch>
@@ -174,7 +178,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>portato</subtype>
+            <subtype>articTenutoStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>72</pitch>
@@ -187,12 +191,6 @@
         <HairPin id="2">
           <subtype>1</subtype>
           <veloChange>10</veloChange>
-          <beginText>
-            <text>dim.</text>
-            </beginText>
-          <continueText>
-            <text>(dim.)</text>
-            </continueText>
           </HairPin>
         <Chord>
           <durationType>quarter</durationType>
@@ -328,7 +326,7 @@
             <tpc>15</tpc>
             </Note>
           </Chord>
-        <tick>12480</tick>
+        <move>1/4</move>
         <Harmony>
           <root>15</root>
           <name>7</name>
@@ -350,7 +348,7 @@
       <Measure number="11">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
         </Measure>
       <Measure number="12">
@@ -367,13 +365,13 @@
       <Measure number="13">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
         </Measure>
       <Measure number="14">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
         </Measure>
       <Measure number="15">
@@ -417,24 +415,20 @@
       <Measure number="17">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
         </Measure>
       <Measure number="18">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
         </Measure>
       <Measure number="19">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     </Score>

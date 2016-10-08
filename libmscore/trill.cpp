@@ -85,12 +85,12 @@ void TrillSegment::symbolLine(SymId start, SymId fill)
       ScoreFont* f = score()->scoreFont();
 
       _symbols.clear();
-      _symbols.append(start);
+      _symbols.push_back(start);
       qreal w1 = f->advance(start, mag);
       qreal w2 = f->advance(fill, mag);
       int n    = lrint((w - w1) / w2);
       for (int i = 0; i < n; ++i)
-           _symbols.append(fill);
+           _symbols.push_back(fill);
       QRectF r(f->bbox(_symbols, mag));
       setbbox(r);
       }
@@ -104,14 +104,14 @@ void TrillSegment::symbolLine(SymId start, SymId fill, SymId end)
       ScoreFont* f = score()->scoreFont();
 
       _symbols.clear();
-      _symbols.append(start);
-      _symbols.append(end);
+      _symbols.push_back(start);
       qreal w1 = f->bbox(start, mag).width();
       qreal w2 = f->width(fill, mag);
       qreal w3 = f->width(end, mag);
       int n    = lrint((w - w1 - w3) / w2);
       for (int i = 0; i < n; ++i)
-           _symbols.insert(1, fill);
+           _symbols.push_back(fill);
+      _symbols.push_back(end);
       QRectF r(f->bbox(_symbols, mag));
       setbbox(r);
       }
@@ -126,7 +126,7 @@ void TrillSegment::layout()
             rypos() += score()->styleS(StyleIdx::trillY).val() * spatium();
       if (staff())
             setMag(staff()->mag());
-      if (spannerSegmentType() == SpannerSegmentType::SINGLE || spannerSegmentType() == SpannerSegmentType::BEGIN) {
+      if (isSingleType() || isBeginType()) {
             Accidental* a = trill()->accidental();
             if (a) {
                   a->layout();
@@ -134,6 +134,7 @@ void TrillSegment::layout()
                   qreal _spatium = spatium();
                   a->setPos(_spatium * 1.3, -2.2 * _spatium);
                   a->adjustReadPos();
+                  a->setParent(this);
                   }
             switch (trill()->trillType()) {
                   case Trill::Type::TRILL_LINE:
@@ -442,7 +443,7 @@ QString Trill::trillTypeName() const
             case Type::PRALLPRALL_LINE:
                   return "prallprall";
             default:
-                  qDebug("unknown Trill subtype %hhd", trillType());
+                  qDebug("unknown Trill subtype %d", int(trillType()));
                   return "?";
             }
       }
@@ -451,7 +452,7 @@ QString Trill::trillTypeName() const
 //   trillTypeName
 //---------------------------------------------------------
 
-QString Trill::trillTypeUserName()
+QString Trill::trillTypeUserName() const
       {
       return qApp->translate("trillType", trillTable[static_cast<int>(trillType())].userName.toUtf8().constData());
       }
@@ -508,7 +509,7 @@ bool Trill::setProperty(P_ID propertyId, const QVariant& val)
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       return true;
       }
 
@@ -538,7 +539,7 @@ QVariant Trill::propertyDefault(P_ID propertyId) const
 
 void Trill::undoSetTrillType(Type val)
       {
-      score()->undoChangeProperty(this, P_ID::TRILL_TYPE, int(val));
+      undoChangeProperty(P_ID::TRILL_TYPE, int(val));
       }
 
 //---------------------------------------------------------
@@ -554,7 +555,7 @@ void Trill::setYoff(qreal val)
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString Trill::accessibleInfo()
+QString Trill::accessibleInfo() const
       {
       return QString("%1: %2").arg(Element::accessibleInfo()).arg(trillTypeUserName());
       }

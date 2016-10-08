@@ -27,47 +27,53 @@ namespace Ms {
 //---------------------------------------------------------
 
 struct Acc {
-      const char* tag;        // for use in xml file
-      const char* name;       // translated name
       AccidentalVal offset;   // semitone offset
       int centOffset;
       SymId sym;
-      Acc(const char* t, const char* n, AccidentalVal o, int o2, SymId s)
-         : tag(t), name(n), offset(o), centOffset(o2), sym(s) {}
+      Acc(AccidentalVal o, int o2, SymId s) : offset(o), centOffset(o2), sym(s) {}
       };
 
+// NOTE: keep this in sync with with AccidentalType enum, watch out for isMicrotonal()
 static Acc accList[] = {
-      Acc("none",                QT_TRANSLATE_NOOP("accidental", "None"),                AccidentalVal::NATURAL, 0,    SymId::noSym),
-      Acc("sharp",               QT_TRANSLATE_NOOP("accidental", "Sharp"),               AccidentalVal::SHARP,   0,    SymId::accidentalSharp),
-      Acc("flat",                QT_TRANSLATE_NOOP("accidental", "Flat"),                AccidentalVal::FLAT,    0,    SymId::accidentalFlat),
-      Acc("double sharp",        QT_TRANSLATE_NOOP("accidental", "Double sharp"),        AccidentalVal::SHARP2,  0,    SymId::accidentalDoubleSharp),
-      Acc("double flat",         QT_TRANSLATE_NOOP("accidental", "Double flat"),         AccidentalVal::FLAT2,   0,    SymId::accidentalDoubleFlat),
-      Acc("natural",             QT_TRANSLATE_NOOP("accidental", "Natural"),             AccidentalVal::NATURAL, 0,    SymId::accidentalNatural),
+      Acc(AccidentalVal::NATURAL, 0,    SymId::noSym),                // NONE
+      Acc(AccidentalVal::FLAT,    0,    SymId::accidentalFlat),       // FLAT
+      Acc(AccidentalVal::NATURAL, 0,    SymId::accidentalNatural),    // NATURAL
+      Acc(AccidentalVal::SHARP,   0,    SymId::accidentalSharp),      // SHARP
+      Acc(AccidentalVal::SHARP2,  0,    SymId::accidentalDoubleSharp),// SHARP2
+      Acc(AccidentalVal::FLAT2,   0,    SymId::accidentalDoubleFlat), // FLAT2
+      //Acc(AccidentalVal::SHARP3,  0,    SymId::accidentalTripleSharp),// SHARP3
+      //Acc(AccidentalVal::FLAT3,   0,    SymId::accidentalTripleFlat), // FLAT3
+      Acc(AccidentalVal::FLAT,    0,    SymId::accidentalNaturalFlat),  // NATURAL_FLAT
+      Acc(AccidentalVal::SHARP,   0,    SymId::accidentalNaturalSharp), // NATURAL_SHARP
+      Acc(AccidentalVal::SHARP2,  0,    SymId::accidentalSharpSharp),   // SHARP_SHARP
 
-      Acc("flat-slash",          QT_TRANSLATE_NOOP("accidental", "Flat-slash"),          AccidentalVal::NATURAL, -50,  SymId::accidentalBakiyeFlat),
-      Acc("flat-slash2",         QT_TRANSLATE_NOOP("accidental", "Flat-slash2"),         AccidentalVal::NATURAL, 0,    SymId::accidentalBuyukMucennebFlat),
-      Acc("mirrored-flat2",      QT_TRANSLATE_NOOP("accidental", "Mirrored-flat2"),      AccidentalVal::NATURAL, -150, SymId::accidentalThreeQuarterTonesFlatZimmermann),
-      Acc("mirrored-flat",       QT_TRANSLATE_NOOP("accidental", "Mirrored-flat"),       AccidentalVal::NATURAL, -50,  SymId::accidentalQuarterToneFlatStein),
-      Acc("mirrored-flat-slash", QT_TRANSLATE_NOOP("accidental", "Mirrored-flat-slash"), AccidentalVal::NATURAL, 0,    SymId::noSym), //TODO-smufl
-      Acc("flat-flat-slash",     QT_TRANSLATE_NOOP("accidental", "Flat-flat-slash"),     AccidentalVal::NATURAL, -150, SymId::noSym), //TODO-smufl
+      // Gould arrow quartertone
+      Acc(AccidentalVal::NATURAL, -50,  SymId::accidentalQuarterToneFlatArrowUp),        // FLAT_ARROW_UP
+      Acc(AccidentalVal::NATURAL, -150, SymId::accidentalThreeQuarterTonesFlatArrowDown),// FLAT_ARROW_DOWN
+      Acc(AccidentalVal::NATURAL, 50,   SymId::accidentalQuarterToneSharpNaturalArrowUp),// NATURAL_ARROW_UP
+      Acc(AccidentalVal::NATURAL, -50,  SymId::accidentalQuarterToneFlatNaturalArrowDown), // NATURAL_ARROW_DOWN
+      Acc(AccidentalVal::NATURAL, 150,  SymId::accidentalThreeQuarterTonesSharpArrowUp), // SHARP_ARROW_UP
+      Acc(AccidentalVal::NATURAL, 50,   SymId::accidentalQuarterToneSharpArrowDown),     // SHARP_ARROW_DOWN
+      Acc(AccidentalVal::NATURAL, 250,  SymId::accidentalFiveQuarterTonesSharpArrowUp),    // SHARP2_ARROW_UP
+      Acc(AccidentalVal::NATURAL, 150,  SymId::accidentalThreeQuarterTonesSharpArrowDown), // SHARP2_ARROW_DOWN
+      Acc(AccidentalVal::NATURAL, -250, SymId::accidentalThreeQuarterTonesFlatArrowUp),    // FLAT2_ARROW_UP
+      Acc(AccidentalVal::NATURAL, -150, SymId::accidentalFiveQuarterTonesFlatArrowDown),   // FLAT2_ARROW_DOWN
 
-      Acc("sharp-slash",         QT_TRANSLATE_NOOP("accidental", "Sharp-slash"),         AccidentalVal::NATURAL, 50,   SymId::accidentalQuarterToneSharpStein),
-      Acc("sharp-slash2",        QT_TRANSLATE_NOOP("accidental", "Sharp-slash2"),        AccidentalVal::NATURAL, 0,    SymId::accidentalBuyukMucennebSharp),
-      Acc("sharp-slash3",        QT_TRANSLATE_NOOP("accidental", "Sharp-slash3"),        AccidentalVal::NATURAL, 0,    SymId::accidentalKucukMucennebSharp),
-      Acc("sharp-slash4",        QT_TRANSLATE_NOOP("accidental", "Sharp-slash4"),        AccidentalVal::NATURAL, 150,  SymId::accidentalThreeQuarterTonesSharpStein),
+      // Stein-Zimmermann
+      Acc(AccidentalVal::NATURAL, -50,  SymId::accidentalQuarterToneFlatStein), // MIRRORED_FLAT
+      Acc(AccidentalVal::NATURAL, -150, SymId::accidentalThreeQuarterTonesFlatZimmermann), // MIRRORED_FLAT2
+      Acc(AccidentalVal::NATURAL, 50,   SymId::accidentalQuarterToneSharpStein),       // SHARP_SLASH
+      Acc(AccidentalVal::NATURAL, 150,  SymId::accidentalThreeQuarterTonesSharpStein), // SHARP_SLASH4
 
-      Acc("sharp arrow up",      QT_TRANSLATE_NOOP("accidental", "Sharp arrow up"),      AccidentalVal::NATURAL, 150,  SymId::accidentalThreeQuarterTonesSharpArrowUp),
-      Acc("sharp arrow down",    QT_TRANSLATE_NOOP("accidental", "Sharp arrow down"),    AccidentalVal::NATURAL, 50,   SymId::accidentalQuarterToneSharpArrowDown),
-      Acc("sharp arrow both",    QT_TRANSLATE_NOOP("accidental", "Sharp arrow both"),    AccidentalVal::NATURAL, 0,    SymId::noSym), //TODO-smufl
-      Acc("flat arrow up",       QT_TRANSLATE_NOOP("accidental", "Flat arrow up"),       AccidentalVal::NATURAL, -50,  SymId::accidentalQuarterToneFlatArrowUp),
-      Acc("flat arrow down",     QT_TRANSLATE_NOOP("accidental", "Flat arrow down"),     AccidentalVal::NATURAL, -150, SymId::accidentalThreeQuarterTonesFlatArrowDown),
-      Acc("flat arrow both",     QT_TRANSLATE_NOOP("accidental", "Flat arrow both"),     AccidentalVal::NATURAL, 0,    SymId::noSym), //TODO-smufl
-      Acc("natural arrow up",    QT_TRANSLATE_NOOP("accidental", "Natural arrow up"),    AccidentalVal::NATURAL, 50,   SymId::accidentalQuarterToneSharpNaturalArrowUp),
-      Acc("natural arrow down",  QT_TRANSLATE_NOOP("accidental", "Natural arrow down"),  AccidentalVal::NATURAL, -50,  SymId::accidentalQuarterToneFlatNaturalArrowDown),
-      Acc("natural arrow both",  QT_TRANSLATE_NOOP("accidental", "Natural arrow both"),  AccidentalVal::NATURAL, 0,    SymId::noSym), //TODO-smufl
+      //Arel-Ezgi-Uzdilek (AEU)
+      Acc(AccidentalVal::NATURAL, 0,    SymId::accidentalBuyukMucennebFlat),  // FLAT_SLASH2
+      Acc(AccidentalVal::NATURAL, 0,    SymId::accidentalBakiyeFlat),         // FLAT_SLASH
+      Acc(AccidentalVal::NATURAL, 0,    SymId::accidentalKucukMucennebSharp), // SHARP_SLASH3
+      Acc(AccidentalVal::NATURAL, 0,    SymId::accidentalBuyukMucennebSharp), // SHARP_SLASH2
 
-      Acc("sori",                QT_TRANSLATE_NOOP("accidental", "Sori"),                AccidentalVal::NATURAL, 50,   SymId::accidentalSori),
-      Acc("koron",               QT_TRANSLATE_NOOP("accidental", "Koron"),               AccidentalVal::NATURAL, -50,  SymId::accidentalKoron)
+      // Persian
+      Acc(AccidentalVal::NATURAL, 50,   SymId::accidentalSori),                          // SORI
+      Acc(AccidentalVal::NATURAL, -50,  SymId::accidentalKoron),                         // KORON
       };
 
 //---------------------------------------------------------
@@ -97,124 +103,8 @@ void Accidental::read(XmlReader& e)
                   if (i == 0 || i == 1)
                         _hasBracket = i;
                   }
-            else if (tag == "subtype") {
-                  QString text(e.readElementText());
-                  bool isInt;
-                  int i = text.toInt(&isInt);
-                  if (isInt) {
-                        _hasBracket = i & 0x8000;
-                        i &= ~0x8000;
-                        AccidentalType at;
-                        switch(i) {
-                               case 0:
-                                     at = AccidentalType::NONE;
-                                     break;
-                               case 1:
-                               case 11:
-                                     at = AccidentalType::SHARP;
-                                     break;
-                               case 2:
-                               case 12:
-                                     at = AccidentalType::FLAT;
-                                     break;
-                               case 3:
-                               case 13:
-                                     at = AccidentalType::SHARP2;
-                                     break;
-                               case 4:
-                               case 14:
-                                     at = AccidentalType::FLAT2;
-                                     break;
-                               case 5:
-                               case 15:
-                                     at = AccidentalType::NATURAL;
-                                     break;
-                               case 6:
-                                     at = AccidentalType::SHARP;
-                                     _hasBracket = true;
-                                     break;
-                               case 7:
-                                     at = AccidentalType::FLAT;
-                                     _hasBracket = true;
-                                     break;
-                               case 8:
-                                     at = AccidentalType::SHARP2;
-                                     _hasBracket = true;
-                                     break;
-                               case 9:
-                                     at = AccidentalType::FLAT2;
-                                     _hasBracket = true;
-                                     break;
-                               case 10:
-                                     at = AccidentalType::NATURAL;
-                                     _hasBracket = true;
-                                     break;
-                               case 16:
-                                     at = AccidentalType::FLAT_SLASH;
-                                     break;
-                               case 17:
-                                     at = AccidentalType::FLAT_SLASH2;
-                                     break;
-                               case 18:
-                                     at = AccidentalType::MIRRORED_FLAT2;
-                                     break;
-                               case 19:
-                                     at = AccidentalType::MIRRORED_FLAT;
-                                     break;
-                               case 20:
-                                     at = AccidentalType::MIRRORED_FLAT_SLASH;
-                                     break;
-                               case 21:
-                                     at = AccidentalType::FLAT_FLAT_SLASH;
-                                     break;
-                               case 22:
-                                     at = AccidentalType::SHARP_SLASH;
-                                     break;
-                               case 23:
-                                     at = AccidentalType::SHARP_SLASH2;
-                                     break;
-                               case 24:
-                                     at = AccidentalType::SHARP_SLASH3;
-                                     break;
-                               case 25:
-                                     at = AccidentalType::SHARP_SLASH4;
-                                     break;
-                               case 26:
-                                     at = AccidentalType::SHARP_ARROW_UP;
-                                     break;
-                               case 27:
-                                     at = AccidentalType::SHARP_ARROW_DOWN;
-                                     break;
-                               case 28:
-                                     at = AccidentalType::SHARP_ARROW_BOTH;
-                                     break;
-                               case 29:
-                                     at = AccidentalType::FLAT_ARROW_UP;
-                                     break;
-                               case 30:
-                                     at = AccidentalType::FLAT_ARROW_DOWN;
-                                     break;
-                               case 31:
-                                     at = AccidentalType::FLAT_ARROW_BOTH;
-                                     break;
-                               case 32:
-                                     at = AccidentalType::NATURAL_ARROW_UP;
-                                     break;
-                               case 33:
-                                     at = AccidentalType::NATURAL_ARROW_DOWN;
-                                     break;
-                               case 34:
-                                     at = AccidentalType::NATURAL_ARROW_BOTH;
-                                     break;
-                               default:
-                                     at = AccidentalType::NONE;
-                                     break;
-                               }
-                        setAccidentalType(AccidentalType(at));
-                        }
-                  else
-                        setSubtype(text);
-                  }
+            else if (tag == "subtype")
+                  setSubtype(e.readElementText());
             else if (tag == "role") {
                   AccidentalRole r = AccidentalRole(e.readInt());
                   if (r == AccidentalRole::AUTO || r == AccidentalRole::USER)
@@ -222,12 +112,6 @@ void Accidental::read(XmlReader& e)
                   }
             else if (tag == "small")
                   _small = e.readInt();
-            else if (tag == "offset") {
-                  if (score()->mscVersion() > 114)
-                        Element::readProperties(e);
-                  else
-                        e.skipCurrentElement(); // ignore manual layout in older scores
-                  }
             else if (Element::readProperties(e))
                   ;
             else
@@ -245,7 +129,7 @@ void Accidental::write(Xml& xml) const
       writeProperty(xml, P_ID::ACCIDENTAL_BRACKET);
       writeProperty(xml, P_ID::ROLE);
       writeProperty(xml, P_ID::SMALL);
-      xml.tag("subtype", accList[int(_accidentalType)].tag);
+      xml.tag("subtype", subtype2name(accidentalType()));
       Element::writeProperties(xml);
       xml.etag();
       }
@@ -254,9 +138,9 @@ void Accidental::write(Xml& xml) const
 //   subTypeUserName
 //---------------------------------------------------------
 
-const char* Accidental::subtypeUserName() const
+QString Accidental::subtypeUserName() const
       {
-      return accList[int(accidentalType())].name;
+      return Sym::id2userName(symbol());
       }
 
 //---------------------------------------------------------
@@ -284,7 +168,7 @@ AccidentalVal Accidental::subtype2value(AccidentalType st)
 
 const char* Accidental::subtype2name(AccidentalType st)
       {
-      return accList[int(st)].name;
+      return Sym::id2name(accList[int(st)].sym);
       }
 
 //---------------------------------------------------------
@@ -293,11 +177,16 @@ const char* Accidental::subtype2name(AccidentalType st)
 
 AccidentalType Accidental::name2subtype(const QString& tag)
       {
-      int i = 0;
-      for (const Acc& acc : accList) {
-            if (acc.tag == tag)
-                  return AccidentalType(i);
-            ++i;
+      SymId symId = Sym::name2id(tag);
+      if (symId == SymId::noSym)
+            ; // qDebug("no symbol found");
+      else {
+            int i = 0;
+            for (const Acc& acc : accList) {
+                  if (acc.sym == symId)
+                        return AccidentalType(i);
+                  ++i;
+                  }
             }
       return AccidentalType::NONE;
       }
@@ -321,8 +210,7 @@ void Accidental::layout()
 
       QRectF r;
       // don't show accidentals for tab or slash notation
-      if ((staff() && staff()->isTabStaff())
-          || (note() && note()->fixed())) {
+      if ((staff() && staff()->isTabStaff()) || (note() && note()->fixed())) {
             setbbox(r);
             return;
             }
@@ -367,7 +255,7 @@ AccidentalType Accidental::value2subtype(AccidentalVal v)
             case AccidentalVal::FLAT:    return AccidentalType::FLAT;
             case AccidentalVal::FLAT2:   return AccidentalType::FLAT2;
             default:
-                  qFatal("value2subtype: illegal accidental val %hhd", v);
+                  qFatal("value2subtype: illegal accidental val %d", int(v));
             }
       return AccidentalType::NONE;
       }
@@ -379,12 +267,10 @@ AccidentalType Accidental::value2subtype(AccidentalVal v)
 void Accidental::draw(QPainter* painter) const
       {
       // don't show accidentals for tab or slash notation
-      if ((staff() && staff()->isTabStaff())
-          || (note() && note()->fixed())) {
+      if ((staff() && staff()->isTabStaff()) || (note() && note()->fixed()))
             return;
-            }
       painter->setPen(curColor());
-      foreach(const SymElement& e, el)
+      for (const SymElement& e : el)
             score()->scoreFont()->draw(e.sym, painter, magS(), QPointF(e.x, 0.0));
       }
 
@@ -395,7 +281,7 @@ void Accidental::draw(QPainter* painter) const
 bool Accidental::acceptDrop(const DropData& data) const
       {
       Element* e = data.element;
-      return e->type() == Element::Type::ICON && static_cast<Icon*>(e)->iconType() == IconType::BRACKETS;
+      return e->isIcon() && toIcon(e)->iconType() == IconType::BRACKETS;
       }
 
 //---------------------------------------------------------
@@ -407,7 +293,7 @@ Element* Accidental::drop(const DropData& data)
       Element* e = data.element;
       switch(e->type()) {
             case Element::Type::ICON :
-                  if (static_cast<Icon*>(e)->iconType() == IconType::BRACKETS && !_hasBracket)
+                  if (toIcon(e)->iconType() == IconType::BRACKETS && !_hasBracket)
                         undoSetHasBracket(true);
                   break;
 
@@ -424,7 +310,7 @@ Element* Accidental::drop(const DropData& data)
 
 void Accidental::undoSetHasBracket(bool val)
       {
-      score()->undoChangeProperty(this, P_ID::ACCIDENTAL_BRACKET, val);
+      undoChangeProperty(P_ID::ACCIDENTAL_BRACKET, val);
       }
 
 //---------------------------------------------------------
@@ -433,7 +319,7 @@ void Accidental::undoSetHasBracket(bool val)
 
 void Accidental::undoSetSmall(bool val)
       {
-      score()->undoChangeProperty(this, P_ID::SMALL, val);
+      undoChangeProperty(P_ID::SMALL, val);
       }
 
 //---------------------------------------------------------
@@ -485,8 +371,7 @@ bool Accidental::setProperty(P_ID propertyId, const QVariant& v)
             default:
                   return Element::setProperty(propertyId, v);
             }
-      layout();
-      score()->setLayoutAll(true);  // spacing changes
+      triggerLayout();
       return true;
       }
 
@@ -494,9 +379,9 @@ bool Accidental::setProperty(P_ID propertyId, const QVariant& v)
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString Accidental::accessibleInfo()
+QString Accidental::accessibleInfo() const
       {
-      return QString("%1: %2").arg(Element::accessibleInfo()).arg(qApp->translate("accidental", Accidental::subtypeUserName()));
+      return QString("%1: %2").arg(Element::accessibleInfo()).arg(Accidental::subtypeUserName());
       }
 
 }

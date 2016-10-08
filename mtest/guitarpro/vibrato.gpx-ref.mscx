@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -139,8 +139,9 @@
           <lid>7</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>wigglevibratolargefaster</subtype>
+            <subtype>wiggleVibratoLargeFaster</subtype>
             <lid>6</lid>
+            <anchor>0</anchor>
             </Articulation>
           <Note>
             <lid>8</lid>
@@ -168,8 +169,9 @@
           <lid>14</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>wigglevibratolargeslowest</subtype>
+            <subtype>wiggleVibratoLargeSlowest</subtype>
             <lid>13</lid>
+            <anchor>0</anchor>
             </Articulation>
           <Note>
             <lid>15</lid>
@@ -197,8 +199,9 @@
           <lid>21</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>wigglesawtooth</subtype>
+            <subtype>wiggleSawtooth</subtype>
             <lid>20</lid>
+            <anchor>0</anchor>
             </Articulation>
           <Note>
             <lid>22</lid>
@@ -226,8 +229,9 @@
           <lid>28</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>wigglesawtoothwide</subtype>
+            <subtype>wiggleSawtoothWide</subtype>
             <lid>27</lid>
+            <anchor>0</anchor>
             </Articulation>
           <Note>
             <lid>29</lid>
@@ -249,10 +253,6 @@
           <lid>32</lid>
           <durationType>quarter</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -415,8 +415,9 @@
             <lid>7</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglevibratolargefaster</subtype>
+              <subtype>wiggleVibratoLargeFaster</subtype>
               <lid>6</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>8</lid>
@@ -444,8 +445,9 @@
             <lid>14</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglevibratolargeslowest</subtype>
+              <subtype>wiggleVibratoLargeSlowest</subtype>
               <lid>13</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>15</lid>
@@ -473,8 +475,9 @@
             <lid>21</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglesawtooth</subtype>
+              <subtype>wiggleSawtooth</subtype>
               <lid>20</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>22</lid>
@@ -502,8 +505,9 @@
             <lid>28</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglesawtoothwide</subtype>
+              <subtype>wiggleSawtoothWide</subtype>
               <lid>27</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>29</lid>
@@ -525,10 +529,6 @@
             <lid>32</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -541,8 +541,9 @@
             <lid>7</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglevibratolargefaster</subtype>
+              <subtype>wiggleVibratoLargeFaster</subtype>
               <lid>6</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>8</lid>
@@ -570,8 +571,9 @@
             <lid>14</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglevibratolargeslowest</subtype>
+              <subtype>wiggleVibratoLargeSlowest</subtype>
               <lid>13</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>15</lid>
@@ -599,8 +601,9 @@
             <lid>21</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglesawtooth</subtype>
+              <subtype>wiggleSawtooth</subtype>
               <lid>20</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>22</lid>
@@ -628,8 +631,9 @@
             <lid>28</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>wigglesawtoothwide</subtype>
+              <subtype>wiggleSawtoothWide</subtype>
               <lid>27</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>29</lid>
@@ -651,10 +655,6 @@
             <lid>32</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>E-Gt</name>

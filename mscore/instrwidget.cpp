@@ -39,7 +39,6 @@
 
 namespace Ms {
 
-extern bool useFactorySettings;
 void filterInstruments(QTreeWidget *instrumentList, const QString &searchPhrase = QString());
 
 //---------------------------------------------------------
@@ -460,7 +459,7 @@ void InstrumentsWidget::genPartList(Score* cs)
                   sli->setPartIdx(s->rstaff());
                   const LinkedStaves* ls = s->linkedStaves();
                   bool bLinked = false;
-                  if (ls && !ls->isEmpty()) {
+                  if (ls && !ls->empty()) {
                         foreach(Staff* ps, ls->staves()) {
                               if (ps != s && ps->score() == s->score()) {
                                     bLinked = true;
@@ -938,19 +937,6 @@ void InstrumentsWidget::filterInstrumentsByGenre(QTreeWidget *instrumentList, QS
       }
 
 //---------------------------------------------------------
-//   writeSettings
-//---------------------------------------------------------
-
-void InstrumentsWidget::writeSettings()
-      {
-      QSettings settings;
-      settings.beginGroup("Instruments");
-      settings.setValue("size", size());
-      settings.setValue("pos", pos());
-      settings.endGroup();
-      }
-
-//---------------------------------------------------------
 //   createInstruments
 //---------------------------------------------------------
 
@@ -1029,7 +1015,7 @@ void InstrumentsWidget::createInstruments(Score* cs)
             staffIdx = nstaffIdx;
             }
 
-      cs->setLayoutAll(true);
+      cs->setLayoutAll();
       }
 
 //---------------------------------------------------------

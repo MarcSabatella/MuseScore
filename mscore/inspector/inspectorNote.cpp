@@ -28,9 +28,8 @@ namespace Ms {
 //---------------------------------------------------------
 
 InspectorNote::InspectorNote(QWidget* parent)
-   : InspectorBase(parent)
+   : InspectorElementBase(parent)
       {
-      b.setupUi(addWidget());
       s.setupUi(addWidget());
       c.setupUi(addWidget());
       n.setupUi(addWidget());
@@ -53,7 +52,7 @@ InspectorNote::InspectorNote(QWidget* parent)
             };
 
       //
-      // fix order of note heads
+      // fix order of noteheads
       //
       for (unsigned i = 0; i < sizeof(heads)/sizeof(*heads); ++i) {
             n.noteHeadGroup->addItem(qApp->translate("noteheadnames", NoteHead::groupToGroupName(heads[i])));
@@ -64,12 +63,7 @@ InspectorNote::InspectorNote(QWidget* parent)
       for (int i = 0; i <= int(NoteHead::Type::HEAD_TYPES); ++i)
             n.noteHeadType->setItemData(i, i-1);
 
-      iList = {
-            { P_ID::COLOR,          0, 0, b.color,         b.resetColor         },
-            { P_ID::VISIBLE,        0, 0, b.visible,       b.resetVisible       },
-            { P_ID::USER_OFF,       0, 0, b.offsetX,       b.resetX             },
-            { P_ID::USER_OFF,       1, 0, b.offsetY,       b.resetY             },
-
+      const std::vector<InspectorItem> iiList = {
             { P_ID::SMALL,          0, 0, n.small,         n.resetSmall         },
             { P_ID::HEAD_GROUP,     0, 0, n.noteHeadGroup, n.resetNoteHeadGroup },
             { P_ID::HEAD_TYPE,      0, 0, n.noteHeadType,  n.resetNoteHeadType  },
@@ -89,70 +83,17 @@ InspectorNote::InspectorNote(QWidget* parent)
             { P_ID::STEM_DIRECTION, 0, 1, c.stemDirection, c.resetStemDirection },
 
             { P_ID::LEADING_SPACE,  0, 2, s.leadingSpace,  s.resetLeadingSpace  },
-            { P_ID::TRAILING_SPACE, 0, 2, s.trailingSpace, s.resetTrailingSpace }
             };
+      mapSignals(iiList);
 
-      mapSignals();
-
-      //
-      // Select
-      //
-      QLabel* l = new QLabel;
-      l->setText(tr("Select"));
-      QFont font(l->font());
-      font.setBold(true);
-      l->setFont(font);
-      l->setAlignment(Qt::AlignHCenter);
-      _layout->addWidget(l);
-      QFrame* f = new QFrame;
-      f->setFrameStyle(QFrame::HLine | QFrame::Raised);
-      f->setLineWidth(2);
-      _layout->addWidget(f);
-
-      QHBoxLayout* hbox = new QHBoxLayout;
-      dot1 = new QToolButton(this);
-      dot1->setText(tr("Dot1"));
-      dot1->setEnabled(false);
-      hbox->addWidget(dot1);
-      dot2 = new QToolButton(this);
-      dot2->setText(tr("Dot2"));
-      dot2->setEnabled(false);
-      hbox->addWidget(dot2);
-      dot3 = new QToolButton(this);
-      dot3->setText(tr("Dot3"));
-      dot3->setEnabled(false);
-      hbox->addWidget(dot3);
-      _layout->addLayout(hbox);
-
-      hbox = new QHBoxLayout;
-      hook = new QToolButton(this);
-      hook->setText(tr("Hook"));
-      hook->setEnabled(false);
-      hbox->addWidget(hook);
-      stem = new QToolButton(this);
-      stem->setText(tr("Stem"));
-      stem->setEnabled(false);
-      hbox->addWidget(stem);
-      beam = new QToolButton(this);
-      beam->setText(tr("Beam"));
-      beam->setEnabled(false);
-      hbox->addWidget(beam);
-      _layout->addLayout(hbox);
-
-      hbox = new QHBoxLayout;
-      tuplet = new QToolButton(this);
-      tuplet->setText(tr("Tuplet"));
-      tuplet->setEnabled(false);
-      hbox->addWidget(tuplet);
-      _layout->addLayout(hbox);
-
-      connect(dot1,     SIGNAL(clicked()),     SLOT(dot1Clicked()));
-      connect(dot2,     SIGNAL(clicked()),     SLOT(dot2Clicked()));
-      connect(dot3,     SIGNAL(clicked()),     SLOT(dot3Clicked()));
-      connect(hook,     SIGNAL(clicked()),     SLOT(hookClicked()));
-      connect(stem,     SIGNAL(clicked()),     SLOT(stemClicked()));
-      connect(beam,     SIGNAL(clicked()),     SLOT(beamClicked()));
-      connect(tuplet,   SIGNAL(clicked()),     SLOT(tupletClicked()));
+      connect(n.dot1,     SIGNAL(clicked()),     SLOT(dot1Clicked()));
+      connect(n.dot2,     SIGNAL(clicked()),     SLOT(dot2Clicked()));
+      connect(n.dot3,     SIGNAL(clicked()),     SLOT(dot3Clicked()));
+      connect(n.dot4,     SIGNAL(clicked()),     SLOT(dot4Clicked()));
+      connect(n.hook,     SIGNAL(clicked()),     SLOT(hookClicked()));
+      connect(n.stem,     SIGNAL(clicked()),     SLOT(stemClicked()));
+      connect(n.beam,     SIGNAL(clicked()),     SLOT(beamClicked()));
+      connect(n.tuplet,   SIGNAL(clicked()),     SLOT(tupletClicked()));
       }
 
 //---------------------------------------------------------
@@ -161,19 +102,20 @@ InspectorNote::InspectorNote(QWidget* parent)
 
 void InspectorNote::setElement()
       {
-      Note* note = static_cast<Note*>(inspector->element());
-      dot1->setEnabled(note->dot(0));
-      dot2->setEnabled(note->dot(1));
-      dot3->setEnabled(note->dot(2));
-      stem->setEnabled(note->chord()->stem());
-      hook->setEnabled(note->chord()->hook());
-      beam->setEnabled(note->chord()->beam());
-      tuplet->setEnabled(note->chord()->tuplet());
-      InspectorBase::setElement();
+      Note* note = toNote(inspector->element());
+
+      int i = note->dots().size();
+      n.dot1->setEnabled(i > 0);
+      n.dot2->setEnabled(i > 1);
+      n.dot3->setEnabled(i > 2);
+      n.dot4->setEnabled(i > 3);
+      n.stem->setEnabled(note->chord()->stem());
+      n.hook->setEnabled(note->chord()->hook());
+      n.beam->setEnabled(note->chord()->beam());
+      n.tuplet->setEnabled(note->chord()->tuplet());
+      InspectorElementBase::setElement();
       bool nograce = !note->chord()->isGrace();
       s.leadingSpace->setEnabled(nograce);
-      s.trailingSpace->setEnabled(nograce);
-      s.resetTrailingSpace->setEnabled(nograce && s.trailingSpace->value());
       s.resetLeadingSpace->setEnabled(nograce && s.leadingSpace->value());
       }
 
@@ -183,14 +125,14 @@ void InspectorNote::setElement()
 
 void InspectorNote::dot1Clicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
-      NoteDot* dot = note->dot(0);
-      if (dot) {
+      if (note->dots().size() > 0) {
+            NoteDot* dot = note->dot(0);
             dot->score()->select(dot);
             inspector->setElement(dot);
-            dot->score()->end();
+            dot->score()->update();
             }
       }
 
@@ -200,14 +142,14 @@ void InspectorNote::dot1Clicked()
 
 void InspectorNote::dot2Clicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
-      NoteDot* dot = note->dot(1);
-      if (dot) {
+      if (note->dots().size() > 1) {
+            NoteDot* dot = note->dot(1);
             dot->score()->select(dot);
             inspector->setElement(dot);
-            dot->score()->end();
+            dot->score()->update();
             }
       }
 
@@ -217,14 +159,31 @@ void InspectorNote::dot2Clicked()
 
 void InspectorNote::dot3Clicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
-      NoteDot* dot = note->dot(2);
-      if (dot) {
+      if (note->dots().size() > 2) {
+            NoteDot* dot = note->dot(2);
             dot->score()->select(dot);
             inspector->setElement(dot);
-            dot->score()->end();
+            dot->score()->update();
+            }
+      }
+
+//---------------------------------------------------------
+//   dot4Clicked
+//---------------------------------------------------------
+
+void InspectorNote::dot4Clicked()
+      {
+      Note* note = toNote(inspector->element());
+      if (note == 0)
+            return;
+      if (note->dots().size() > 3) {
+            NoteDot* dot = note->dot(3);
+            dot->score()->select(dot);
+            inspector->setElement(dot);
+            dot->score()->update();
             }
       }
 
@@ -234,14 +193,14 @@ void InspectorNote::dot3Clicked()
 
 void InspectorNote::hookClicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
       Hook* hook = note->chord()->hook();
       if (hook) {
             note->score()->select(hook);
             inspector->setElement(hook);
-            note->score()->end();
+            note->score()->update();
             }
       }
 
@@ -251,14 +210,14 @@ void InspectorNote::hookClicked()
 
 void InspectorNote::stemClicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
       Stem* stem = note->chord()->stem();
       if (stem) {
             note->score()->select(stem);
             inspector->setElement(stem);
-            note->score()->end();
+            note->score()->update();
             }
       }
 
@@ -268,14 +227,14 @@ void InspectorNote::stemClicked()
 
 void InspectorNote::beamClicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
       Beam* beam = note->chord()->beam();
       if (beam) {
             note->score()->select(beam);
             inspector->setElement(beam);
-            note->score()->end();
+            note->score()->update();
             }
       }
 
@@ -285,14 +244,14 @@ void InspectorNote::beamClicked()
 
 void InspectorNote::tupletClicked()
       {
-      Note* note = static_cast<Note*>(inspector->element());
+      Note* note = toNote(inspector->element());
       if (note == 0)
             return;
       Tuplet* tuplet = note->chord()->tuplet();
       if (tuplet) {
             note->score()->select(tuplet);
             inspector->setElement(tuplet);
-            note->score()->end();
+            note->score()->update();
             }
       }
 

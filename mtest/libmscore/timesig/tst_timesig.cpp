@@ -35,6 +35,7 @@ class TestTimesig : public QObject, public MTest
       void timesig02();
       void timesig03();
       void timesig04();
+      void timesig_78216();
       };
 
 //---------------------------------------------------------
@@ -44,14 +45,17 @@ class TestTimesig : public QObject, public MTest
 
 void TestTimesig::timesig01()
       {
-      Score* score = readScore(DIR + "timesig01.mscx");
+      MasterScore* score = readScore(DIR + "timesig01.mscx");
       QVERIFY(score);
-      Measure* m = score->firstMeasure()->nextMeasure();
+      Measure* m  = score->firstMeasure()->nextMeasure();
       TimeSig* ts = new TimeSig(score);
       ts->setSig(Fraction(3, 4), TimeSigType::NORMAL);
 
-      score->cmdAddTimeSig(m, 0, ts, false);
-      score->doLayout();
+      score->startCmd();
+      int staffIdx = 0;
+      bool local   = false;
+      score->cmdAddTimeSig(m, staffIdx, ts, local);
+      score->endCmd();
 
       QVERIFY(saveCompareScore(score, "timesig01.mscx", DIR + "timesig01-ref.mscx"));
       delete score;
@@ -65,7 +69,7 @@ void TestTimesig::timesig01()
 
 void TestTimesig::timesig02()
       {
-      Score* score = readScore(DIR + "timesig-02.mscx");
+      MasterScore* score = readScore(DIR + "timesig-02.mscx");
       QVERIFY(score);
       Measure* m = score->firstMeasure();
       TimeSig* ts = new TimeSig(score);
@@ -76,7 +80,7 @@ void TestTimesig::timesig02()
       score->doLayout();
       score->endCmd();
 
-      QVERIFY(saveCompareScore(score, "timesig-02a.mscx", DIR + "timesig-02-ref.mscx"));
+      QVERIFY(saveCompareScore(score, "timesig-02.mscx", DIR + "timesig-02-ref.mscx"));
       delete score;
 
       }
@@ -92,7 +96,7 @@ void TestTimesig::timesig02()
 
 void TestTimesig::timesig03()
       {
-      Score* score = readScore(DIR + "timesig-03.mscx");
+      MasterScore* score = readScore(DIR + "timesig-03.mscx");
       QVERIFY(score);
       Measure* m = score->firstMeasure()->nextMeasure();
       TimeSig* ts = new TimeSig(score);
@@ -113,7 +117,7 @@ void TestTimesig::timesig03()
 
 void TestTimesig::timesig04()
       {
-      Score* score = readScore(DIR + "timesig-04.mscx");
+      MasterScore* score = readScore(DIR + "timesig-04.mscx");
       QVERIFY(score);
       Measure* m = score->firstMeasure()->nextMeasure();
       TimeSig* ts = new TimeSig(score);
@@ -124,6 +128,28 @@ void TestTimesig::timesig04()
 
       QVERIFY(saveCompareScore(score, "timesig-04.mscx", DIR + "timesig-04-ref.mscx"));
       delete score;
+      }
+
+
+//---------------------------------------------------------
+//   timesig_78216
+//    input score has section breaks on non-measure MeasureBase objects.
+//    should not display courtesy timesig at the end of final measure of each section (meas 1, 2, & 3), even if section break occurs on subsequent non-measure frame.
+//---------------------------------------------------------
+
+void TestTimesig::timesig_78216()
+      {
+      MasterScore* score = readScore(DIR + "timesig_78216.mscx");
+      score->doLayout();
+
+      Measure* m1 = score->firstMeasure();
+      Measure* m2 = m1->nextMeasure();
+      Measure* m3 = m2->nextMeasure();
+
+      // verify no timesig exists in segment of final tick of m1, m2, m3
+      QVERIFY2(m1->findSegment(Segment::Type::TimeSig, m1->endTick()) == nullptr, "Should be no timesig at end of measure 1.");
+      QVERIFY2(m2->findSegment(Segment::Type::TimeSig, m2->endTick()) == nullptr, "Should be no timesig at end of measure 2.");
+      QVERIFY2(m3->findSegment(Segment::Type::TimeSig, m3->endTick()) == nullptr, "Should be no timesig at end of measure 3.");
       }
 
 QTEST_MAIN(TestTimesig)

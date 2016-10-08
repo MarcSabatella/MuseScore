@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: editpitch.cpp 3775 2010-12-17 23:55:35Z miwarre $
 //
-//  Copyright (C) 2002-2009 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -19,6 +19,7 @@
 //=============================================================================
 
 #include "editpitch.h"
+#include "musescore.h"
 
 namespace Ms {
 
@@ -30,17 +31,21 @@ namespace Ms {
 EditPitch::EditPitch(QWidget *parent)
    : QDialog(parent)
       {
+      setObjectName("EditPitchNew");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       tableWidget->setCurrentCell(4, 0);                    // select centre C by default
+      MuseScore::restoreGeometry(this);
       }
 
 EditPitch::EditPitch(QWidget *parent, int midiCode)
    : QDialog(parent)
       {
+      setObjectName("EditPitchEdit");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       tableWidget->setCurrentCell(9-(midiCode/12), midiCode%12);
+      MuseScore::restoreGeometry(this);
       }
 
 EditPitch::~EditPitch()
@@ -48,16 +53,14 @@ EditPitch::~EditPitch()
 
 }
 
-void EditPitch::changeEvent(QEvent *e)
+//---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void EditPitch::hideEvent(QHideEvent* ev)
       {
-      QDialog::changeEvent(e);
-      switch (e->type()) {
-            case QEvent::LanguageChange:
-                  retranslateUi(this);
-                  break;
-            default:
-            break;
-            }
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(ev);
       }
 
 void EditPitch::accept()

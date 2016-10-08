@@ -27,6 +27,12 @@
 
 namespace Ms {
 
+static constexpr qreal  FB_CONTLINE_HEIGHT            = 0.875;    // the % of font EM to raise the cont. line at
+                                                                  // (0 = top of font; 1 = bottom of font)
+static constexpr qreal  FB_CONTLINE_LEFT_PADDING      = 0.1875;   // (3/16sp) the blank space at the left of a cont. line (in sp)
+static constexpr qreal  FB_CONTLINE_OVERLAP           = 0.125;    // (1/8sp)  the overlap of an extended cont. line (in sp)
+static constexpr qreal  FB_CONTLINE_THICKNESS         = 0.09375;  // (3/32sp) the thickness of a cont. line (in sp)
+
 // the array of configured fonts
 static QList<FiguredBassFont> g_FBFonts;
 
@@ -444,24 +450,26 @@ void FiguredBassItem::layout()
       // contruct font metrics
       int   fontIdx = 0;
       QFont f(g_FBFonts.at(fontIdx).family);
-      // font size in points, scaled according to spatium()
-      qreal m = score()->styleD(StyleIdx::figuredBassFontSize) * spatium() / ( SPATIUM20 * MScore::DPI);
-      f.setPointSizeF(m);
-      QFontMetrics      fm(f);
 
-      QString           str = QString();
-      x = symWidth(SymId::noteheadBlack) * .5;
+      // font size in pixels, scaled according to spatium()
+      // (use the same font selection as used in draw() below)
+      qreal m = score()->styleD(StyleIdx::figuredBassFontSize) * spatium() / SPATIUM20;
+      f.setPointSizeF(m);
+      QFontMetricsF fm(f, MScore::paintDevice());
+
+      QString str;
+      x  = symWidth(SymId::noteheadBlack) * .5;
       x1 = x2 = 0.0;
 
       // create display text
       int font = 0;
       int style = score()->styleI(StyleIdx::figuredBassStyle);
 
-      if(parenth[0] != Parenthesis::NONE)
+      if (parenth[0] != Parenthesis::NONE)
             str.append(g_FBFonts.at(font).displayParenthesis[int(parenth[0])]);
 
       // prefix
-      if(_prefix != Modifier::NONE) {
+      if (_prefix != Modifier::NONE) {
             // if no digit, the string created so far 'hangs' to the left of the note
             if(_digit == FBIDigitNone)
                   x1 = fm.width(str);
@@ -545,30 +553,30 @@ void FiguredBassItem::layout()
 
 void FiguredBassItem::draw(QPainter* painter) const
       {
-      int font = 0;
+      int   font = 0;
+      qreal _spatium = spatium();
       // set font from general style
       QFont f(g_FBFonts.at(font).family);
 #ifdef USE_GLYPHS
       f.setHintingPreference(QFont::PreferVerticalHinting);
 #endif
-      // font size in pixels, scaled according to spatium()
-      qreal m = score()->styleD(StyleIdx::figuredBassFontSize) * MScore::DPI / PPI;
-      m *= spatium() / (SPATIUM20 * MScore::DPI);     // make spatium dependent
-      f.setPixelSize(lrint(m));
+      // (use the same font selection as used in layout() above)
+      qreal m = score()->styleD(StyleIdx::figuredBassFontSize) * spatium() / SPATIUM20;
+      f.setPointSizeF(m);
 
       painter->setFont(f);
       painter->setBrush(Qt::NoBrush);
-      painter->setPen(figuredBass()->curColor());
+      QPen pen(figuredBass()->curColor(), FB_CONTLINE_THICKNESS * _spatium, Qt::SolidLine, Qt::RoundCap);
+      painter->setPen(pen);
       painter->drawText(bbox(), Qt::TextDontClip | Qt::AlignLeft | Qt::AlignTop, displayText());
 
       // continuation line
       qreal lineEndX = 0.0;
       if (_contLine > ContLine::NONE) {
-            qreal _spatium = spatium();
             qreal lineStartX   = textWidth;                       // by default, line starts right after text
             if (lineStartX > 0.0)
-                  lineStartX += _spatium * 0.1;                   // if some text, give some room after it
-            lineEndX = figuredBass()->printedLineLength();        // by default, line ends
+                  lineStartX += _spatium * FB_CONTLINE_LEFT_PADDING;    // if some text, give some room after it
+            lineEndX = figuredBass()->printedLineLength();        // by default, line ends with item duration
             if(lineEndX - lineStartX < 1.0)                       // if line length < 1 sp, ignore it
                   lineEndX = 0.0;
 
@@ -583,14 +591,15 @@ void FiguredBassItem::draw(QPainter* painter) const
                         qreal nextContPageX = nextFB->additionalContLineX(pgPos.y());
                         // if an additional cont. line has been found, extend up to its initial X coord
                         if (nextContPageX > 0)
-                              lineEndX = nextContPageX - pgPos.x() + _spatium*0.125;  // with a little bit of overlap
+                              lineEndX = nextContPageX - pgPos.x() + _spatium*FB_CONTLINE_OVERLAP;
+                                                                              // with a little bit of overlap
                         else
-                              lineEndX = figuredBass()->lineLength(0);              // if none found, draw to the duration end
+                              lineEndX = figuredBass()->lineLength(0);        // if none found, draw to the duration end
                         }
                   }
             // if some line, draw it
             if (lineEndX > 0.0) {
-                  qreal h = bbox().height() * 0.875;
+                  qreal h = bbox().height() * FB_CONTLINE_HEIGHT;
                   painter->drawLine(lineStartX, h, lineEndX - ipos().x(), h);
                   }
             }
@@ -684,7 +693,7 @@ bool FiguredBassItem::setProperty(P_ID propertyId, const QVariant& v)
             default:
                   return Element::setProperty(propertyId, v);
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       return true;
       }
 
@@ -710,60 +719,60 @@ QVariant FiguredBassItem::propertyDefault(P_ID id) const
 void FiguredBassItem::undoSetPrefix(Modifier pref)
       {
       if(pref <= Modifier::CROSS) {
-            score()->undoChangeProperty(this, P_ID::FBPREFIX, (int)pref);
+            undoChangeProperty(P_ID::FBPREFIX, (int)pref);
             // if setting some prefix and there is a suffix already, clear suffix
             if(pref != Modifier::NONE && _suffix != Modifier::NONE)
-                  score()->undoChangeProperty(this, P_ID::FBSUFFIX, int(Modifier::NONE));
+                  undoChangeProperty(P_ID::FBSUFFIX, int(Modifier::NONE));
             layout();                     // re-generate displayText
             }
       }
 
 void FiguredBassItem::undoSetDigit(int digit)
       {
-      if(digit >= 0 && digit <= 9) {
-            score()->undoChangeProperty(this, P_ID::FBDIGIT, digit);
+      if (digit >= 0 && digit <= 9) {
+            undoChangeProperty(P_ID::FBDIGIT, digit);
             layout();                     // re-generate displayText
             }
       }
 
 void FiguredBassItem::undoSetSuffix(Modifier suff)
       {
-      score()->undoChangeProperty(this, P_ID::FBSUFFIX, int(suff));
+      undoChangeProperty(P_ID::FBSUFFIX, int(suff));
       // if setting some suffix and there is a prefix already, clear prefix
       if(suff != Modifier::NONE && _prefix != Modifier::NONE)
-            score()->undoChangeProperty(this, P_ID::FBPREFIX, int(Modifier::NONE));
+            undoChangeProperty(P_ID::FBPREFIX, int(Modifier::NONE));
       layout();                     // re-generate displayText
       }
 
 void FiguredBassItem::undoSetContLine(ContLine val)
       {
-      score()->undoChangeProperty(this, P_ID::FBCONTINUATIONLINE, int(val));
+      undoChangeProperty(P_ID::FBCONTINUATIONLINE, int(val));
       layout();                     // re-generate displayText
       }
 
 void FiguredBassItem::undoSetParenth1(Parenthesis par)
       {
-      score()->undoChangeProperty(this, P_ID::FBPARENTHESIS1, int(par));
+      undoChangeProperty(P_ID::FBPARENTHESIS1, int(par));
       layout();                     // re-generate displayText
       }
 void FiguredBassItem::undoSetParenth2(Parenthesis par)
       {
-      score()->undoChangeProperty(this, P_ID::FBPARENTHESIS2, int(par));
+      undoChangeProperty(P_ID::FBPARENTHESIS2, int(par));
       layout();                     // re-generate displayText
       }
 void FiguredBassItem::undoSetParenth3(Parenthesis par)
       {
-      score()->undoChangeProperty(this, P_ID::FBPARENTHESIS3, int(par));
+      undoChangeProperty(P_ID::FBPARENTHESIS3, int(par));
       layout();                     // re-generate displayText
       }
 void FiguredBassItem::undoSetParenth4(Parenthesis par)
       {
-      score()->undoChangeProperty(this, P_ID::FBPARENTHESIS4, int(par));
+      undoChangeProperty(P_ID::FBPARENTHESIS4, int(par));
       layout();                     // re-generate displayText
       }
 void FiguredBassItem::undoSetParenth5(Parenthesis par)
       {
-      score()->undoChangeProperty(this, P_ID::FBPARENTHESIS5, int(par));
+      undoChangeProperty(P_ID::FBPARENTHESIS5, int(par));
       layout();                     // re-generate displayText
       }
 
@@ -965,8 +974,11 @@ FiguredBass::FiguredBass(const FiguredBass& fb)
       {
       setOnNote(fb.onNote());
       setTicks(fb.ticks());
-      for (auto i : fb.items)       // deep copy is needed
-            items.push_back(new FiguredBassItem(*i));
+      for (auto i : fb.items) {     // deep copy is needed
+            FiguredBassItem* fbi = new FiguredBassItem(*i);
+            fbi->setParent(this);
+            items.push_back(fbi);
+            }
 //      items = fb.items;
       }
 
@@ -1090,7 +1102,7 @@ void FiguredBass::layout()
 
 void FiguredBass::layoutLines()
       {
-      if(_ticks <= 0) {
+      if(_ticks <= 0 || segment() == nullptr) {
 NoLen:
             _lineLenghts.resize(1);                         // be sure to always have
             _lineLenghts[0] = 0;                            // at least 1 item in array
@@ -1128,11 +1140,11 @@ NoLen:
       _printedLineLength = lastCR ? lastCR->pageX() - pageX() + 1.5*spatium() : 3 * spatium();
 
       // get duration indicator line(s) from page position of nextSegm
-      QList<System*>* systems = score()->systems();
+      const QList<System*>& systems = score()->systems();
       System* s1  = segment()->measure()->system();
       System* s2  = nextSegm->measure()->system();
-      int sysIdx1 = systems->indexOf(s1);
-      int sysIdx2 = systems->indexOf(s2);
+      int sysIdx1 = systems.indexOf(s1);
+      int sysIdx2 = systems.indexOf(s2);
 
       int i, len ,segIdx;
       for (i = sysIdx1, segIdx = 0; i <= sysIdx2; ++i, ++segIdx) {
@@ -1143,7 +1155,7 @@ NoLen:
                   }
             else if (i == sysIdx1) {
                   // initial line
-                  qreal w   = s1->staff(staffIdx())->right();
+                  qreal w   = s1->staff(staffIdx())->bbox().right();
                   qreal x   = s1->pageX() + w;
                   len = x - pageX();
                   }
@@ -1219,7 +1231,7 @@ void FiguredBass::endEdit()
       // as the standard text editor keeps inserting spurious HTML formatting and styles
       // retrieve and work only on the plain text
       QString txt = plainText();
-      if(txt.isEmpty()) {                       // if no text, nothing to do
+      if (txt.isEmpty()) {                       // if no text, nothing to do
             setXmlText(txt);                       // clear the stored text: the empty f.b. element will be deleted
             return;
             }
@@ -1350,7 +1362,7 @@ bool FiguredBass::setProperty(P_ID propertyId, const QVariant& v)
             default:
                   return Text::setProperty(propertyId, v);
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       return true;
       }
 
@@ -1548,7 +1560,7 @@ bool FiguredBass::readConfigFile(const QString& fileName)
       {
       QString     path;
 
-      if(fileName == 0 || fileName.isEmpty()) {       // defaults to built-in xml
+      if (fileName == 0 || fileName.isEmpty()) {       // defaults to built-in xml
 #ifdef Q_OS_IOS
             {
             extern QString resourcePath();
@@ -1674,7 +1686,7 @@ bool FiguredBass::readMusicXML(XmlReader& e, int divisions)
                   pItem->readMusicXML(e, parentheses);
                   items.append(*pItem);
                   // add item normalized text
-                  if (!normalizedText.isEmpty())
+                  if (!normalizedText.empty())
                         normalizedText.append('\n');
                   normalizedText.append(pItem->normalizedText());
                   }
@@ -1684,7 +1696,7 @@ bool FiguredBass::readMusicXML(XmlReader& e, int divisions)
                   }
             }
       setText(normalizedText);                  // this is the text to show while editing
-      bool res = !normalizedText.isEmpty();
+      bool res = !normalizedText.empty();
       return res;
       }
 #endif

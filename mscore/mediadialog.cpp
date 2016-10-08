@@ -39,8 +39,6 @@ MediaDialog::MediaDialog(QWidget* /*parent*/)
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       setWindowTitle(tr("MuseScore: Additional Media"));
-      scanFileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
-      audioFileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
 
       connect(addScan,         SIGNAL(clicked()), SLOT(addScanPressed()));
       connect(removeScan,      SIGNAL(clicked()), SLOT(removeScanPressed()));
@@ -56,8 +54,8 @@ MediaDialog::MediaDialog(QWidget* /*parent*/)
 
 void MediaDialog::setScore(Score* s)
       {
-      score = s;
-      Omr* omr = score->omr();
+      score = s->masterScore();
+      Omr* omr = score->masterScore()->omr();
       if (omr) {
             scanFile->setText(omr->path());
             addScan->setEnabled(false);
@@ -92,7 +90,7 @@ void MediaDialog::setScore(Score* s)
 void MediaDialog::addScanPressed()
       {
       QString path = scanFile->text();
-      if (score->omr() || path.isEmpty())
+      if (score->masterScore()->omr() || path.isEmpty())
             return;
       Omr* omr = new Omr(path, score);
       if (!omr->readPdf()) {
@@ -100,7 +98,7 @@ void MediaDialog::addScanPressed()
             delete omr;
             return;
             }
-      score->setOmr(omr);
+      score->masterScore()->setOmr(omr);
       mscore->currentScoreView()->showOmr(true);
       }
 
@@ -151,7 +149,7 @@ void MediaDialog::addAudioPressed()
 #endif
 
       QFileInfo fi(path);
-      QFile syncFile(fi.absolutePath() + "/" + fi.baseName() + ".txt");
+      QFile syncFile(fi.absolutePath() + "/" + fi.completeBaseName() + ".txt");
 
       TempoMap* tmo = score->tempomap();
 

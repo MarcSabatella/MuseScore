@@ -12,6 +12,7 @@
 
 #include "fluidgui.h"
 #include "mscore/preferences.h"
+#include "mscore/icons.h"
 
 using namespace Ms;
 

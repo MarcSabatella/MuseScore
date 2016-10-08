@@ -35,7 +35,9 @@ class Score;
 
 struct StyleWidget {
       StyleIdx idx;
+      bool showPercent;
       QWidget* widget;
+      QToolButton* reset;
       };
 
 //---------------------------------------------------------
@@ -47,19 +49,15 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
 
       Score* cs;
       QPushButton* buttonApplyToAllParts;
-      MStyle lstyle;    // local copy of style
-
       QButtonGroup* stemGroups[VOICES];
-
       QVector<StyleWidget> styleWidgets;
 
-      void getValues();
+      virtual void hideEvent(QHideEvent*);
+      QVariant getValue(StyleIdx idx);
       void setValues();
-      void setHeaderText(StyleIdx idx, QTextEdit* te);
-      void setFooterText(StyleIdx idx, QTextEdit* te);
 
-      void apply();
       void applyToAllParts();
+      const StyleWidget& styleWidget(StyleIdx) const;
 
    private slots:
       void selectChordDescriptionFile();
@@ -68,7 +66,10 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
       void toggleFooterOddEven(bool);
       void buttonClicked(QAbstractButton*);
       void setSwingParams(bool);
-      void resetStyleValue(int i);
+      void lyricsDashMinLengthValueChanged(double);
+      void lyricsDashMaxLengthValueChanged(double);
+      void resetStyleValue(int);
+      void valueChanged(int);
 
       void on_comboFBFont_currentIndexChanged(int index);
 
@@ -81,5 +82,3 @@ public:
 
 } // namespace Ms
 #endif
-
-

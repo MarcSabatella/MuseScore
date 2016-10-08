@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -117,7 +117,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>72</pitch>
@@ -127,7 +127,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>74</pitch>
@@ -137,7 +137,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>76</pitch>
@@ -147,7 +147,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>77</pitch>
@@ -158,26 +158,26 @@
       <Measure number="2">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
         </Measure>
       <Measure number="3">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
         </Measure>
       <Measure number="4">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
         </Measure>
       <Measure number="5">
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>72</pitch>
@@ -187,7 +187,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>74</pitch>
@@ -197,7 +197,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>76</pitch>
@@ -222,10 +222,6 @@
         <Rest>
           <durationType>half</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     </Score>

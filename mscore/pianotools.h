@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id:$
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -56,7 +56,7 @@ class HPiano : public QGraphicsView {
       Q_OBJECT
       int _firstKey;
       int _lastKey;
-      int _currentKey;
+      QSet<int> _pressedPitches;
       QList<PianoKeyItem*> keys;
       qreal scaleVal;
       virtual void wheelEvent(QWheelEvent*);
@@ -69,7 +69,10 @@ class HPiano : public QGraphicsView {
    public:
       HPiano(QWidget* parent = 0);
       friend class PianoKeyItem;
-      void pressKeys(QSet<int> pitches);
+      void setPressedPitches(QSet<int> pitches);
+      void pressPitch(int pitch);
+      void releasePitch(int pitch);
+      void updateAllKeys();
       virtual QSize sizeHint() const;
       };
 
@@ -86,8 +89,14 @@ class PianoTools : public QDockWidget {
       void keyPressed(int pitch, bool ctrl, int vel);
       void keyReleased(int pitch, bool ctrl, int vel);
 
+   protected:
+      virtual void changeEvent(QEvent *event);
+      void retranslate();
+
    public:
       PianoTools(QWidget* parent = 0);
+      void pressPitch(int pitch)    { _piano->pressPitch(pitch);   }
+      void releasePitch(int pitch)  { _piano->releasePitch(pitch); }
       void heartBeat(QList<const Note*> notes);
       };
 

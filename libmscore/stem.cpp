@@ -63,18 +63,23 @@ qreal Stem::stemLen() const
 
 qreal Stem::lineWidth() const
       {
-      return point(score()->styleS(StyleIdx::stemWidth));
+      return score()->styleP(StyleIdx::stemWidth);
       }
 
-//---------------------------------------------------------
+//-------------------------------------------------------------------
 //   layout
-//---------------------------------------------------------
+//    For beamed notes this is called twice. The final stem
+//    length can only be calculated after stretching of the measure.
+//    We need a guessed stem shape to calculate the minimal distance
+//    between segments. The guessed stem must have at least the
+//    right direction.
+//-------------------------------------------------------------------
 
 void Stem::layout()
       {
-      qreal l = _len + _userLen;
+      qreal l   = _len + _userLen;
       qreal _up = up() ? -1.0 : 1.0;
-      l *= _up;
+      l        *= _up;
 
       qreal y1 = 0.0;                           // vertical displacement to match note attach point
       Staff* st = staff();
@@ -96,18 +101,20 @@ void Stem::layout()
             else {                              // non-TAB
                   // move stem start to note attach point
                   Note* n  = up() ? chord()->downNote() : chord()->upNote();
-                  y1 += (up() ? n->stemUpSE().y() : n->stemDownNW().y());
+                  y1      += (up() ? n->stemUpSE().y() : n->stemDownNW().y());
                   rypos() = n->rypos();
                   }
             }
 
+      qreal lw5  = lineWidth() * .5;
+
       line.setLine(0.0, y1, 0.0, l);
+//      line.setLine(-lw5 * _up, y1, -lw5 * _up, l);
 
       // compute bounding rectangle
       QRectF r(line.p1(), line.p2());
-      qreal lw5  = lineWidth() * .5;
       setbbox(r.normalized().adjusted(-lw5, -lw5, lw5, lw5));
-      adjustReadPos();
+      adjustReadPos();  // does not work if stem is layouted twice
       }
 
 //---------------------------------------------------------
@@ -147,7 +154,7 @@ void Stem::draw(QPainter* painter) const
       painter->setPen(QPen(curColor(), lw, Qt::SolidLine, Qt::RoundCap));
       painter->drawLine(line);
 
-      if (!useTab || !chord())
+      if ( !(useTab && chord()) )
             return;
 
       // TODO: adjust bounding rectangle in layout() for dots and for slash
@@ -255,7 +262,7 @@ void Stem::editDrag(const EditData& ed)
       qreal yDelta = ed.delta.y();
       _userLen += up() ? -yDelta : yDelta;
       layout();
-      Chord* c = static_cast<Chord*>(parent());
+      Chord* c = chord();
       if (c->hook())
             c->hook()->move(QPointF(0.0, ed.delta.y()));
       }
@@ -266,7 +273,7 @@ void Stem::editDrag(const EditData& ed)
 
 void Stem::reset()
       {
-      score()->undoChangeProperty(this, P_ID::USER_LEN, 0.0);
+      undoChangeProperty(P_ID::USER_LEN, 0.0);
       Element::reset();
       }
 
@@ -290,11 +297,11 @@ bool Stem::acceptDrop(const DropData& data) const
 Element* Stem::drop(const DropData& data)
       {
       Element* e = data.element;
-      Chord* ch = chord();
+      Chord* ch  = chord();
+
       switch(e->type()) {
             case Element::Type::TREMOLO:
                   e->setParent(ch);
-                  score()->setLayoutAll(true);
                   score()->undoAddElement(e);
                   return e;
             default:
@@ -323,16 +330,14 @@ QVariant Stem::getProperty(P_ID propertyId) const
 
 bool Stem::setProperty(P_ID propertyId, const QVariant& v)
       {
-      score()->addRefresh(canvasBoundingRect());
-      switch(propertyId) {
-            case P_ID::USER_LEN:  setUserLen(v.toDouble()); break;
+      switch (propertyId) {
+            case P_ID::USER_LEN:
+                  setUserLen(v.toDouble());
+                  break;
             default:
                   return Element::setProperty(propertyId, v);
             }
-      score()->addRefresh(canvasBoundingRect());
-      layout();
-      score()->addRefresh(canvasBoundingRect());
-      score()->setLayoutAll(false);       //DEBUG
+      triggerLayout();
       return true;
       }
 

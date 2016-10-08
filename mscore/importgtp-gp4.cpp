@@ -49,6 +49,7 @@
 #include "libmscore/fingering.h"
 #include "libmscore/notedot.h"
 #include "libmscore/stafftext.h"
+#include "libmscore/sym.h"
 #include "preferences.h"
 
 namespace Ms {
@@ -60,12 +61,12 @@ namespace Ms {
 bool GuitarPro4::readMixChange(Measure* measure)
       {
       /*char patch   =*/ readChar();
-      char volume  = readChar();
-      char pan     = readChar();
-      char chorus  = readChar();
-      char reverb  = readChar();
-      char phase   = readChar();
-      char tremolo = readChar();
+      signed char volume  = readChar();
+      signed char pan     = readChar();
+      signed char chorus  = readChar();
+      signed char reverb  = readChar();
+      signed char phase   = readChar();
+      signed char tremolo = readChar();
       int tempo    = readInt();
 
       bool tempoEdited = false;
@@ -214,7 +215,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
       // check if a note is supposed to be accented, and give it the sforzato type
       if (noteBits & NOTE_SFORZATO) {
             Articulation* art = new Articulation(note->score());
-            art->setArticulationType(ArticulationType::Sforzatoaccent);
+            art->setSymId(SymId::articAccentAbove);
             if (!note->score()->addArticulation(note, art))
                   delete art;
             }
@@ -346,7 +347,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
             if (modMask2 & EFFECT_STACATTO) {   // staccato
                   Chord* chord = note->chord();
                   Articulation* a = new Articulation(chord->score());
-                  a->setArticulationType(ArticulationType::Staccato);
+                  a->setSymId(SymId::articStaccatoAbove);
                   chord->add(a);
                   }
             if (modMask2 & EFFECT_PALM_MUTE)
@@ -388,7 +389,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
 
                   // add the trill articulation to the note
                   Articulation* art = new Articulation(note->score());
-                  art->setArticulationType(ArticulationType::Trill);
+                  art->setSymId(SymId::ornamentTrill);
                   if (!note->score()->addArticulation(note, art))
                         delete art;
 
@@ -593,7 +594,7 @@ void GuitarPro4::read(QFile* fp)
                   tuning[j] = readInt();
             for (int j = strings; j < GP_MAX_STRING_NUMBER; ++j)
                   readInt();
-            /*int midiPort     =*/ readInt(); // - 1;
+            int midiPort     = readInt() - 1;
             int midiChannel  = readInt() - 1;
             /*int midiChannel2 =*/ readInt(); // - 1;
             int frets        = readInt();
@@ -624,9 +625,9 @@ void GuitarPro4::read(QFile* fp)
                   staff->setStaffType(StaffType::preset(StaffTypes::PERC_DEFAULT));
                   }
             else if (patch >= 24 && patch < 32)
-                  clefId = ClefType::G3;
+                  clefId = ClefType::G8_VB;
             else if (patch >= 32 && patch < 40)
-                  clefId = ClefType::F8;
+                  clefId = ClefType::F8_VB;
             Measure* measure = score->firstMeasure();
             Clef* clef = new Clef(score);
             clef->setClefType(clefId);
@@ -657,6 +658,7 @@ void GuitarPro4::read(QFile* fp)
             ch->pan     = channelDefaults[midiChannel].pan;
             ch->chorus  = channelDefaults[midiChannel].chorus;
             ch->reverb  = channelDefaults[midiChannel].reverb;
+            staff->part()->setMidiChannel(midiChannel, midiPort);
             // missing: phase, tremolo
             ch->updateInitList();
             }
@@ -808,7 +810,7 @@ void GuitarPro4::read(QFile* fp)
                                     if (dotted) {
                                           // there is at most one dotted note in this guitar pro version
                                           NoteDot* dot = new NoteDot(score);
-                                          dot->setIdx(0);
+                                          // dot->setIdx(0);
                                           dot->setParent(note);
                                           dot->setTrack(track);  // needed to know the staff it belongs to (and detect tablature)
                                           dot->setVisible(true);

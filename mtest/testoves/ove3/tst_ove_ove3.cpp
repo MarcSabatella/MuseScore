@@ -48,7 +48,7 @@ private slots:
       //void ove3GuitarBarreTest() { oveReadTest("[ove3].bdat - guitar - barre"); }
       //void ove3GuitarBendTest() { oveReadTest("[ove3].bdat - guitar - bend"); }
       //void ove3GuitarFrameTest() { oveReadTest("[ove3].bdat - harmony - guitar frame"); }
-      //void ove3HarmonyTest() { oveReadTest("[ove3].bdat - harmony"); }
+      void ove3HarmonyTest() { oveReadTest("[ove3].bdat - harmony"); }
       //void ove3HarpPedalTest() { oveReadTest("[ove3].bdat - harp pedal"); }
       //void ove3InvisibleTest() { oveReadTest("[ove3].bdat - invisible object"); }
       //void ove3KeyTransposeInstrumentTest() { oveReadTest("[ove3].bdat - key - transpose instrument"); }
@@ -118,11 +118,11 @@ void TestOveIO::initTestCase()
 void TestOveIO::oveReadTest(const char* file)
       {
       preferences.importCharsetOve = "GBK";
-      Score* score = readScore(DIR + file + ".ove");
+      MasterScore* score = readScore(DIR + file + ".ove");
       QVERIFY(score);
       score->doLayout();
       score->connectTies();
-      score->setLayoutAll(true);
+      score->setLayoutAll();
       score->update();
       QVERIFY(saveCompareScore(score, QString("%1.ove.mscx").arg(file),
                                DIR + QString("%1.ove-ref.mscx").arg(file)));

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -165,17 +165,30 @@
             <maxPitchA>80</maxPitchA>
             <transposeDiatonic>-1</transposeDiatonic>
             <transposeChromatic>-2</transposeChromatic>
+            <instrumentId>brass.trumpet.bflat</instrumentId>
             <Articulation>
               <velocity>100</velocity>
               <gateTime>100</gateTime>
               </Articulation>
+            <Articulation name="staccatissimo">
+              <velocity>100</velocity>
+              <gateTime>33</gateTime>
+              </Articulation>
             <Articulation name="staccato">
               <velocity>100</velocity>
-              <gateTime>85</gateTime>
+              <gateTime>50</gateTime>
+              </Articulation>
+            <Articulation name="portato">
+              <velocity>100</velocity>
+              <gateTime>67</gateTime>
               </Articulation>
             <Articulation name="tenuto">
               <velocity>100</velocity>
               <gateTime>100</gateTime>
+              </Articulation>
+            <Articulation name="marcato">
+              <velocity>120</velocity>
+              <gateTime>67</gateTime>
               </Articulation>
             <Articulation name="sforzato">
               <velocity>120</velocity>
@@ -360,17 +373,30 @@
             <maxPitchA>80</maxPitchA>
             <transposeDiatonic>-1</transposeDiatonic>
             <transposeChromatic>-2</transposeChromatic>
+            <instrumentId>brass.trumpet.bflat</instrumentId>
             <Articulation>
               <velocity>100</velocity>
               <gateTime>100</gateTime>
               </Articulation>
+            <Articulation name="staccatissimo">
+              <velocity>100</velocity>
+              <gateTime>33</gateTime>
+              </Articulation>
             <Articulation name="staccato">
               <velocity>100</velocity>
-              <gateTime>85</gateTime>
+              <gateTime>50</gateTime>
+              </Articulation>
+            <Articulation name="portato">
+              <velocity>100</velocity>
+              <gateTime>67</gateTime>
               </Articulation>
             <Articulation name="tenuto">
               <velocity>100</velocity>
               <gateTime>100</gateTime>
+              </Articulation>
+            <Articulation name="marcato">
+              <velocity>120</velocity>
+              <gateTime>67</gateTime>
               </Articulation>
             <Articulation name="sforzato">
               <velocity>120</velocity>
@@ -390,6 +416,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <Chord>
@@ -397,6 +424,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         </Measure>
@@ -406,6 +434,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <Chord>
@@ -413,6 +442,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         </Measure>
@@ -422,6 +452,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <Chord>
@@ -429,6 +460,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         </Measure>
@@ -438,6 +470,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <Chord>
@@ -445,6 +478,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         </Measure>
@@ -454,6 +488,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <Chord>
@@ -461,6 +496,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         </Measure>
@@ -470,6 +506,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <Chord>
@@ -477,6 +514,7 @@
           <Note>
             <pitch>72</pitch>
             <tpc>14</tpc>
+            <tpc2>16</tpc2>
             </Note>
           </Chord>
         <BarLine>

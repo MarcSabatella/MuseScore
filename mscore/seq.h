@@ -33,6 +33,7 @@ class QTimer;
 namespace Ms {
 
 class Note;
+class MasterScore;
 class Score;
 class Painter;
 class Measure;
@@ -105,7 +106,7 @@ class Seq : public QObject, public Sequencer {
 
       mutable QMutex mutex;
 
-      Score* cs;
+      MasterScore* cs;
       ScoreView* cv;
       bool running;                       // true if sequencer is available
       Transport state;                    // STOP, PLAY, STARTING=3
@@ -132,8 +133,9 @@ class Seq : public QObject, public Sequencer {
       double meterPeakValue[2];
       int peakTimer[2];
 
-      EventMap events;                    // playlist
+      EventMap events;                    // playlist for playback mode (pre-rendered)
       EventMap countInEvents;
+      QQueue<NPlayEvent> _liveEventQueue;  // playlist for score editing and note entry (rendered live)
 
       int playTime;                       // current play position in samples
       int countInPlayTime;
@@ -144,9 +146,11 @@ class Seq : public QObject, public Sequencer {
       EventMap::const_iterator guiPos;    // moved in gui thread
       QList<const Note*> markedNotes;     // notes marked as sounding
 
-      uint tackRest;                      // metronome state
-      uint tickRest;
-      qreal metronomeVolume;
+      uint tackRemain;        // metronome state (remaining audio samples)
+      uint tickRemain;
+      qreal tackVolume;       // relative volumes
+      qreal tickVolume;
+      qreal metronomeVolume;  // overall volume
 
       QTimer* heartBeatTimer;
       QTimer* noteTimer;
@@ -161,6 +165,8 @@ class Seq : public QObject, public Sequencer {
       void unmarkNotes();
       void updateSynthesizerState(int tick1, int tick2);
       void addCountInClicks();
+
+      inline QQueue<NPlayEvent>* liveEventQueue() { return &_liveEventQueue; }
 
    private slots:
       void seqMessage(int msg, int arg = 0);
@@ -221,7 +227,7 @@ class Seq : public QObject, public Sequencer {
       void setController(int, int, int);
       virtual void sendEvent(const NPlayEvent&);
       void setScoreView(ScoreView*);
-      Score* score() const   { return cs; }
+      MasterScore* score() const   { return cs; }
       ScoreView* viewer() const { return cv; }
       void initInstruments(bool realTime = false);
 
@@ -237,6 +243,8 @@ class Seq : public QObject, public Sequencer {
       void startNoteTimer(int duration);
       virtual void startNote(int channel, int, int, double nt) override;
       virtual void startNote(int channel, int, int, int, double nt) override;
+      virtual void playMetronomeBeat(BeatType type) override;
+
       void eventToGui(NPlayEvent);
       void stopNoteTimer();
       void recomputeMaxMidiOutPort();

@@ -135,8 +135,7 @@ qDebug("    - insert %d/%d", ff.numerator(), ff.denominator());
                                           break;
                                     Fraction fff = ff / timeStretch;
 
-                                    QList<Duration> dl = toDurationList(fff, true);
-                                    foreach(Duration d, dl) {
+                                    for (const Duration& d, toDurationList(fff, true)) {
                                           Rest* rest = new Rest(this);
                                           rest->setDurationType(d);
                                           rest->setDuration(d.fraction());
@@ -177,26 +176,49 @@ bool Score::sanityCheck(const QString& name)
             Fraction mLen = m->len();
             int endStaff = staves().size();
             for (int staffIdx = 0; staffIdx < endStaff; ++staffIdx) {
+                  Rest* fmrest0 = 0;      // full measure rest in voice 0
                   Fraction voices[VOICES] = {};
+#ifndef NDEBUG
+                  m->mstaff(staffIdx)->_corrupted = false;
+#endif
                   for (Segment* s = m->first(Segment::Type::ChordRest); s; s = s->next(Segment::Type::ChordRest)) {
                         for (int v = 0; v < VOICES; ++v) {
-                              ChordRest* cr = static_cast<ChordRest*>(s->element(staffIdx* VOICES + v));
+                              ChordRest* cr = toChordRest(s->element(staffIdx * VOICES + v));
                               if (cr == 0)
                                     continue;
                               voices[v] += cr->actualFraction();
+                              if (v == 0 && cr->isRest()) {
+                                    Rest* r = toRest(cr);
+                                    if (r->durationType().isMeasure()) {
+                                          fmrest0 = r;
+                                          }
+                                    }
                               }
                         }
                   if (voices[0] != mLen) {
                         QString msg = tr("Measure %1 Staff %2 incomplete. Expected: %3; Found: %4").arg(mNumber).arg( staffIdx+1).arg(mLen.print()).arg(voices[0].print());
                         qDebug() << msg;
                         error += QString("%1\n").arg(msg);
+#ifndef NDEBUG
+                        m->mstaff(staffIdx)->_corrupted = true;
+#endif
                         result = false;
+                        // try to fix a bad full measure rest
+                        if (fmrest0) {
+                              // fmrest0->setDuration(mLen * fmrest0->staff()->timeStretch(fmrest0->tick()));
+                              fmrest0->setDuration(mLen);
+                              if (fmrest0->actualFraction() != mLen)
+                                    printf("whoo???\n");
+                              }
                         }
                   for (int v = 1; v < VOICES; ++v) {
                         if (voices[v] > mLen) {
                               QString msg = tr("Measure %1, staff %2, voice %3 too long. Expected: %4; Found: %5").arg( mNumber).arg(staffIdx + 1).arg(v+1).arg(mLen.print()).arg(voices[v].print());
                               qDebug() << msg;
                               error += QString("%1\n").arg(msg);
+#ifndef NDEBUG
+                              m->mstaff(staffIdx)->_corrupted = true;
+#endif
                               result = false;
                               }
                         }
@@ -245,7 +267,8 @@ bool Score::checkKeys()
                               k = static_cast<KeySig*>(element)->key();
                         }
                   if (staff(i)->key(m->tick()) != k) {
-                        qDebug("measure %d (tick %d) : key %d, map %d", m->no(), m->tick(), k, staff(i)->key(m->tick()));
+                        qDebug("measure %d (tick %d) : key %d, map %d", m->no(), m->tick(), int(k),
+                           int(staff(i)->key(m->tick())));
                         rc = false;
                         }
                   }
@@ -274,7 +297,8 @@ bool Score::checkClefs()
                               }
                         }
                   if (staff(i)->clef(m->tick()) != clef) {
-                        qDebug("measure %d (tick %d) : clef %hhd, map %hhd", m->no(), m->tick(), clef, staff(i)->clef(m->tick()));
+                        qDebug("measure %d (tick %d) : clef %d, map %d", m->no(), m->tick(), int(clef),
+                           int(staff(i)->clef(m->tick())));
                         rc = false;
                         }
                   cm = m;

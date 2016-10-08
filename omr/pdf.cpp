@@ -19,15 +19,11 @@
 //=============================================================================
 
 #include "pdf.h"
-extern "C" {
-#include <fitz.h>
-// #include <mupdf.h>
-      }
 
 namespace Ms {
 
+
 int Pdf::references;
-static fz_context* ctx;
 
 //---------------------------------------------------------
 //   numPages
@@ -35,7 +31,7 @@ static fz_context* ctx;
 
 int Pdf::numPages() const
       {
-      return fz_count_pages(doc);
+      return _document->numPages();
       }
 
 //---------------------------------------------------------
@@ -44,10 +40,7 @@ int Pdf::numPages() const
 
 Pdf::Pdf()
       {
-      if (references == 0)
-            ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);  // 256MB cache
       ++references;
-      doc = 0;
       }
 
 //---------------------------------------------------------
@@ -56,13 +49,9 @@ Pdf::Pdf()
 
 bool Pdf::open(const QString& path)
       {
-      char* name = path.toLatin1().data();
-      fz_try(ctx) {
-            doc = fz_open_document(ctx, name);
-            }
-      fz_catch(ctx) {
-            fz_close_document(doc);
-            doc = 0;
+      _document = Poppler::Document::load(path);
+      if (!_document || _document->isLocked()) {
+            delete _document;
             return false;
             }
       return true;
@@ -74,15 +63,67 @@ bool Pdf::open(const QString& path)
 
 Pdf::~Pdf()
       {
-      if (doc)
-            fz_close_document(doc);
-      doc = 0;
+      if(_document)
+        delete(_document);
       --references;
-      if (references == 0) {
-            fz_free_context(ctx);
-            ctx = 0;
-            }
       }
+      
+//---------------------------------------------------------
+//   binarization
+//---------------------------------------------------------
+
+QImage Pdf::binarization(QImage image){
+      QImage bw = QImage(image.width(), image.height(), QImage::Format_MonoLSB);
+      QVector<QRgb> ct(2);
+      ct[0] = qRgb(255, 255, 255);
+      ct[1] = qRgb(0, 0, 0);
+      bw.setColorTable(ct);
+      bw.fill(0);
+      float thresh = 128;
+      float new_thresh = 0;
+      
+      while (thresh != new_thresh) {
+            float sum_black = 0;
+            float sum_white = 0;
+            int num_black = 0;
+            int num_white = 0;
+            new_thresh = thresh;
+            for (int x = 0; x < image.width(); x++){
+                  for (int y = 0; y < image.height(); y++) {
+                        QRgb c = image.pixel(x, y);
+                        float g = qGray(c);
+                        if (g < thresh) {
+                              sum_black += g;
+                              num_black++;
+                              }
+                        else {
+                              sum_white += g;
+                              num_white++;
+                              }
+                        
+                        }
+                  }
+            thresh = (sum_black/num_black + sum_white/num_white)/2.0;
+            }
+      
+      int stride  = (bw.width() + 7) / 8;
+      uchar* p    = bw.bits();
+        
+      for (int y = 0; y < bw.height(); ++y) {
+            p = bw.scanLine(y);
+            for (int x = 0; x < stride; ++x) {
+                  int temp = 0;
+                  for (int i = 0; i < 8; i++) {
+                        if (x*8 + i >= bw.width()) continue;
+                        QRgb c = image.pixel(x*8 + i, y);
+                        float g = qGray(c);
+                        temp += ((g<thresh) ? 1:0)<<i;
+                        }
+                  *p++ = temp;
+                  }
+            }
+      return bw;
+}
 
 //---------------------------------------------------------
 //   page
@@ -90,74 +131,23 @@ Pdf::~Pdf()
 
 QImage Pdf::page(int i)
       {
-      fz_page* page = fz_load_page(doc, i);
-      if (page == 0) {
-            printf("cannot load page %d\n", i);
-            return QImage();
+      QImage image;
+      // Paranoid safety check
+      if (_document == 0) {
+            return image;
             }
-      static const float resolution = 600.0;
-      const float zoom = resolution / 72.0;
-      fz_rect bounds;
-
-      fz_bound_page(doc, page, &bounds);
-      fz_matrix ctm;
-
-      fz_pre_scale(fz_rotate(&ctm, 0.0), zoom, zoom);
-
-      fz_irect ibounds;
-      fz_rect tbounds;
-      tbounds = bounds;
-      fz_round_rect(&ibounds, fz_transform_rect(&tbounds, &ctm));
-      fz_pixmap* pix = fz_new_pixmap_with_bbox(ctx, fz_device_gray, &ibounds);
-
-      fz_clear_pixmap_with_value(ctx, pix, 255);
-      fz_device* dev = fz_new_draw_device(ctx, pix);
-      fz_run_page(doc, page, dev, &ctm, NULL);
-      fz_free_device(dev);
-      dev = NULL;
-
-      int w = fz_pixmap_width(ctx, pix);
-      int h = fz_pixmap_height(ctx, pix);
-      if (fz_pixmap_components(ctx, pix) != 2) {
-            printf("omg: pixmap not bw? %d\n", fz_pixmap_components(ctx, pix));
-            return QImage();
+      
+      Poppler::Page* pdfPage = _document->page(i);  // Document starts at page 0
+      if (pdfPage == 0) {
+            return image;
             }
-
-      printf("page %d  %d x %d\n", i, w, h);
-      QImage image(w, h, QImage::Format_MonoLSB);
-      QVector<QRgb> ct(2);
-      ct[0] = qRgb(255, 255, 255);
-      ct[1] = qRgb(0, 0, 0);
-      image.setColorTable(ct);
-
-      uchar* s   = fz_pixmap_samples(ctx, pix);
-      int bytes  = w / 8;
-      int bits   = w % 8;
-      for (int line = 0; line < h; ++line) {
-            uchar* d = image.scanLine(line);
-            for (int col = 0; col < bytes; ++col) {
-                  uchar data = 0;
-                  for (int i = 0; i < 8; ++i) {
-                        uchar v = *s;
-                        s += 2;
-                        data >>= 1;
-                        if (v < 128) {            // convert grayscale to bw
-                              data |= 0x80;
-                              }
-                        }
-                  *d++ = data;
-                  }
-            uchar data = 0;
-            for (int col = 0; col < bits; ++col) {
-                  uchar v = *s;
-                  s += 2;
-                  data >>= 1;
-                  if (v < 128)
-                        data |= 0x80;
-                  }
-            }
-      fz_drop_pixmap(ctx, pix);
-      return image;
+            
+      QSize size = pdfPage->pageSize();
+      float scale = 2.0;
+      // the size can be decided more intelligently
+      image = pdfPage->renderToImage(scale*72.0, scale*72.0, 0, 0, scale*size.width(), scale*size.height());
+      delete pdfPage;
+      return binarization(image);
       }
 }
 

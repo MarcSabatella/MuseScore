@@ -42,26 +42,57 @@ Zone::~Zone()
 //   match
 //---------------------------------------------------------
 
-bool Zone::match(Channel* c, int k, int v, Trigger et)
+bool Zone::match(Channel* c, int k, int v, Trigger et, double rand, int cc, int ccVal)
       {
-      int cc64 = c->sustain();
 
-      if ((k >= keyLo)
-         && (k <= keyHi)
-         && (v >= veloLo)
-         && (v <= veloHi)
-         && (seq == seqPos)
+      if ((k >= keyLo || et == Trigger::CC)
+         && (k <= keyHi || et == Trigger::CC)
+         && (v >= veloLo || et == Trigger::CC)
+         && (v <= veloHi || et == Trigger::CC)
+         && (loRand <= rand && hiRand > rand)
          && (et == trigger)
-         && (cc64 >= locc[64] && cc64 <= hicc[64])
          ) {
 //printf("   Zone match %d %d %d -- %d %d  %d %d  center %d trigger %d\n",
 //         k, v, et, keyLo, keyHi, veloLo, veloHi, keyBase, trigger);
-            if (et == Trigger::ATTACK) {
-                  ++seq;
-                  if (seq >= seqLen)
-                        seq = 0;
+            if (useCC) {
+                  for (int i = 0; i < 128; i++) {
+                        if (locc[i] == 0 && hicc[i] == 127)
+                              continue;
+                        if (locc[i] > c->getCtrl(i) || hicc[i] < c->getCtrl(i))
+                              return false;
+                        }
                   }
-            return true;
+
+            int oldSeq = seq;
+
+            if (trigger == Trigger::CC) {
+                  if (onLocc[cc] <= ccVal && onHicc[cc] >= ccVal) {
+                        seq++;
+                        if (seq > seqLen)
+                              seq = 0;
+                        return oldSeq == seqPos;
+                        }
+                  else
+                        return false;
+                  }
+
+            ++seq;
+            if (seq > seqLen)
+                  seq = 0;
+            return oldSeq == seqPos;
             }
       return false;
       }
+
+//---------------------------------------------------------
+//   updateCCGain
+//---------------------------------------------------------
+
+void Zone::updateCCGain(Channel* c)
+      {
+      ccGain = 1.0;
+      for (auto oncc : gainOnCC) {
+            ccGain *= pow(10, (((float) c->getCtrl(oncc.first) / (float) 127.0) * oncc.second)/20);
+            }
+      }
+

@@ -2,7 +2,7 @@
 //  MuseScore
 //  Music Composition & Notation
 //
-//  Copyright (C) 2002-2011 Werner Schweer
+//  Copyright (C) 2002-2016 Werner Schweer
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2
@@ -15,21 +15,45 @@
 
 namespace Ms {
 
+class Segment;
+
 //---------------------------------------------------------
-//   Spring
+//   LayoutContext
+//    temp values used during layout
 //---------------------------------------------------------
 
-struct Spring {
-      int seg;
-      qreal stretch;
-      qreal fix;
-      Spring(int i, qreal s, qreal f) : seg(i), stretch(s), fix(f) {}
+struct LayoutContext {
+      bool startWithLongNames  { true };
+      bool firstSystem         { true };
+      int curPage              { 0 };      // index in Score->_pages
+      int tick                 { 0 };
+      Fraction sig;
+
+      QList<System*> systemList;          // reusable systems
+      System* curSystem        { 0 };
+      MeasureBase* systemOldMeasure;
+      bool rangeDone           { false };
+      System* pageOldSystem    { 0 };
+      bool systemChanged       { false };
+      bool pageChanged         { false };
+
+      MeasureBase* prevMeasure { 0 };
+      MeasureBase* curMeasure  { 0 };
+      MeasureBase* nextMeasure { 0 };
+      int measureNo            { 0 };
+      bool rangeLayout         { false };
+      int endTick;
+
+      int adjustMeasureNo(MeasureBase*);
       };
 
-typedef std::multimap<qreal, Spring, std::less<qreal> > SpringMap;
-typedef SpringMap::const_iterator iSpring;
+//---------------------------------------------------------
+//   VerticalAlignRange
+//---------------------------------------------------------
 
-extern qreal sff(qreal x, qreal xMin, const SpringMap& springs);
+enum class VerticalAlignRange {
+      SEGMENT, MEASURE, SYSTEM
+      };
 
 
 }     // namespace Ms

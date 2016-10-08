@@ -41,28 +41,21 @@
 
 namespace Ms {
 
-extern bool useFactorySettings;
-
 //---------------------------------------------------------
 //   EditStaff
 //---------------------------------------------------------
 
-EditStaff::EditStaff(Staff* s, QWidget* parent)
+EditStaff::EditStaff(Staff* s, int /*tick*/, QWidget* parent)
    : QDialog(parent)
       {
+      setObjectName("EditStaff");
       orgStaff = s;
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       setModal(true);
 
-      const QIcon &editIcon = *icons[int(Icons::edit_ICON)];
-      minPitchASelect->setIcon(editIcon);
-      maxPitchASelect->setIcon(editIcon);
-      minPitchPSelect->setIcon(editIcon);
-      maxPitchPSelect->setIcon(editIcon);
-
       Part* part        = orgStaff->part();
-      instrument        = *part->instrument();
+      instrument        = *part->instrument(/*tick*/);
       Score* score      = part->score();
       staff             = new Staff(score);
       staff->setSmall(orgStaff->small());
@@ -71,33 +64,43 @@ EditStaff::EditStaff(Staff* s, QWidget* parent)
       staff->setColor(orgStaff->color());
       staff->setStaffType(orgStaff->staffType());
       staff->setPart(part);
-      staff->setNeverHide(orgStaff->neverHide());
+      staff->setCutaway(orgStaff->cutaway());
+      staff->setHideWhenEmpty(orgStaff->hideWhenEmpty());
       staff->setShowIfEmpty(orgStaff->showIfEmpty());
       staff->setUserMag(orgStaff->userMag());
       staff->setHideSystemBarLine(orgStaff->hideSystemBarLine());
 
-      // hide string data controls if instrument has no strings
-      stringDataFrame->setVisible(instrument.stringData() && instrument.stringData()->strings() > 0);
+      // get tick range for instrument
+      auto i = part->instruments()->upper_bound(0);   // tick
+      if (i == part->instruments()->end())
+            _tickEnd = -1;
+      else
+            _tickEnd = i->first;
+#if 1
+      _tickStart = -1;
+#else
+      --i;
+      if (i == part->instruments()->begin())
+            _tickStart = 0;
+      else
+            _tickStart = i->first;
+#endif
+
       // set dlg controls
       spinExtraDistance->setValue(s->userDist() / score->spatium());
       invisible->setChecked(staff->invisible());
       small->setChecked(staff->small());
       color->setColor(s->color());
       partName->setText(part->partName());
-      neverHide->setChecked(staff->neverHide());
+      cutaway->setChecked(staff->cutaway());
+      hideMode->setCurrentIndex(int(staff->hideWhenEmpty()));
       showIfEmpty->setChecked(staff->showIfEmpty());
       hideSystemBarLine->setChecked(staff->hideSystemBarLine());
       mag->setValue(staff->userMag() * 100.0);
       updateStaffType();
       updateInstrument();
 
-      if (!useFactorySettings) {
-            QSettings settings;
-            settings.beginGroup("EditStaff");
-            resize(settings.value("size", QSize(484, 184)).toSize());
-            move(settings.value("pos", QPoint(10, 10)).toPoint());
-            settings.endGroup();
-            }
+      MuseScore::restoreGeometry(this);
 
       connect(buttonBox,            SIGNAL(clicked(QAbstractButton*)), SLOT(bboxClicked(QAbstractButton*)));
       connect(changeInstrument,     SIGNAL(clicked()),            SLOT(showInstrumentDialog()));
@@ -112,21 +115,17 @@ EditStaff::EditStaff(Staff* s, QWidget* parent)
       connect(showClef,             SIGNAL(clicked()),            SLOT(showClefChanged()));
       connect(showTimesig,          SIGNAL(clicked()),            SLOT(showTimeSigChanged()));
       connect(showBarlines,         SIGNAL(clicked()),            SLOT(showBarlinesChanged()));
-      addAction(getAction("local-help"));  // why is this needed?
+      addAction(getAction("help"));  // why is this needed?
       }
 
 //---------------------------------------------------------
-//   closeEvent
+//   hideEvent
 //---------------------------------------------------------
 
-void EditStaff::closeEvent(QCloseEvent* ev)
+void EditStaff::hideEvent(QHideEvent* ev)
       {
-      QSettings settings;
-      settings.beginGroup("EditStaff");
-      settings.setValue("size", size());
-      settings.setValue("pos", pos());
-      settings.endGroup();
-      QWidget::closeEvent(ev);
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(ev);
       }
 
 //---------------------------------------------------------
@@ -175,7 +174,9 @@ void EditStaff::updateInstrument()
       minPitchP->setText(midiCodeToStr(_minPitchP));
       maxPitchP->setText(midiCodeToStr(_maxPitchP));
 
+      // only show string data controls if instrument has strings
       int numStr = instrument.stringData() ? instrument.stringData()->strings() : 0;
+      stringDataFrame->setVisible(numStr > 0);
       numOfStrings->setText(QString::number(numStr));
       }
 
@@ -281,12 +282,14 @@ void EditStaff::apply()
 
       bool inv       = invisible->isChecked();
       qreal userDist = spinExtraDistance->value();
-      bool nhide     = neverHide->isChecked();
       bool ifEmpty   = showIfEmpty->isChecked();
       bool hideSystemBL = hideSystemBarLine->isChecked();
+      bool cutAway      = cutaway->isChecked();
+      Staff::HideMode hideEmpty = Staff::HideMode(hideMode->currentIndex());
 
       QString newPartName = partName->text().simplified();
       if (!(instrument == *part->instrument()) || part->partName() != newPartName) {
+            // instrument has changed
             Interval v1 = instrument.transpose();
             Interval v2 = part->instrument()->transpose();
 
@@ -294,7 +297,7 @@ void EditStaff::apply()
             emit instrumentChanged();
 
             if (v1 != v2)
-                  score->transpositionChanged(part, v2);
+                  score->transpositionChanged(part, v2, _tickStart, _tickEnd);
             }
       orgStaff->undoChangeProperty(P_ID::MAG, mag->value() / 100.0);
       orgStaff->undoChangeProperty(P_ID::COLOR, color->color());
@@ -302,20 +305,21 @@ void EditStaff::apply()
 
       if (inv != orgStaff->invisible()
          || userDist != orgStaff->userDist()
-         || nhide != orgStaff->neverHide()
+         || cutAway != orgStaff->cutaway()
+         || hideEmpty != orgStaff->hideWhenEmpty()
          || ifEmpty != orgStaff->showIfEmpty()
          || hideSystemBL != orgStaff->hideSystemBarLine()
          ) {
-            score->undo(new ChangeStaff(orgStaff, inv, userDist * score->spatium(), nhide, ifEmpty, hideSystemBL));
+            score->undo(new ChangeStaff(orgStaff, inv, userDist * score->spatium(), hideEmpty, ifEmpty, cutAway, hideSystemBL));
             }
 
       if ( !(*orgStaff->staffType() == *staff->staffType()) ) {
             // updateNeeded |= (orgStaff->staffGroup() == StaffGroup::TAB || staff->staffGroup() == StaffGroup::TAB);
-            score->undo()->push(new ChangeStaffType(orgStaff, *staff->staffType()));
+            score->undo(new ChangeStaffType(orgStaff, *staff->staffType()));
             }
 
       score->update();
-      score->updateChannel();
+      score->masterScore()->updateChannel();
       }
 
 //---------------------------------------------------------
@@ -325,9 +329,9 @@ void EditStaff::apply()
 void EditStaff::minPitchAClicked()
       {
       int         newCode;
-      EditPitch* ep = new EditPitch(this, instrument.minPitchA() );
-      ep->setWindowModality(Qt::WindowModal);
-      if ( (newCode=ep->exec()) != -1) {
+      EditPitch ep(this, instrument.minPitchA());
+      ep.setWindowModality(Qt::WindowModal);
+      if ( (newCode = ep.exec()) != -1) {
             minPitchA->setText(midiCodeToStr(newCode));
             _minPitchA = newCode;
             }
@@ -336,9 +340,9 @@ void EditStaff::minPitchAClicked()
 void EditStaff::maxPitchAClicked()
       {
       int         newCode;
-      EditPitch* ep = new EditPitch(this, instrument.maxPitchA() );
-      ep->setWindowModality(Qt::WindowModal);
-      if ( (newCode=ep->exec()) != -1) {
+      EditPitch ep(this, instrument.maxPitchA());
+      ep.setWindowModality(Qt::WindowModal);
+      if ( (newCode = ep.exec()) != -1) {
             maxPitchA->setText(midiCodeToStr(newCode));
             _maxPitchA = newCode;
             }
@@ -347,9 +351,9 @@ void EditStaff::maxPitchAClicked()
 void EditStaff::minPitchPClicked()
       {
       int         newCode;
-      EditPitch* ep = new EditPitch(this, instrument.minPitchP() );
-      ep->setWindowModality(Qt::WindowModal);
-      if ( (newCode=ep->exec()) != -1) {
+      EditPitch ep(this, instrument.minPitchP());
+      ep.setWindowModality(Qt::WindowModal);
+      if ( (newCode = ep.exec()) != -1) {
             minPitchP->setText(midiCodeToStr(newCode));
             _minPitchP = newCode;
             }
@@ -358,9 +362,9 @@ void EditStaff::minPitchPClicked()
 void EditStaff::maxPitchPClicked()
       {
       int         newCode;
-      EditPitch* ep = new EditPitch(this, instrument.maxPitchP() );
-      ep->setWindowModality(Qt::WindowModal);
-      if ( (newCode=ep->exec()) != -1) {
+      EditPitch ep(this, instrument.maxPitchP());
+      ep.setWindowModality(Qt::WindowModal);
+      if ( (newCode = ep.exec()) != -1) {
             maxPitchP->setText(midiCodeToStr(newCode));
             _maxPitchP = newCode;
             }

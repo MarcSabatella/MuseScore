@@ -16,6 +16,7 @@
 namespace Ms {
 
 class XmlReader;
+enum class StyleIdx : int;
 
 //---------------------------------------------------------
 //   PropertyStyle
@@ -29,19 +30,20 @@ enum class PropertyStyle : char {
 //   Element Properties
 //------------------------------------------------------------------------
 
-enum class P_ID : unsigned char {
+enum class P_ID : int {
       SUBTYPE,
       SELECTED,
       GENERATED,
       COLOR,
       VISIBLE,
+      Z,
       SMALL,
       SHOW_COURTESY,
       LINE_TYPE,
       PITCH,
       TPC1,
-      TPC2,
 
+      TPC2,
       LINE,
       FIXED,
       FIXED_LINE,
@@ -51,19 +53,19 @@ enum class P_ID : unsigned char {
       VELO_OFFSET,
       ARTICULATION_ANCHOR,
       DIRECTION,
-      STEM_DIRECTION,
 
+      STEM_DIRECTION,
       NO_STEM,
       SLUR_DIRECTION,
       LEADING_SPACE,
-      TRAILING_SPACE,
       DISTRIBUTE,
       MIRROR_HEAD,
       DOT_POSITION,
       TUNING,
       PAUSE,
-      BARLINE_SPAN,
+      BARLINE_TYPE,
 
+      BARLINE_SPAN,
       BARLINE_SPAN_FROM,
       BARLINE_SPAN_TO,
       USER_OFF,
@@ -73,8 +75,8 @@ enum class P_ID : unsigned char {
       PLAY,
       TIMESIG_NOMINAL,
       TIMESIG_ACTUAL,
-      NUMBER_TYPE,
 
+      NUMBER_TYPE,
       BRACKET_TYPE,
       NORMAL_NOTES,
       ACTUAL_NOTES,
@@ -114,7 +116,6 @@ enum class P_ID : unsigned char {
       ACCIDENTAL_BRACKET,
       NUMERATOR_STRING,
       DENOMINATOR_STRING,
-      BREAK_HINT,
       FBPREFIX,             // used for FiguredBassItem
       FBDIGIT,              //    "           "
       FBSUFFIX,             //    "           "
@@ -130,7 +131,6 @@ enum class P_ID : unsigned char {
       NUMBERS_ONLY,
       TRILL_TYPE,
 
-      HAIRPIN_TEXTLINE,
       HAIRPIN_CIRCLEDTIP,
       HAIRPIN_TYPE,
       HAIRPIN_HEIGHT,
@@ -147,10 +147,11 @@ enum class P_ID : unsigned char {
       MARKER_TYPE,
       ARP_USER_LEN1,
       ARP_USER_LEN2,
-      REPEAT_FLAGS,
-      END_BARLINE_TYPE,
-      END_BARLINE_VISIBLE,
-      END_BARLINE_COLOR,
+
+      REPEAT_END,
+      REPEAT_START,
+      REPEAT_JUMP,
+
       MEASURE_NUMBER_MODE,
 
       GLISS_TYPE,
@@ -203,11 +204,11 @@ enum class P_ID : unsigned char {
       SLUR_UOFF3,
       SLUR_UOFF4,
       STAFF_MOVE,
+      VERSE,
       SYLLABIC,
       LYRIC_TICKS,
       VOLTA_ENDING,
       LINE_VISIBLE,
-      SYSTEM_INITIAL_BARLINE_TYPE,
 
       MAG,
       USE_DRUMSET,
@@ -224,7 +225,22 @@ enum class P_ID : unsigned char {
 
       GLISSANDO_STYLE,
 
-      LAYOUT_MODE,
+      FRET_STRINGS,
+      FRET_FRETS,
+      FRET_BARRE,
+      FRET_OFFSET,
+
+      SYSTEM_BRACKET,
+      GAP,
+      AUTOPLACE,
+      DASH_LINE_LEN,
+      DASH_GAP_LEN,
+      TICK,
+      PLAYBACK_VOICE1,
+      PLAYBACK_VOICE2,
+      PLAYBACK_VOICE3,
+      PLAYBACK_VOICE4,
+      SYMBOL,
 
       END
       };
@@ -244,7 +260,7 @@ enum class P_TYPE : char {
       STRING,
       SCALE,
       COLOR,
-      DIRECTION,      // enum class MScore::Direction
+      DIRECTION,      // enum class Direction
       DIRECTION_H,    // enum class MScore::DirectionH
       ORNAMENT_STYLE, // enum class MScore::OrnamentStyle
       TDURATION,
@@ -257,7 +273,9 @@ enum class P_TYPE : char {
       SYMID,
       TEXT_STYLE,
       INT_LIST,
-      GLISSANDO_STYLE
+      GLISSANDO_STYLE,
+      BARLINE_TYPE,
+      ZERO_INT,         // displayed with offset +1
       };
 
 extern QVariant getProperty(P_ID type, XmlReader& e);

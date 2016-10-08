@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -101,7 +101,7 @@
           <lid>6</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>downbow</subtype>
+            <subtype>stringsDownBow</subtype>
             <lid>5</lid>
             </Articulation>
           <Note>
@@ -127,7 +127,7 @@
           <lid>11</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>upbow</subtype>
+            <subtype>stringsUpBow</subtype>
             <lid>10</lid>
             </Articulation>
           <Note>
@@ -149,10 +149,6 @@
             <string>3</string>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -277,7 +273,7 @@
             <lid>6</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>downbow</subtype>
+              <subtype>stringsDownBow</subtype>
               <lid>5</lid>
               </Articulation>
             <Note>
@@ -303,7 +299,7 @@
             <lid>11</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>upbow</subtype>
+              <subtype>stringsUpBow</subtype>
               <lid>10</lid>
               </Articulation>
             <Note>
@@ -325,10 +321,6 @@
               <string>3</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -341,7 +333,7 @@
             <lid>6</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>downbow</subtype>
+              <subtype>stringsDownBow</subtype>
               <lid>5</lid>
               </Articulation>
             <Note>
@@ -367,7 +359,7 @@
             <lid>11</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>upbow</subtype>
+              <subtype>stringsUpBow</subtype>
               <lid>10</lid>
               </Articulation>
             <Note>
@@ -389,10 +381,6 @@
               <string>3</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>Track 1</name>

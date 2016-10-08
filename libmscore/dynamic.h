@@ -102,7 +102,7 @@ class Dynamic : public Text {
       virtual void endEdit() override;
       virtual void reset() override;
 
-      void setVelocity(int v);
+      void setVelocity(int v)   { _velocity = v;    }
       int velocity() const;
       Range dynRange() const    { return _dynRange; }
       void setDynRange(Range t) { _dynRange = t;    }
@@ -112,7 +112,8 @@ class Dynamic : public Text {
       virtual bool     setProperty(P_ID propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(P_ID id) const override;
 
-      virtual QString accessibleInfo() override;
+      virtual QString accessibleInfo() const override;
+      void doAutoplace();
       };
 
 }     // namespace Ms

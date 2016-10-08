@@ -21,7 +21,7 @@
 #ifndef __SELECTDIALOG_H__
 #define __SELECTDIALOG_H__
 
-#include "ui_select.h"
+#include "ui_selectdialog.h"
 
 namespace Ms {
 

@@ -15,7 +15,7 @@
 
 #include "config.h"
 
-#include <ft2build.h>
+#include "ft2build.h"
 #include FT_FREETYPE_H
 
 class QPainter;
@@ -321,6 +321,8 @@ enum class SymId {
       accidentalArrowUp,
       accidentalBakiyeFlat,
       accidentalBakiyeSharp,
+      accidentalBracketLeft,
+      accidentalBracketRight,
       accidentalBuyukMucennebFlat,
       accidentalBuyukMucennebSharp,
       accidentalCombiningCloseCurlyBrace,
@@ -328,14 +330,17 @@ enum class SymId {
       accidentalCombiningLower19Schisma,
       accidentalCombiningLower23Limit29LimitComma,
       accidentalCombiningLower31Schisma,
+      accidentalCombiningLower53LimitComma,
       accidentalCombiningOpenCurlyBrace,
       accidentalCombiningRaise17Schisma,
       accidentalCombiningRaise19Schisma,
       accidentalCombiningRaise23Limit29LimitComma,
       accidentalCombiningRaise31Schisma,
+      accidentalCombiningRaise53LimitComma,
       accidentalCommaSlashDown,
       accidentalCommaSlashUp,
       accidentalDoubleFlat,
+      accidentalDoubleFlatArabic,
       accidentalDoubleFlatEqualTempered,
       accidentalDoubleFlatOneArrowDown,
       accidentalDoubleFlatOneArrowUp,
@@ -346,6 +351,7 @@ enum class SymId {
       accidentalDoubleFlatTwoArrowsDown,
       accidentalDoubleFlatTwoArrowsUp,
       accidentalDoubleSharp,
+      accidentalDoubleSharpArabic,
       accidentalDoubleSharpEqualTempered,
       accidentalDoubleSharpOneArrowDown,
       accidentalDoubleSharpOneArrowUp,
@@ -353,6 +359,9 @@ enum class SymId {
       accidentalDoubleSharpThreeArrowsUp,
       accidentalDoubleSharpTwoArrowsDown,
       accidentalDoubleSharpTwoArrowsUp,
+      accidentalEnharmonicAlmostEqualTo,
+      accidentalEnharmonicEquals,
+      accidentalEnharmonicTilde,
       accidentalFilledReversedFlatAndFlat,
       accidentalFilledReversedFlatAndFlatArrowDown,
       accidentalFilledReversedFlatAndFlatArrowUp,
@@ -361,9 +370,14 @@ enum class SymId {
       accidentalFiveQuarterTonesFlatArrowDown,
       accidentalFiveQuarterTonesSharpArrowUp,
       accidentalFlat,
+      accidentalFlatArabic,
       accidentalFlatEqualTempered,
+      accidentalFlatLoweredStockhausen,
       accidentalFlatOneArrowDown,
       accidentalFlatOneArrowUp,
+      accidentalFlatRaisedStockhausen,
+      accidentalFlatRepeatedLineStockhausen,
+      accidentalFlatRepeatedSpaceStockhausen,
       accidentalFlatThreeArrowsDown,
       accidentalFlatThreeArrowsUp,
       accidentalFlatTurned,
@@ -389,13 +403,17 @@ enum class SymId {
       accidentalLowerOneTridecimalQuartertone,
       accidentalLowerOneUndecimalQuartertone,
       accidentalLowerTwoSeptimalCommas,
+      accidentalLoweredStockhausen,
       accidentalNarrowReversedFlat,
       accidentalNarrowReversedFlatAndFlat,
       accidentalNatural,
+      accidentalNaturalArabic,
       accidentalNaturalEqualTempered,
       accidentalNaturalFlat,
+      accidentalNaturalLoweredStockhausen,
       accidentalNaturalOneArrowDown,
       accidentalNaturalOneArrowUp,
+      accidentalNaturalRaisedStockhausen,
       accidentalNaturalReversed,
       accidentalNaturalSharp,
       accidentalNaturalThreeArrowsDown,
@@ -404,11 +422,18 @@ enum class SymId {
       accidentalNaturalTwoArrowsUp,
       accidentalOneAndAHalfSharpsArrowDown,
       accidentalOneAndAHalfSharpsArrowUp,
+      accidentalOneQuarterToneFlatFerneyhough,
+      accidentalOneQuarterToneFlatStockhausen,
+      accidentalOneQuarterToneSharpFerneyhough,
+      accidentalOneQuarterToneSharpStockhausen,
       accidentalOneThirdToneFlatFerneyhough,
       accidentalOneThirdToneSharpFerneyhough,
       accidentalParensLeft,
       accidentalParensRight,
+      accidentalQuarterFlatEqualTempered,
+      accidentalQuarterSharpEqualTempered,
       accidentalQuarterToneFlat4,
+      accidentalQuarterToneFlatArabic,
       accidentalQuarterToneFlatArrowUp,
       accidentalQuarterToneFlatFilledReversed,
       accidentalQuarterToneFlatNaturalArrowDown,
@@ -416,6 +441,7 @@ enum class SymId {
       accidentalQuarterToneFlatStein,
       accidentalQuarterToneFlatVanBlankenburg,
       accidentalQuarterToneSharp4,
+      accidentalQuarterToneSharpArabic,
       accidentalQuarterToneSharpArrowDown,
       accidentalQuarterToneSharpBusotti,
       accidentalQuarterToneSharpNaturalArrowUp,
@@ -425,15 +451,21 @@ enum class SymId {
       accidentalRaiseOneTridecimalQuartertone,
       accidentalRaiseOneUndecimalQuartertone,
       accidentalRaiseTwoSeptimalCommas,
+      accidentalRaisedStockhausen,
       accidentalReversedFlatAndFlatArrowDown,
       accidentalReversedFlatAndFlatArrowUp,
       accidentalReversedFlatArrowDown,
       accidentalReversedFlatArrowUp,
       accidentalSharp,
+      accidentalSharpArabic,
       accidentalSharpEqualTempered,
+      accidentalSharpLoweredStockhausen,
       accidentalSharpOneArrowDown,
       accidentalSharpOneArrowUp,
       accidentalSharpOneHorizontalStroke,
+      accidentalSharpRaisedStockhausen,
+      accidentalSharpRepeatedLineStockhausen,
+      accidentalSharpRepeatedSpaceStockhausen,
       accidentalSharpReversed,
       accidentalSharpSharp,
       accidentalSharpThreeArrowsDown,
@@ -449,16 +481,19 @@ enum class SymId {
       accidentalSori,
       accidentalTavenerFlat,
       accidentalTavenerSharp,
+      accidentalThreeQuarterTonesFlatArabic,
       accidentalThreeQuarterTonesFlatArrowDown,
       accidentalThreeQuarterTonesFlatArrowUp,
       accidentalThreeQuarterTonesFlatCouper,
       accidentalThreeQuarterTonesFlatGrisey,
       accidentalThreeQuarterTonesFlatTartini,
       accidentalThreeQuarterTonesFlatZimmermann,
+      accidentalThreeQuarterTonesSharpArabic,
       accidentalThreeQuarterTonesSharpArrowDown,
       accidentalThreeQuarterTonesSharpArrowUp,
       accidentalThreeQuarterTonesSharpBusotti,
       accidentalThreeQuarterTonesSharpStein,
+      accidentalThreeQuarterTonesSharpStockhausen,
       accidentalTripleFlat,
       accidentalTripleSharp,
       accidentalTwoThirdTonesFlatFerneyhough,
@@ -563,6 +598,14 @@ enum class SymId {
       articMarcatoStaccatoBelow,
       articMarcatoTenutoAbove,
       articMarcatoTenutoBelow,
+      articSoftAccentAbove,
+      articSoftAccentBelow,
+      articSoftAccentStaccatoAbove,
+      articSoftAccentStaccatoBelow,
+      articSoftAccentTenutoAbove,
+      articSoftAccentTenutoBelow,
+      articSoftAccentTenutoStaccatoAbove,
+      articSoftAccentTenutoStaccatoBelow,
       articStaccatissimoAbove,
       articStaccatissimoBelow,
       articStaccatissimoStrokeAbove,
@@ -643,6 +686,7 @@ enum class SymId {
       brassPlop,
       brassScoop,
       brassSmear,
+      brassValveTrill,
       breathMarkComma,
       breathMarkSalzedo,
       breathMarkTick,
@@ -742,6 +786,7 @@ enum class SymId {
       conductorLeftBeat,
       conductorRightBeat,
       conductorStrongBeat,
+      conductorUnconducted,
       conductorWeakBeat,
       controlBeginBeam,
       controlBeginPhrase,
@@ -783,6 +828,9 @@ enum class SymId {
       daseianSuperiores4,
       doubleTongueAbove,
       doubleTongueBelow,
+      dynamicCombinedSeparatorColon,
+      dynamicCombinedSeparatorHyphen,
+      dynamicCombinedSeparatorSpace,
       dynamicCrescendoHairpin,
       dynamicDiminuendoHairpin,
       dynamicFF,
@@ -793,6 +841,10 @@ enum class SymId {
       dynamicForte,
       dynamicFortePiano,
       dynamicForzando,
+      dynamicHairpinBracketLeft,
+      dynamicHairpinBracketRight,
+      dynamicHairpinParenthesisLeft,
+      dynamicHairpinParenthesisRight,
       dynamicMF,
       dynamicMP,
       dynamicMessaDiVoce,
@@ -921,6 +973,7 @@ enum class SymId {
       figbass6Raised,
       figbass6Raised2,
       figbass7,
+      figbass7Diminished,
       figbass7Raised1,
       figbass7Raised2,
       figbass8,
@@ -938,6 +991,26 @@ enum class SymId {
       figbassParensRight,
       figbassPlus,
       figbassSharp,
+      fingering0,
+      fingering1,
+      fingering2,
+      fingering3,
+      fingering4,
+      fingering5,
+      fingeringALower,
+      fingeringCLower,
+      fingeringELower,
+      fingeringILower,
+      fingeringMLower,
+      fingeringMultipleNotes,
+      fingeringOLower,
+      fingeringPLower,
+      fingeringSubstitutionAbove,
+      fingeringSubstitutionBelow,
+      fingeringSubstitutionDash,
+      fingeringTLower,
+      fingeringTUpper,
+      fingeringXLower,
       flag1024thDown,
       flag1024thUp,
       flag128thDown,
@@ -975,15 +1048,25 @@ enum class SymId {
       functionDLower,
       functionDUpper,
       functionEight,
+      functionFUpper,
       functionFive,
       functionFour,
       functionGLower,
       functionGUpper,
       functionGreaterThan,
+      functionILower,
+      functionIUpper,
+      functionKLower,
+      functionKUpper,
+      functionLLower,
+      functionLUpper,
       functionLessThan,
+      functionMLower,
+      functionMUpper,
       functionMinus,
       functionNLower,
       functionNUpper,
+      functionNUpperSuperscript,
       functionNine,
       functionOne,
       functionPLower,
@@ -991,6 +1074,7 @@ enum class SymId {
       functionParensLeft,
       functionParensRight,
       functionPlus,
+      functionRLower,
       functionRepetition1,
       functionRepetition2,
       functionRing,
@@ -1031,6 +1115,8 @@ enum class SymId {
       graceNoteAppoggiaturaStemUp,
       graceNoteSlashStemDown,
       graceNoteSlashStemUp,
+      guitarBarreFull,
+      guitarBarreHalf,
       guitarClosePedal,
       guitarFadeIn,
       guitarFadeOut,
@@ -1082,13 +1168,20 @@ enum class SymId {
       harpPedalRaised,
       harpSalzedoAeolianAscending,
       harpSalzedoAeolianDescending,
+      harpSalzedoDampAbove,
+      harpSalzedoDampBelow,
+      harpSalzedoDampBothHands,
+      harpSalzedoDampLowStrings,
       harpSalzedoFluidicSoundsLeft,
       harpSalzedoFluidicSoundsRight,
+      harpSalzedoIsolatedSounds,
       harpSalzedoMetallicSounds,
+      harpSalzedoMetallicSoundsOneString,
       harpSalzedoMuffleTotally,
       harpSalzedoOboicFlux,
       harpSalzedoPlayUpperEnd,
       harpSalzedoSlideWithSuppleness,
+      harpSalzedoSnareDrum,
       harpSalzedoTamTamSounds,
       harpSalzedoThunderEffect,
       harpSalzedoTimpanicSounds,
@@ -1115,7 +1208,10 @@ enum class SymId {
       keyboardPedalHeel1,
       keyboardPedalHeel2,
       keyboardPedalHeel3,
+      keyboardPedalHeelToToe,
       keyboardPedalHeelToe,
+      keyboardPedalHookEnd,
+      keyboardPedalHookStart,
       keyboardPedalHyphen,
       keyboardPedalP,
       keyboardPedalPed,
@@ -1123,6 +1219,7 @@ enum class SymId {
       keyboardPedalSost,
       keyboardPedalToe1,
       keyboardPedalToe2,
+      keyboardPedalToeToHeel,
       keyboardPedalUp,
       keyboardPedalUpNotch,
       keyboardPedalUpSpecial,
@@ -1556,32 +1653,46 @@ enum class SymId {
       noteReHalf,
       noteReWhole,
       noteShapeArrowheadLeftBlack,
+      noteShapeArrowheadLeftDoubleWhole,
       noteShapeArrowheadLeftWhite,
       noteShapeDiamondBlack,
+      noteShapeDiamondDoubleWhole,
       noteShapeDiamondWhite,
       noteShapeIsoscelesTriangleBlack,
+      noteShapeIsoscelesTriangleDoubleWhole,
       noteShapeIsoscelesTriangleWhite,
       noteShapeKeystoneBlack,
+      noteShapeKeystoneDoubleWhole,
       noteShapeKeystoneWhite,
       noteShapeMoonBlack,
+      noteShapeMoonDoubleWhole,
       noteShapeMoonLeftBlack,
+      noteShapeMoonLeftDoubleWhole,
       noteShapeMoonLeftWhite,
       noteShapeMoonWhite,
       noteShapeQuarterMoonBlack,
+      noteShapeQuarterMoonDoubleWhole,
       noteShapeQuarterMoonWhite,
       noteShapeRoundBlack,
+      noteShapeRoundDoubleWhole,
       noteShapeRoundWhite,
       noteShapeSquareBlack,
+      noteShapeSquareDoubleWhole,
       noteShapeSquareWhite,
       noteShapeTriangleLeftBlack,
+      noteShapeTriangleLeftDoubleWhole,
       noteShapeTriangleLeftWhite,
       noteShapeTriangleRightBlack,
+      noteShapeTriangleRightDoubleWhole,
       noteShapeTriangleRightWhite,
       noteShapeTriangleRoundBlack,
+      noteShapeTriangleRoundDoubleWhole,
       noteShapeTriangleRoundLeftBlack,
+      noteShapeTriangleRoundLeftDoubleWhole,
       noteShapeTriangleRoundLeftWhite,
       noteShapeTriangleRoundWhite,
       noteShapeTriangleUpBlack,
+      noteShapeTriangleUpDoubleWhole,
       noteShapeTriangleUpWhite,
       noteSiBlack,
       noteSiHalf,
@@ -1689,10 +1800,12 @@ enum class SymId {
       noteheadRectangularClusterWhiteMiddle,
       noteheadRectangularClusterWhiteTop,
       noteheadRoundBlack,
+      noteheadRoundBlackDoubleSlashed,
       noteheadRoundBlackLarge,
       noteheadRoundBlackSlashed,
       noteheadRoundBlackSlashedLarge,
       noteheadRoundWhite,
+      noteheadRoundWhiteDoubleSlashed,
       noteheadRoundWhiteLarge,
       noteheadRoundWhiteSlashed,
       noteheadRoundWhiteSlashedLarge,
@@ -1704,6 +1817,7 @@ enum class SymId {
       noteheadSlashVerticalEnds,
       noteheadSlashVerticalEndsMuted,
       noteheadSlashVerticalEndsSmall,
+      noteheadSlashWhiteDoubleWhole,
       noteheadSlashWhiteHalf,
       noteheadSlashWhiteMuted,
       noteheadSlashWhiteWhole,
@@ -2063,6 +2177,7 @@ enum class SymId {
       pictRimShotOnStem,
       pictSandpaperBlocks,
       pictScrapeAroundRim,
+      pictScrapeAroundRimClockwise,
       pictScrapeCenterToEdge,
       pictScrapeEdgeToCenter,
       pictShellBells,
@@ -2248,7 +2363,12 @@ enum class SymId {
       stemSussurando,
       stemSwished,
       stemVibratoPulse,
+      stockhausenTremolo,
       stringsBowBehindBridge,
+      stringsBowBehindBridgeFourStrings,
+      stringsBowBehindBridgeOneString,
+      stringsBowBehindBridgeThreeStrings,
+      stringsBowBehindBridgeTwoStrings,
       stringsBowOnBridge,
       stringsBowOnTailpiece,
       stringsChangeBowDirection,
@@ -2295,15 +2415,35 @@ enum class SymId {
       textTupletBracketStartLongStem,
       textTupletBracketStartShortStem,
       timeSig0,
+      timeSig0Reversed,
+      timeSig0Turned,
       timeSig1,
+      timeSig1Reversed,
+      timeSig1Turned,
       timeSig2,
+      timeSig2Reversed,
+      timeSig2Turned,
       timeSig3,
+      timeSig3Reversed,
+      timeSig3Turned,
       timeSig4,
+      timeSig4Reversed,
+      timeSig4Turned,
       timeSig5,
+      timeSig5Reversed,
+      timeSig5Turned,
       timeSig6,
+      timeSig6Reversed,
+      timeSig6Turned,
       timeSig7,
+      timeSig7Reversed,
+      timeSig7Turned,
       timeSig8,
+      timeSig8Reversed,
+      timeSig8Turned,
       timeSig9,
+      timeSig9Reversed,
+      timeSig9Turned,
       timeSigBracketLeft,
       timeSigBracketLeftSmall,
       timeSigBracketRight,
@@ -2312,8 +2452,13 @@ enum class SymId {
       timeSigCombNumerator,
       timeSigComma,
       timeSigCommon,
+      timeSigCommonReversed,
+      timeSigCommonTurned,
       timeSigCut2,
+      timeSigCut3,
       timeSigCutCommon,
+      timeSigCutCommonReversed,
+      timeSigCutCommonTurned,
       timeSigEquals,
       timeSigFractionHalf,
       timeSigFractionOneThird,
@@ -2367,12 +2512,16 @@ enum class SymId {
       ventiduesimaAlta,
       ventiduesimaBassa,
       ventiduesimaBassaMb,
+      vocalFingerClickStockhausen,
       vocalMouthClosed,
       vocalMouthOpen,
       vocalMouthPursed,
       vocalMouthSlightlyOpen,
       vocalMouthWideOpen,
+      vocalNasalVoice,
       vocalSprechgesang,
+      vocalTongueClickStockhausen,
+      vocalTongueFingerClickStockhausen,
       vocalsSussurando,
       wiggleArpeggiatoDown,
       wiggleArpeggiatoDownArrow,
@@ -2463,6 +2612,7 @@ enum class SymId {
       windHalfClosedHole3,
       windLessRelaxedEmbouchure,
       windLessTightEmbouchure,
+      windMouthpiecePop,
       windMultiphonicsBlackStem,
       windMultiphonicsBlackWhiteStem,
       windMultiphonicsWhiteStem,
@@ -2471,6 +2621,7 @@ enum class SymId {
       windReedPositionNormal,
       windReedPositionOut,
       windRelaxedEmbouchure,
+      windRimOnly,
       windSharpEmbouchure,
       windStrongAirPressure,
       windThreeQuartersClosedHole,
@@ -2483,7 +2634,13 @@ enum class SymId {
 //    SMuFL stylistic alternates which we need to access directly
 
       noteheadDoubleWholeAlt,             // double whole with double side bars
+      fourStringTabClefSerif,             // TAB clef in script style
       sixStringTabClefSerif,              // TAB clef in script style
+      cClefFrench,
+      cClefFrench20C,
+      fClefFrench,
+      fClef19thCentury,
+      
 
 //    MuseScore local symbols, precomposed symbols to mimic some emmentaler glyphs
 
@@ -2526,15 +2683,15 @@ class Sym {
       QPointF _cutOutNW;
       QPointF _cutOutSE;
       QPointF _cutOutSW;
-      QList<SymId> _ids;            // not empty if this is a compound symbol
+      std::vector<SymId> _ids;            // not empty if this is a compound symbol
 
    public:
       Sym() { }
 
       bool isValid() const                       { return _code != -1; }
 
-      void setSymList(const QList<SymId>& sl)    { _ids = sl;        }
-      const QList<SymId>& symList() const        { return _ids;      }
+      void setSymList(const std::vector<SymId>& sl)    { _ids = sl;        }
+      const std::vector<SymId>& symList() const        { return _ids;      }
 
       FT_UInt index() const                      { return _index;    }
       void setIndex(FT_UInt i)                   { _index = i; }
@@ -2565,7 +2722,7 @@ class Sym {
       static SymId oldName2id(const QString s)   { return lonhash.value(s, SymId::noSym);}
       static const char* id2name(SymId id);
 
-      static QString id2userName(SymId id)       { return symUserNames[int(id)]; }
+      static QString id2userName(SymId id)       { return qApp->translate("symUserNames", symUserNames[int(id)].toUtf8().data()); }
       static SymId userName2id(const QString& s);
 
       static QVector<const char*> symNames;
@@ -2591,7 +2748,6 @@ struct GlyphKey {
          : face(_f), id(_id), mag(m), worldScale(s), color(c) {}
       bool operator==(const GlyphKey&) const;
       };
-
 
 struct GlyphPixmap {
       QPixmap pm;
@@ -2619,6 +2775,7 @@ class ScoreFont {
       mutable QFont* font { 0 };
 
       static QVector<ScoreFont> _scoreFonts;
+      static QJsonObject _glyphnamesJson;
       const Sym& sym(SymId id) const { return _symbols[int(id)]; }
       void load();
       void computeMetrics(Sym* sym, int code);
@@ -2641,36 +2798,40 @@ class ScoreFont {
       static ScoreFont* fallbackFont();
       static const char* fallbackTextFont();
       static const QVector<ScoreFont>& scoreFonts() { return _scoreFonts; }
+      static bool initGlyphNamesJson();
+      static const QJsonObject& glyphNamesJson() { return _glyphnamesJson; }
 
       QString toString(SymId) const;
       QPixmap sym2pixmap(SymId, qreal) { return QPixmap(); }      // TODOxxxx
 
       void draw(SymId id, QPainter* painter, qreal mag, const QPointF& pos, qreal scale) const;
       void draw(SymId id, QPainter* painter, qreal mag, const QPointF& pos) const;
-      void draw(const QList<SymId>&, QPainter*, qreal mag, const QPointF& pos) const;
-      void draw(const QList<SymId>&, QPainter*, qreal mag, const QPointF& pos, qreal scale) const;
+      void draw(const std::vector<SymId>&, QPainter*, qreal mag, const QPointF& pos) const;
+      void draw(const std::vector<SymId>&, QPainter*, qreal mag, const QPointF& pos, qreal scale) const;
       void draw(SymId id, QPainter* painter, qreal mag, const QPointF& pos, int n) const;
 
-      qreal height(SymId id, qreal mag) const         { return sym(id).bbox().height() * mag; }
-      qreal width(SymId id, qreal mag) const          { return sym(id).bbox().width() * mag;  }
-      qreal advance(SymId id, qreal mag) const        { return sym(id).advance() * mag;  }
-      qreal width(const QList<SymId>&, qreal mag) const;
+      qreal height(SymId id, qreal mag) const         { return bbox(id, mag).height(); }
+      qreal width(SymId id, qreal mag) const          { return bbox(id, mag).width();  }
+      qreal advance(SymId id, qreal mag) const;
+      qreal width(const std::vector<SymId>&, qreal mag) const;
 
       const QRectF bbox(SymId id, qreal mag) const;
-      const QRectF bbox(const QList<SymId>& s, qreal mag) const;
-      QPointF stemDownNW(SymId id, qreal mag) const   { return sym(id).stemDownNW() * mag;   }
-      QPointF stemUpSE(SymId id, qreal mag) const     { return sym(id).stemUpSE() * mag;   }
-      QPointF cutOutNE(SymId id, qreal mag) const     { return sym(id).cutOutNE() * mag; }
-      QPointF cutOutNW(SymId id, qreal mag) const     { return sym(id).cutOutNW() * mag; }
-      QPointF cutOutSE(SymId id, qreal mag) const     { return sym(id).cutOutSE() * mag; }
-      QPointF cutOutSW(SymId id, qreal mag) const     { return sym(id).cutOutSW() * mag; }
+      const QRectF bbox(const std::vector<SymId>& s, qreal mag) const;
+      QPointF stemDownNW(SymId id, qreal mag) const;
+      QPointF stemUpSE(SymId id, qreal mag) const;
+      QPointF cutOutNE(SymId id, qreal mag) const;
+      QPointF cutOutNW(SymId id, qreal mag) const;
+      QPointF cutOutSE(SymId id, qreal mag) const;
+      QPointF cutOutSW(SymId id, qreal mag) const;
 
       bool isValid(SymId id) const                    { return sym(id).isValid(); }
+      bool useFallbackFont(SymId id) const;
       };
 
 extern void initScoreFonts();
 
 }     // namespace Ms
 
+Q_DECLARE_METATYPE(Ms::SymId);
 #endif
 

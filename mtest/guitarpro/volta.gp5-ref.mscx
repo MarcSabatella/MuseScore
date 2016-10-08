@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -273,7 +273,7 @@
             <string>2</string>
             </Note>
           </Chord>
-        <tick>0</tick>
+        <move>0/1</move>
         <Chord>
           <lid>29</lid>
           <track>1</track>
@@ -325,7 +325,7 @@
           <Note>
             <lid>36</lid>
             <Accidental>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>63</pitch>
             <tpc>11</tpc>
@@ -421,7 +421,7 @@
           <Note>
             <lid>47</lid>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>66</pitch>
             <tpc>20</tpc>
@@ -455,7 +455,7 @@
             <string>2</string>
             </Note>
           </Chord>
-        <tick>1440</tick>
+        <move>0/1</move>
         <Chord>
           <lid>53</lid>
           <track>1</track>
@@ -631,7 +631,7 @@
             <string>2</string>
             </Note>
           </Chord>
-        <tick>2880</tick>
+        <move>0/1</move>
         <Chord>
           <lid>77</lid>
           <track>1</track>
@@ -807,7 +807,7 @@
             <string>2</string>
             </Note>
           </Chord>
-        <tick>4320</tick>
+        <move>0/1</move>
         <Chord>
           <lid>101</lid>
           <track>1</track>
@@ -899,7 +899,7 @@
           <Note>
             <lid>112</lid>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>66</pitch>
             <tpc>20</tpc>
@@ -986,7 +986,7 @@
             <string>2</string>
             </Note>
           </Chord>
-        <tick>5760</tick>
+        <move>0/1</move>
         <Chord>
           <lid>125</lid>
           <track>1</track>
@@ -1038,7 +1038,7 @@
           <Note>
             <lid>132</lid>
             <Accidental>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>63</pitch>
             <tpc>11</tpc>
@@ -1134,7 +1134,7 @@
           <Note>
             <lid>143</lid>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>66</pitch>
             <tpc>20</tpc>
@@ -1168,7 +1168,7 @@
             <string>2</string>
             </Note>
           </Chord>
-        <tick>7200</tick>
+        <move>0/1</move>
         <Chord>
           <lid>149</lid>
           <track>1</track>
@@ -1229,7 +1229,7 @@
             <string>0</string>
             </Note>
           </Chord>
-        <tick>8640</tick>
+        <move>0/1</move>
         <Chord>
           <lid>158</lid>
           <track>1</track>
@@ -1257,14 +1257,9 @@
         <Rest>
           <lid>161</lid>
           <durationType>measure</durationType>
-          <duration z="3" n="4"/>
+          <duration>3/4</duration>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
-        <endSpanner id="3"/>
-        <tick>10080</tick>
+        <move>0/1</move>
         <Chord>
           <lid>162</lid>
           <track>1</track>
@@ -1599,7 +1594,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>0</tick>
+          <move>0/1</move>
           <Chord>
             <lid>29</lid>
             <track>1</track>
@@ -1651,7 +1646,7 @@
             <Note>
               <lid>36</lid>
               <Accidental>
-                <subtype>flat</subtype>
+                <subtype>accidentalFlat</subtype>
                 </Accidental>
               <pitch>63</pitch>
               <tpc>11</tpc>
@@ -1747,7 +1742,7 @@
             <Note>
               <lid>47</lid>
               <Accidental>
-                <subtype>sharp</subtype>
+                <subtype>accidentalSharp</subtype>
                 </Accidental>
               <pitch>66</pitch>
               <tpc>20</tpc>
@@ -1781,7 +1776,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>1440</tick>
+          <move>0/1</move>
           <Chord>
             <lid>53</lid>
             <track>1</track>
@@ -1957,7 +1952,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>2880</tick>
+          <move>0/1</move>
           <Chord>
             <lid>77</lid>
             <track>1</track>
@@ -2133,7 +2128,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>4320</tick>
+          <move>0/1</move>
           <Chord>
             <lid>101</lid>
             <track>1</track>
@@ -2225,7 +2220,7 @@
             <Note>
               <lid>112</lid>
               <Accidental>
-                <subtype>sharp</subtype>
+                <subtype>accidentalSharp</subtype>
                 </Accidental>
               <pitch>66</pitch>
               <tpc>20</tpc>
@@ -2312,7 +2307,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>5760</tick>
+          <move>0/1</move>
           <Chord>
             <lid>125</lid>
             <track>1</track>
@@ -2364,7 +2359,7 @@
             <Note>
               <lid>132</lid>
               <Accidental>
-                <subtype>flat</subtype>
+                <subtype>accidentalFlat</subtype>
                 </Accidental>
               <pitch>63</pitch>
               <tpc>11</tpc>
@@ -2460,7 +2455,7 @@
             <Note>
               <lid>143</lid>
               <Accidental>
-                <subtype>sharp</subtype>
+                <subtype>accidentalSharp</subtype>
                 </Accidental>
               <pitch>66</pitch>
               <tpc>20</tpc>
@@ -2494,7 +2489,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>7200</tick>
+          <move>0/1</move>
           <Chord>
             <lid>149</lid>
             <track>1</track>
@@ -2555,7 +2550,7 @@
               <string>0</string>
               </Note>
             </Chord>
-          <tick>8640</tick>
+          <move>0/1</move>
           <Chord>
             <lid>158</lid>
             <track>1</track>
@@ -2583,14 +2578,9 @@
           <Rest>
             <lid>161</lid>
             <durationType>measure</durationType>
-            <duration z="3" n="4"/>
+            <duration>3/4</duration>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
-          <endSpanner id="5"/>
-          <tick>10080</tick>
+          <move>0/1</move>
           <Chord>
             <lid>162</lid>
             <track>1</track>
@@ -2796,7 +2786,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>0</tick>
+          <move>0/1</move>
           <Chord>
             <lid>29</lid>
             <track>5</track>
@@ -2972,7 +2962,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>1440</tick>
+          <move>0/1</move>
           <Chord>
             <lid>53</lid>
             <track>5</track>
@@ -3148,7 +3138,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>2880</tick>
+          <move>0/1</move>
           <Chord>
             <lid>77</lid>
             <track>5</track>
@@ -3324,7 +3314,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>4320</tick>
+          <move>0/1</move>
           <Chord>
             <lid>101</lid>
             <track>5</track>
@@ -3500,7 +3490,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>5760</tick>
+          <move>0/1</move>
           <Chord>
             <lid>125</lid>
             <track>5</track>
@@ -3676,7 +3666,7 @@
               <string>2</string>
               </Note>
             </Chord>
-          <tick>7200</tick>
+          <move>0/1</move>
           <Chord>
             <lid>149</lid>
             <track>5</track>
@@ -3729,7 +3719,7 @@
               <string>0</string>
               </Note>
             </Chord>
-          <tick>8640</tick>
+          <move>0/1</move>
           <Chord>
             <lid>158</lid>
             <track>5</track>
@@ -3749,13 +3739,9 @@
           <Rest>
             <lid>161</lid>
             <durationType>measure</durationType>
-            <duration z="3" n="4"/>
+            <duration>3/4</duration>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
-          <tick>10080</tick>
+          <move>0/1</move>
           <Chord>
             <lid>162</lid>
             <track>5</track>

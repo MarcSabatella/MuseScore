@@ -42,11 +42,11 @@ extern bool useFactorySettings;
 ChordStyleEditor::ChordStyleEditor(QWidget* parent)
    : QDialog(parent)
       {
+      setObjectName("ChordStyleEditor");
       setupUi(this);
       setWindowTitle(tr("MuseScore: Chord Symbols Style Editor"));
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-      fileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
       chordList = 0;
       score = 0;
 
@@ -158,7 +158,7 @@ void ChordStyleEditor::setChordList(ChordList* cl)
             paletteTab->addTab(accPalette, f.family);
             QFont qf(f.family);
             qf.setStyleStrategy(QFont::NoFontMerging);
-            int size = lrint(20.0 * MScore::DPI / PPI);
+            int size = lrint(20.0 * DPI / PPI);
             qf.setPixelSize(size);
 
             QFontMetricsF fi(qf);
@@ -197,7 +197,7 @@ void ChordStyleEditor::harmonyChanged(QTreeWidgetItem* current, QTreeWidgetItem*
 void ChordStyleEditor::save()
       {
       QSettings settings;
-      settings.beginGroup("ChordStyleEditor");
+      settings.beginGroup(objectName());
       settings.setValue("splitter1", splitter1->saveState());
       settings.setValue("splitter2", splitter2->saveState());
 //      settings.setValue("list", harmonyList->saveState());
@@ -212,7 +212,7 @@ void ChordStyleEditor::restore()
       {
       if (!useFactorySettings) {
             QSettings settings;
-            settings.beginGroup("ChordStyleEditor");
+            settings.beginGroup(objectName());
             splitter1->restoreState(settings.value("splitter1").toByteArray());
             splitter2->restoreState(settings.value("splitter2").toByteArray());
             harmonyList->setColumnWidth(0, settings.value("col1", 30).toInt());
@@ -250,7 +250,7 @@ void HarmonyCanvas::paintEvent(QPaintEvent* event)
 
       qreal spatium = gscore->spatium();
       qreal mag = PALETTE_SPATIUM * extraMag / spatium;
-      spatium = SPATIUM20 * MScore::DPI;
+      spatium = SPATIUM20;
 
       QPainter p(this);
 
@@ -280,7 +280,7 @@ void HarmonyCanvas::paintEvent(QPaintEvent* event)
 
             double _spatium = 2.0 * PALETTE_SPATIUM / extraMag;
             const TextStyle* st = &gscore->textStyle(TextStyleType::HARMONY);
-            QFont ff(st->fontPx(_spatium));
+            QFont ff(st->font(_spatium * MScore::pixelRatio));
             ff.setFamily(sb->font().family());
 
             QString s;
@@ -314,15 +314,15 @@ void HarmonyCanvas::render(const QList<RenderAction>& renderList, double& x, dou
 
       foreach(ChordFont cf, chordList->fonts) {
             if (cf.family.isEmpty() || cf.family == "default")
-                  fontList.append(st->fontPx(_spatium * cf.mag));
+                  fontList.append(st->font(_spatium * cf.mag * MScore::pixelRatio));
             else {
-                  QFont ff(st->fontPx(_spatium * cf.mag));
+                  QFont ff(st->font(_spatium * cf.mag * MScore::pixelRatio));
                   ff.setFamily(cf.family);
                   fontList.append(ff);
                   }
             }
       if (fontList.isEmpty())
-            fontList.append(st->fontPx(_spatium));
+            fontList.append(st->font(_spatium * MScore::pixelRatio));
 
       foreach(const RenderAction& a, renderList) {
             if (a.type == RenderAction::RenderActionType::SET) {
@@ -471,7 +471,7 @@ void HarmonyCanvas::dropEvent(QDropEvent* event)
 
             double _spatium = 2.0 * PALETTE_SPATIUM / extraMag;
             const TextStyle* st = &gscore->textStyle(TextStyleType::HARMONY);
-            QFont ff(st->fontPx(_spatium));
+            QFont ff(st->font(_spatium * MScore::pixelRatio));
             ff.setFamily(sb->font().family());
 
 //            qDebug("drop %s", dragElement->name());

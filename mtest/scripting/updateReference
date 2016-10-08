@@ -1,6 +1,6 @@
 #!/bin/bash
 
-P=../../build.debug
-#P=../../../../MuseScore-build
+cp ../../build.debug/mtest/scripting/p1.log  p1.log.ref
+cp ../../build.debug/mtest/scripting/p2.log  p2.log.ref
 
-cp $P/mtest/scripting/p1.log p1.log.ref
+

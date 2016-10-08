@@ -73,9 +73,6 @@
       <number>3</number>
      </property>
      <property name="verticalSpacing">
-      <number>0</number>
-     </property>
-     <property name="verticalSpacing">
       <number>6</number>
      </property>
      <item row="1" column="1">
@@ -174,26 +171,34 @@
      <item row="0" column="2">
       <widget class="QToolButton" name="resetLeftGap">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Left gap value</string>
+        <string>Reset 'Left gap' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
       <widget class="QToolButton" name="resetRightGap">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Right gap value</string>
+        <string>Reset 'Right gap' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -208,6 +213,8 @@
   <tabstop>resetRightGap</tabstop>
   <tabstop>width</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../musescore.qrc"/>
+ </resources>
  <connections/>
 </ui>

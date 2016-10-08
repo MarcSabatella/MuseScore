@@ -97,11 +97,18 @@
      </item>
      <item row="1" column="3">
       <widget class="QToolButton" name="resetAutoscale">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
        <property name="accessibleName">
-        <string>Reset Scale to frame size value</string>
+        <string>Reset 'Scale to frame size' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -230,21 +237,35 @@
      </item>
      <item row="4" column="3">
       <widget class="QToolButton" name="resetLockAspectRatio">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
        <property name="accessibleName">
-        <string>Reset Lock aspect ratio value</string>
+        <string>Reset 'Lock aspect ratio' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="5" column="3">
       <widget class="QToolButton" name="resetSizeIsSpatium">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
        <property name="accessibleName">
-        <string>Reset Size in staff space units value</string>
+        <string>Reset 'Size in staff space units' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -296,6 +317,8 @@
   <tabstop>sizeIsSpatium</tabstop>
   <tabstop>resetSizeIsSpatium</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../musescore.qrc"/>
+ </resources>
  <connections/>
 </ui>

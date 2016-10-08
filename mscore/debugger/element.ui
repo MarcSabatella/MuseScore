@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>743</width>
-    <height>278</height>
+    <width>677</width>
+    <height>311</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string/>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout">
    <property name="spacing">
@@ -35,7 +35,7 @@
       <string notr="true"/>
      </property>
      <property name="title">
-      <string notr="true" comment="do not translate">Element</string>
+      <string notr="true">Element</string>
      </property>
      <property name="flat">
       <bool>false</bool>
@@ -177,7 +177,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="4">
+        <item row="3" column="4">
          <widget class="QLabel" name="label_3">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -192,7 +192,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">Color</string>
+           <string notr="true">Color</string>
           </property>
           <property name="textFormat">
            <enum>Qt::PlainText</enum>
@@ -214,7 +214,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">generated</string>
+           <string notr="true">generated</string>
           </property>
          </widget>
         </item>
@@ -249,7 +249,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">selected</string>
+           <string notr="true">selected</string>
           </property>
          </widget>
         </item>
@@ -262,7 +262,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">visible</string>
+           <string notr="true">visible</string>
           </property>
          </widget>
         </item>
@@ -281,7 +281,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">Mag</string>
+           <string notr="true">Mag</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -291,7 +291,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="5">
+        <item row="3" column="5">
          <widget class="Awl::ColorLabel" name="color">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -329,11 +329,11 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">system</string>
+           <string notr="true">system</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
+        <item row="3" column="0" colspan="3">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLabel" name="label_13">
@@ -415,6 +415,9 @@
           <property name="textFormat">
            <enum>Qt::PlainText</enum>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item row="0" column="5">
@@ -432,6 +435,13 @@
             <string notr="true">Below</string>
            </property>
           </item>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="autoplace">
+          <property name="text">
+           <string>autoplace</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -456,7 +466,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">Pos</string>
+           <string notr="true">Pos</string>
           </property>
           <property name="textFormat">
            <enum>Qt::PlainText</enum>
@@ -540,7 +550,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">BBox</string>
+           <string notr="true">BBox</string>
           </property>
           <property name="textFormat">
            <enum>Qt::PlainText</enum>
@@ -814,7 +824,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string notr="true" comment="do not translate">Uoff</string>
+           <string notr="true">Uoff</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -842,7 +852,7 @@
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
           <property name="suffix">
-           <string comment="do not translate"/>
+           <string notr="true"/>
           </property>
           <property name="minimum">
            <double>-100000.000000000000000</double>
@@ -873,7 +883,7 @@
            <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
           <property name="suffix">
-           <string comment="do not translate"/>
+           <string notr="true"/>
           </property>
           <property name="minimum">
            <double>-100000.000000000000000</double>

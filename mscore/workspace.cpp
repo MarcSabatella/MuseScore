@@ -68,13 +68,13 @@ void MuseScore::showWorkspaceMenu()
             connect(workspaces, SIGNAL(triggered(QAction*)), SLOT(changeWorkspace(QAction*)));
             }
       else {
-            foreach(QAction* a, workspaces->actions())
+            for (QAction* a : workspaces->actions())
                   workspaces->removeAction(a);
             }
       menuWorkspaces->clear();
 
       const QList<Workspace*> pl = Workspace::workspaces();
-      foreach (Workspace* p, pl) {
+      for (Workspace* p : pl) {
             QAction* a = workspaces->addAction(qApp->translate("Ms::Workspace", p->name().toUtf8()));
             a->setCheckable(true);
             a->setData(p->path());
@@ -111,7 +111,7 @@ void MuseScore::createNewWorkspace()
       s = s.replace( QRegExp( "[" + QRegExp::escape( "\\/:*?\"<>|" ) + "]" ), "_" ); //FAT/NTFS special chars
       for (;;) {
             bool notFound = true;
-            foreach(Workspace* p, Workspace::workspaces()) {
+            for (Workspace* p : Workspace::workspaces()) {
                   if ((qApp->translate("Ms::Workspace", p->name().toUtf8()).toLower() == s.toLower()) ||
                      (s.toLower() == QString("basic")) || (s.toLower() == QString("advanced"))) {
                         notFound = false;
@@ -152,7 +152,7 @@ void MuseScore::deleteWorkspace()
             return;
       preferences.dirty = true;
       Workspace* workspace = 0;
-      foreach(Workspace* p, Workspace::workspaces()) {
+      for (Workspace* p : Workspace::workspaces()) {
             if (p->name() == a->text()) { // no need for qApp->translate since "Basic" and "Advanced" are not deletable
                   workspace = p;
                   break;
@@ -160,6 +160,17 @@ void MuseScore::deleteWorkspace()
             }
       if (!workspace)
             return;
+
+      QMessageBox::StandardButton reply;
+      reply = QMessageBox::question(0,
+                 QWidget::tr("Are you sure?"),
+                 QWidget::tr("Do you really want to delete the '%1' workspace?").arg(workspace->name()),
+                 QMessageBox::Yes | QMessageBox::No,
+                 QMessageBox::Yes
+                 );
+      if (reply != QMessageBox::Yes)
+            return;
+
       Workspace::workspaces().removeOne(workspace);
       QFile f(workspace->path());
       f.remove();
@@ -179,7 +190,7 @@ void MuseScore::deleteWorkspace()
 
 void MuseScore::changeWorkspace(QAction* a)
       {
-      foreach(Workspace* p, Workspace::workspaces()) {
+      for (Workspace* p :Workspace::workspaces()) {
             if (qApp->translate("Ms::Workspace", p->name().toUtf8()) == a->text()) {
                   changeWorkspace(p);
                   preferences.workspace = Workspace::currentWorkspace->name();
@@ -209,7 +220,7 @@ void MuseScore::changeWorkspace(Workspace* p)
 
 void Workspace::initWorkspace()
       {
-      foreach(Workspace* p, Workspace::workspaces()) {
+      for (Workspace* p : Workspace::workspaces()) {
             if (p->name() == preferences.workspace) {
                   currentWorkspace = p;
                   break;
@@ -274,7 +285,7 @@ void Workspace::write()
       xml.stag("rootfiles");
       xml.stag(QString("rootfile full-path=\"%1\"").arg(Xml::xmlString("workspace.xml")));
       xml.etag();
-      foreach (ImageStoreItem* ip, imageStore) {
+      for (ImageStoreItem* ip : imageStore) {
             if (!ip->isUsed(gscore))
                   continue;
             QString dstPath = QString("Pictures/") + ip->hashName();
@@ -286,7 +297,7 @@ void Workspace::write()
       f.addFile("META-INF/container.xml", cbuf.data());
 
       // save images
-      foreach(ImageStoreItem* ip, imageStore) {
+      for (ImageStoreItem* ip : imageStore) {
             if (!ip->isUsed(gscore))
                   continue;
             QString dstPath = QString("Pictures/") + ip->hashName();
@@ -303,6 +314,13 @@ void Workspace::write()
       // xml.tag("name", _name);
       PaletteBox* pb = mscore->getPaletteBox();
       pb->write(xml);
+
+      // write toolbar settings
+      xml.stag("Toolbar name=\"noteInput\"");
+      for (auto i : *mscore->noteInputMenuEntries())
+            xml.tag("action", i);
+      xml.etag();
+
       xml.etag();
       xml.etag();
       f.addFile("workspace.xml", cbuf.data());
@@ -325,12 +343,16 @@ void Workspace::read()
             mscore->setAdvancedPalette();
             for (Palette* p : mscore->getPaletteBox()->palettes())
                   p->setSystemPalette(true);
+            mscore->setNoteInputMenuEntries(MuseScore::advancedNoteInputMenuEntries());
+            mscore->populateNoteInputMenu();
             return;
             }
       if (_path == "Basic") {
             mscore->setBasicPalette();
             for (Palette* p : mscore->getPaletteBox()->palettes())
                   p->setSystemPalette(true);
+            mscore->setNoteInputMenuEntries(MuseScore::basicNoteInputMenuEntries());
+            mscore->populateNoteInputMenu();
             return;
             }
       if (_path.isEmpty() || !QFile(_path).exists()) {
@@ -347,7 +369,7 @@ void Workspace::read()
       //
       // load images
       //
-      foreach(const QString& s, images)
+      for (const QString& s : images)
             imageStore.add(s, f.fileData(s));
 
       if (rootfile.isEmpty()) {
@@ -372,6 +394,7 @@ void Workspace::read()
 
 void Workspace::read(XmlReader& e)
       {
+      bool niToolbar = false;
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
             if (tag == "name")
@@ -386,8 +409,35 @@ void Workspace::read(XmlReader& e)
                         connect(paletteBox, SIGNAL(changed()), SLOT(setDirty()));
                         }
                   }
+            else if (tag == "Toolbar") {
+                  QString name = e.attribute("name");
+                  std::list<const char*> l;
+                  while (e.readNextStartElement()) {
+                        const QStringRef& tag(e.name());
+                        if (tag == "action") {
+                              QString s = e.readElementText();
+                              for (auto k : mscore->allNoteInputMenuEntries()) {
+                                    if (k == s) {
+                                          l.push_back(k);
+                                          break;
+                                          }
+                                    }
+                              }
+                        else
+                              e.unknown();
+                        }
+                  if (name == "noteInput") {
+                        mscore->setNoteInputMenuEntries(l);
+                        mscore->populateNoteInputMenu();
+                        niToolbar = true;
+                        }
+                  }
             else
                   e.unknown();
+            }
+      if (!niToolbar) {
+            mscore->setNoteInputMenuEntries(mscore->allNoteInputMenuEntries());
+            mscore->populateNoteInputMenu();
             }
       }
 
@@ -417,15 +467,15 @@ QList<Workspace*>& Workspace::workspaces()
             QStringList nameFilters;
             nameFilters << "*.workspace";
 
-            foreach (const QString& s, path) {
+            for (const QString& s : path) {
                   QDir dir(s);
                   QStringList pl = dir.entryList(nameFilters, QDir::Files, QDir::Name);
 
                   foreach (const QString& entry, pl) {
                         Workspace* p = 0;
                         QFileInfo fi(s + "/" + entry);
-                        QString name(fi.baseName());
-                        foreach (Workspace* w, _workspaces) {
+                        QString name(fi.completeBaseName());
+                        for (Workspace* w : _workspaces) {
                               if (w->name() == name) {
                                     p = w;
                                     break;
@@ -461,7 +511,7 @@ Workspace* Workspace::createNewWorkspace(const QString& name)
 
       PaletteBox* paletteBox = mscore->getPaletteBox();
       QList<Palette*> pl = paletteBox->palettes();
-      foreach (Palette* p, pl) {
+      for (Palette* p : pl) {
             p->setSystemPalette(false);
             for (int i = 0; i < p->size(); ++i)
                   p->setCellReadOnly(i, false);

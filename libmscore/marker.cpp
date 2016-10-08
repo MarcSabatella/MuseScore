@@ -98,14 +98,14 @@ void Marker::setMarkerType(Type t)
                   break;
 
             default:
-                  qDebug("unknown marker type %hhd", t);
+                  qDebug("unknown marker type %d", int(t));
                   break;
             }
-      if (isEmpty() && txt)
+      if (empty() && txt)
             setXmlText(txt);
       }
 
-QString Marker::markerTypeUserName()
+QString Marker::markerTypeUserName() const
       {
       return qApp->translate("markerType", markerTypeTable[static_cast<int>(_markerType)].name.toUtf8().constData());
       }
@@ -202,9 +202,6 @@ void Marker::read(XmlReader& e)
             else if (!Text::readProperties(e))
                   e.unknown();
             }
-      // REPEAT is obsolete, but was previously used for both left and right aligned text
-      if (textStyleType() == TextStyleType::REPEAT)
-            setTextStyleType(TextStyleType::REPEAT_LEFT);
       setMarkerType(mt);
       }
 
@@ -226,7 +223,7 @@ void Marker::write(Xml& xml) const
 
 void Marker::undoSetLabel(const QString& s)
       {
-      score()->undoChangeProperty(this, P_ID::LABEL, s);
+      undoChangeProperty(P_ID::LABEL, s);
       }
 
 //---------------------------------------------------------
@@ -235,7 +232,7 @@ void Marker::undoSetLabel(const QString& s)
 
 void Marker::undoSetMarkerType(Type t)
       {
-      score()->undoChangeProperty(this, P_ID::MARKER_TYPE, int(t));
+      undoChangeProperty(P_ID::MARKER_TYPE, int(t));
       }
 
 //---------------------------------------------------------
@@ -273,7 +270,7 @@ bool Marker::setProperty(P_ID propertyId, const QVariant& v)
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       return true;
       }
 
@@ -330,7 +327,7 @@ Element* Marker::prevElement()
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString Marker::accessibleInfo()
+QString Marker::accessibleInfo() const
       {
       return QString("%1: %2").arg(Element::accessibleInfo()).arg(markerTypeUserName());
       }

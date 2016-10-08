@@ -47,9 +47,13 @@ Score* NoteGroups::createScore(int n, TDuration::DurationType t, std::vector<Cho
             chord->setBeamMode(_groups.beamMode(tick, t));
             chords->push_back(chord);
             }
+      c.score()->pageFormat()->setEvenLeftMargin(0.0);
+      c.score()->pageFormat()->setOddLeftMargin(0.0);
 
       c.score()->parts().front()->setLongName("");
       c.score()->style()->set(StyleIdx::linearStretch, 1.3);
+      c.score()->style()->set(StyleIdx::MusicalSymbolFont, QString("Bravura"));
+      c.score()->style()->set(StyleIdx::MusicalTextFont, QString("Bravura Text"));
       return c.score();
       }
 

@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: symboldialog.h 4341 2011-06-06 08:18:18Z lasconic $
 //
-//  Copyright (C) 2002-2009 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -28,7 +28,6 @@ namespace Ms {
 class Palette;
 class Element;
 
-
 //---------------------------------------------------------
 //   SymbolDialog
 //---------------------------------------------------------
@@ -36,6 +35,7 @@ class Element;
 class SymbolDialog : public QWidget, Ui::SymbolDialogBase {
       Q_OBJECT
 
+      QString range;
       Palette* sp;
       void createSymbolPalette();
       void createSymbols();
@@ -46,8 +46,12 @@ class SymbolDialog : public QWidget, Ui::SymbolDialogBase {
       void on_search_textChanged(const QString &searchPhrase);
       void on_clearSearch_clicked();
 
+   protected:
+      virtual void changeEvent(QEvent *event);
+      void retranslate()  { retranslateUi(this); }
+
    public:
-      SymbolDialog(QWidget* parent = 0);
+      SymbolDialog(const QString&, QWidget* parent = 0);
       };
 }
 

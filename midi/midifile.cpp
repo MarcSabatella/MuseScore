@@ -244,7 +244,7 @@ bool MidiFile::read(QIODevice* in)
             }
       else {                        // ticks per second = fps * ticks per frame
             _isDivisionInTps = true;
-            const int framesPerSecond = -firstByte;
+            const int framesPerSecond = -((signed char) firstByte);
             const int ticksPerFrame = secondByte;
             if (framesPerSecond == 29)
                   _division = qRound(29.97 * ticksPerFrame);
@@ -716,7 +716,7 @@ void MidiTrack::mergeNoteOnOffAndFindMidiType(MidiType *mt)
                               if (rpnh == -1 || rpnl == -1) {
                                     qDebug("parameter number not defined, data 0x%x 0x%x, tick %d, channel %d",
                                        datah, datal, i->first, ev.channel());
-                                    break;
+                                    continue;
                                     }
                               // assume that the sequence is always
                               //    CTRL_HDATA - CTRL_LDATA
@@ -795,7 +795,7 @@ void MidiTrack::mergeNoteOnOffAndFindMidiType(MidiType *mt)
                                           // 3 - DRUM 2
                                           // 4 - DRUM 3
                                           // 5 - DRUM 4
-                                          if (buffer[6] != 0) {
+                                          if (buffer[6] != 0 && buffer[4] == ev.channel()) {
                                                 _drumTrack = true;
                                                 }
                                           ev.setType(ME_INVALID);

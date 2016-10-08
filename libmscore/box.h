@@ -23,9 +23,7 @@ class QPainter;
 
 namespace Ms {
 
-class BarLine;
 class MuseScoreView;
-class Text;
 
 //---------------------------------------------------------
 //   @@ Box
@@ -35,16 +33,20 @@ class Text;
 class Box : public MeasureBase {
       Q_OBJECT
 
-      Spatium _boxWidth;   // only valid for HBox
-      Spatium _boxHeight;  // only valid for VBox
-      qreal _topGap;       // distance from previous system (left border for hbox)
-                           // initialized with StyleIdx::systemFrameDistance
-      qreal _bottomGap;    // distance to next system (right border for hbox)
-                           // initialized with StyleIdx::frameSystemDistance
-      qreal _leftMargin, _rightMargin;   // inner margins in metric mm
-      qreal _topMargin, _bottomMargin;
-      bool editMode;
-      qreal dragX;            // used during drag of hbox
+      Spatium _boxWidth             { Spatium(0) };  // only valid for HBox
+      Spatium _boxHeight            { Spatium(0) };  // only valid for VBox
+      qreal _topGap                 { 0.0   };       // distance from previous system (left border for hbox)
+                                                     // initialized with StyleIdx::systemFrameDistance
+      qreal _bottomGap              { 0.0   };       // distance to next system (right border for hbox)
+                                                     // initialized with StyleIdx::frameSystemDistance
+      qreal _leftMargin             { 0.0   };
+      qreal _rightMargin            { 0.0   };       // inner margins in metric mm
+      qreal _topMargin              { 0.0   };
+      qreal _bottomMargin           { 0.0   };
+      bool editMode                 { false };
+      PropertyStyle topGapStyle     { PropertyStyle::STYLED };
+      PropertyStyle bottomGapStyle  { PropertyStyle::STYLED };
+      qreal dragX;                        // used during drag of hbox
 
    public:
       Box(Score*);
@@ -87,6 +89,10 @@ class Box : public MeasureBase {
       virtual QVariant getProperty(P_ID propertyId) const override;
       virtual bool setProperty(P_ID propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(P_ID) const override;
+      virtual PropertyStyle propertyStyle(P_ID id) const override;
+      virtual void resetProperty(P_ID id) override;
+      virtual void styleChanged() override;
+      virtual StyleIdx getPropertyStyle(P_ID id) const override;
       };
 
 //---------------------------------------------------------
@@ -99,7 +105,7 @@ class HBox : public Box {
 
    public:
       HBox(Score* score);
-      ~HBox() {}
+      virtual ~HBox() {}
       virtual HBox* clone() const override        { return new HBox(*this); }
       virtual Element::Type type() const override { return Element::Type::HBOX;       }
 
@@ -121,8 +127,8 @@ class VBox : public Box {
 
    public:
       VBox(Score* score);
-      ~VBox() {}
-      virtual VBox* clone() const override        { return new VBox(*this); }
+      virtual ~VBox() {}
+      virtual VBox* clone() const override        { return new VBox(*this);           }
       virtual Element::Type type() const override { return Element::Type::VBOX;       }
 
       virtual void layout() override;
@@ -141,7 +147,7 @@ class FBox : public VBox {
 
    public:
       FBox(Score* score) : VBox(score) {}
-      ~FBox() {}
+      virtual ~FBox() {}
       virtual FBox* clone() const override        { return new FBox(*this); }
       virtual Element::Type type() const override { return Element::Type::FBOX;       }
 

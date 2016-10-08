@@ -50,6 +50,7 @@ struct PaletteCell {
       double yoffset { 0.0   };      // in spatium units of "gscore"
       qreal mag      { 1.0   };
       bool readOnly  { false };
+      bool visible   { true };
       };
 
 //---------------------------------------------------------
@@ -122,6 +123,7 @@ class Palette : public QWidget {
       qreal _yOffset;         // in spatium units of "gscore"
 
       bool _moreElements;
+      bool _showContextMenu { true };
 
       void redraw(const QRect&);
       virtual void paintEvent(QPaintEvent*);
@@ -138,6 +140,7 @@ class Palette : public QWidget {
       virtual void contextMenuEvent(QContextMenuEvent*);
 
       int idx(const QPoint&) const;
+      int idx2(const QPoint&) const;
       QRect idxRect(int);
       void layoutCell(PaletteCell*);
 
@@ -148,7 +151,6 @@ class Palette : public QWidget {
       void startDragElement(Element*);
       void boxClicked(int);
       void changed();
-      void moreButtonClicked();
       void displayMore(const QString& paletteName);
 
    public:
@@ -188,7 +190,8 @@ class Palette : public QWidget {
       qreal yOffset() const          { return _yOffset;        }
       int columns() const            { return width() / hgrid; }
       int rows() const;
-      int size() const               { return cells.size(); }
+      int size() const;
+      PaletteCell* cellAt(int index);
       void setCellReadOnly(int c, bool v) { cells[c]->readOnly = v; }
       QString name() const           { return _name;        }
       void setName(const QString& s) { _name = s;           }
@@ -196,6 +199,8 @@ class Palette : public QWidget {
       int gridHeight() const         { return vgrid;        }
       bool moreElements() const      { return _moreElements; }
       void setMoreElements(bool val);
+      bool filter(const QString& text);
+      void setShowContextMenu(bool val) { _showContextMenu = val; }
 
       virtual int heightForWidth(int) const;
       virtual QSize sizeHint() const;

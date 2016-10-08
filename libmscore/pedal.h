@@ -13,7 +13,7 @@
 #ifndef __PEDAL_H__
 #define __PEDAL_H__
 
-#include "textline.h"
+#include "textlinebase.h"
 
 namespace Ms {
 
@@ -23,13 +23,13 @@ class Pedal;
 //   @@ PedalSegment
 //---------------------------------------------------------
 
-class PedalSegment : public TextLineSegment {
+class PedalSegment : public TextLineBaseSegment {
       Q_OBJECT
 
    protected:
 
    public:
-      PedalSegment(Score* s) : TextLineSegment(s) {}
+      PedalSegment(Score* s) : TextLineBaseSegment(s) {}
       virtual Element::Type type() const override   { return Element::Type::PEDAL_SEGMENT; }
       virtual PedalSegment* clone() const override  { return new PedalSegment(*this); }
       Pedal* pedal() const                          { return (Pedal*)spanner(); }
@@ -47,7 +47,7 @@ class PedalSegment : public TextLineSegment {
 //   @@ Pedal
 //---------------------------------------------------------
 
-class Pedal : public TextLine {
+class Pedal : public TextLineBase {
       Q_OBJECT
 
       PropertyStyle lineWidthStyle;
@@ -63,10 +63,13 @@ class Pedal : public TextLine {
       virtual void read(XmlReader&) override;
       LineSegment* createLineSegment();
       virtual void setYoff(qreal) override;
+
       virtual bool setProperty(P_ID propertyId, const QVariant& val) override;
       virtual QVariant propertyDefault(P_ID propertyId) const override;
       virtual PropertyStyle propertyStyle(P_ID id) const override;
+      virtual StyleIdx getPropertyStyle(P_ID) const override;
       virtual void resetProperty(P_ID id) override;
+
       virtual void styleChanged() override;
 
       friend class PedalLine;

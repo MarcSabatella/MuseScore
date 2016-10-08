@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: synthcontrol.h 2047 2009-08-26 18:33:38Z wschweer $
 //
-//  Copyright (C) 2002-2010 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -43,6 +43,7 @@ class SynthControl : public QWidget, Ui::SynthControl {
       virtual bool eventFilter(QObject*, QEvent*);
       virtual void keyPressEvent(QKeyEvent*) override;
       void updateGui();
+      void readSettings();
 
    private slots:
       void gainChanged(double, int);
@@ -62,6 +63,10 @@ class SynthControl : public QWidget, Ui::SynthControl {
       void metronomeGainChanged(float);
       void soundFontChanged();
       void closed(bool);
+
+   protected:
+      virtual void changeEvent(QEvent *event);
+      void retranslate()  { retranslateUi(this); }
 
    public slots:
       void setGain(float);

@@ -35,6 +35,8 @@ static const char* voiceStateNames[] = {
 void Envelope::setTime(float ms, int sampleRate)
       {
       val   = 1.0;
+      if (ms < 0.0f)
+            ms = 0.0f;
       steps = int(ms * sampleRate / 1000);
       count = steps;
       }
@@ -44,8 +46,8 @@ void Envelope::setTime(float ms, int sampleRate)
 //---------------------------------------------------------
 
 Voice::Voice(Zerberus* z)
-   : _zerberus(z), attackEnv(Envelope::egLin), stopEnv(Envelope::egPow)
       {
+      _zerberus = z;
       }
 
 //---------------------------------------------------------
@@ -55,7 +57,10 @@ Voice::Voice(Zerberus* z)
 void Voice::stop(float time)
       {
       _state = VoiceState::STOP;
-      stopEnv.setTime(time, _zerberus->sampleRate());
+      envelopes[V1Envelopes::RELEASE].setTime(time, _zerberus->sampleRate());
+      envelopes[currentEnvelope].step();
+      envelopes[V1Envelopes::RELEASE].max = envelopes[currentEnvelope].val;
+      currentEnvelope = V1Envelopes::RELEASE;
       }
 
 //---------------------------------------------------------
@@ -84,14 +89,16 @@ void Voice::init()
             Envelope::egPow[EG_SIZE-i-1] = pow(10.0, (dbStep * i)/20.0);
             Envelope::egLin[i]           = 1.0 - (double(i) / double(EG_SIZE));
             }
+
       }
 
 //---------------------------------------------------------
 //   start
 //---------------------------------------------------------
 
-void Voice::start(Channel* c, int key, int v, const Zone* z)
+void Voice::start(Channel* c, int key, int v, const Zone* zone, double durSinceNoteOn)
       {
+      z = zone;
       _state    = VoiceState::ATTACK;
       //_state    = VoiceState::PLAYING;
       _channel  = c;
@@ -102,20 +109,40 @@ void Voice::start(Channel* c, int key, int v, const Zone* z)
       data      = s->data() + z->offset * audioChan;
       eidx      = s->frames() * audioChan;
       _loopMode = z->loopMode;
+      _loopStart = z->loopStart;
+      _loopEnd   = z->loopEnd;
+      _samplesSinceStart = 0;
 
       _offMode  = z->offMode;
       _offBy    = z->offBy;
 
+      trigger = z->trigger;
+
       float offset = -z->ampVeltrack;
       if (offset <= 0)
             offset += 100;
+      if (trigger == Trigger::CC)
+            _velocity = 127;
       float curve = _velocity * _velocity / (127.0 * 127.0);
+
+      double rt_decay_value = 1.0;
+      if (trigger == Trigger::RELEASE)
+            rt_decay_value = pow(10, (-z->rtDecay * durSinceNoteOn)/20);
+      // the .005 in this calculation is made up like this:
+      //    -> (offset + z->ampVeltrack*curve) being a percent value so
+      //       this should be divided by 100 or multiplied by 0.01
+      //    -> afterwards 0.5 (-6dB) is applied to compensate possible coherent
+      //       signals in a stereo output see http://www.sengpielaudio.com/calculator-coherentsources.htm
+      //    -> 0.005 = 0.01 * 0.5
       gain        = z->volume * (offset + z->ampVeltrack * curve)
-                    * .005 * c->gain();
+                    * .005 * c->gain() * rt_decay_value;
 
       phase.set(0);
       float sr = float(s->sampleRate()) / _zerberus->sampleRate();
-      phaseIncr.set(_zerberus->ct2hz(key * 100.0 + z->tune) * sr/_zerberus->ct2hz(z->keyBase * 100.0));
+      double targetcents = ((((key - z->keyBase) * z->pitchKeytrack) + z->keyBase) * 100.0) + z->tune;
+      if (trigger == Trigger::CC)
+            targetcents = z->keyBase * 100;
+      phaseIncr.set(_zerberus->ct2hz(targetcents) * sr/_zerberus->ct2hz(z->keyBase * 100.0));
 
       fres        = 13500.0;
       last_fres   = -1.0;
@@ -134,8 +161,46 @@ void Voice::start(Channel* c, int key, int v, const Zone* z)
       modenv_val = 0.0;
       modlfo_val = 0.0;
 
-      attackEnv.setTime(1, _zerberus->sampleRate());        // 1 ms attack
-      stopEnv.setTime(z->ampegRelease, _zerberus->sampleRate());
+      currentEnvelope = V1Envelopes::DELAY;
+
+      float velPercent = _velocity / 127.0;
+
+      envelopes[V1Envelopes::DELAY].setTable(Envelope::egLin);
+      envelopes[V1Envelopes::DELAY].setTime(z->ampegDelay + (z->ampegVel2Delay * velPercent), _zerberus->sampleRate());
+      envelopes[V1Envelopes::DELAY].setConstant(0.0);
+
+      envelopes[V1Envelopes::ATTACK].setTable(Envelope::egLin);
+      envelopes[V1Envelopes::ATTACK].setVariable();
+      envelopes[V1Envelopes::ATTACK].setTime(z->ampegAttack + (z->ampegVel2Attack * velPercent), _zerberus->sampleRate());
+      envelopes[V1Envelopes::ATTACK].offset = z->ampegStart;
+
+      envelopes[V1Envelopes::HOLD].setTable(Envelope::egLin);
+      envelopes[V1Envelopes::HOLD].setTime(z->ampegHold + (z->ampegVel2Hold * velPercent), _zerberus->sampleRate());
+      envelopes[V1Envelopes::HOLD].setConstant(1.0);
+
+      envelopes[V1Envelopes::DECAY].setTable(Envelope::egPow);
+      envelopes[V1Envelopes::DECAY].setVariable();
+      envelopes[V1Envelopes::DECAY].setTime(z->ampegDecay + (z->ampegVel2Decay * velPercent), _zerberus->sampleRate());
+      envelopes[V1Envelopes::DECAY].offset = z->ampegSustain;
+
+      envelopes[V1Envelopes::SUSTAIN].setTable(Envelope::egLin);
+      if (trigger == Trigger::RELEASE || trigger == Trigger::CC) {
+            // Sample is played on noteoff. We need to stop the voice when it's done. Set the sustain duration accordingly.
+            double sampleDur = ((z->sample->frames()/z->sample->channel()) / z->sample->sampleRate()) * 1000; // in ms
+            double scaledSampleDur = sampleDur / (phaseIncr.data / 256.0);
+            double sustainDur   = scaledSampleDur - (z->ampegDelay + z->ampegAttack + z->ampegHold + z->ampegDecay + z->ampegRelease);
+            envelopes[V1Envelopes::SUSTAIN].setTime(sustainDur, _zerberus->sampleRate());
+            }
+      else
+            envelopes[V1Envelopes::SUSTAIN].setTime(std::numeric_limits<float>::infinity(), _zerberus->sampleRate());
+      envelopes[V1Envelopes::SUSTAIN].setConstant(qBound(0.0f, z->ampegSustain + (z->ampegVel2Sustain * velPercent), 1.0f));
+
+      envelopes[V1Envelopes::RELEASE].setTable(Envelope::egPow);
+      envelopes[V1Envelopes::RELEASE].setVariable();
+      envelopes[V1Envelopes::RELEASE].setTime(z->ampegRelease + (z->ampegVel2Release * velPercent), _zerberus->sampleRate());
+      envelopes[V1Envelopes::RELEASE].max = envelopes[V1Envelopes::SUSTAIN].val;
+
+      _looping = false;
       }
 
 //---------------------------------------------------------
@@ -209,6 +274,34 @@ void Voice::updateFilter(float _fres)
       }
 
 //---------------------------------------------------------
+//   updateEnvelopes
+//---------------------------------------------------------
+
+void Voice::updateEnvelopes() {
+      if (_state == VoiceState::ATTACK && trigger != Trigger::RELEASE) {
+            while (envelopes[currentEnvelope].step() && currentEnvelope != V1Envelopes::SUSTAIN)
+                  currentEnvelope++;
+
+            // triggered by noteon enter virtually infinite sustain (play state)
+            if (currentEnvelope == V1Envelopes::SUSTAIN)
+                  _state = VoiceState::PLAYING;
+            }
+      else if (_state == VoiceState::ATTACK && trigger == Trigger::RELEASE) {
+            while (envelopes[currentEnvelope].step() && currentEnvelope != V1Envelopes::RELEASE)
+                  currentEnvelope++;
+
+            // triggered by noteoff stop sample when entering release
+            if (currentEnvelope == V1Envelopes::RELEASE)
+                  _state = VoiceState::STOP;
+            }
+      else if (_state == VoiceState::STOP) {
+            if (envelopes[V1Envelopes::RELEASE].step()) {
+                  off();
+                  }
+            }
+      }
+
+//---------------------------------------------------------
 //   process
 //---------------------------------------------------------
 
@@ -234,17 +327,21 @@ void Voice::process(int frames, float* p)
 
       if (audioChan == 1) {
             while (frames--) {
+
+                  updateLoop();
+
                   int idx = phase.index();
+
                   if (idx >= eidx) {
                         off();
                         break;
                         }
                   const float* coeffs = interpCoeff[phase.fract()];
                   float f;
-                  f =  (coeffs[0] * data[idx-1]
-                      + coeffs[1] * data[idx+0]
-                      + coeffs[2] * data[idx+1]
-                      + coeffs[3] * data[idx+2]) * gain
+                  f =  (coeffs[0] * getData(idx-1)
+                      + coeffs[1] * getData(idx+0)
+                      + coeffs[2] * getData(idx+1)
+                      + coeffs[3] * getData(idx+2)) * gain
                       - a1 * hist1l
                       - a2 * hist2l;
                   float v = b02 * (f + hist2l) + b1 * hist1l;
@@ -259,16 +356,15 @@ void Voice::process(int frames, float* p)
                         b1  += b1_incr;
                         }
 
-                  if (_state == VoiceState::STOP) {
-                        if (stopEnv.step()) {
-                              off();
-                              break;
-                              }
-                        v *= stopEnv.val;
-                        }
+                  updateEnvelopes();
+                  if (_state == VoiceState::OFF)
+                        break;
+                  v *= envelopes[currentEnvelope].val * z->ccGain;
+
                   *p++  += v * _channel->panLeftGain();
                   *p++  += v * _channel->panRightGain();
                   phase += phaseIncr;
+                  _samplesSinceStart++;
                   }
             }
       else {
@@ -276,6 +372,9 @@ void Voice::process(int frames, float* p)
             // handle interleaved stereo samples
             //
             while (frames--) {
+
+                  updateLoop();
+
                   int idx = phase.index() * 2;
                   if (idx >= eidx) {
                         off();
@@ -286,34 +385,24 @@ void Voice::process(int frames, float* p)
                   const float* coeffs = interpCoeff[phase.fract()];
                   float f1, f2;
 
-                  f1 = (coeffs[0] * data[idx-2]
-                      + coeffs[1] * data[idx]
-                      + coeffs[2] * data[idx+2]
-                      + coeffs[3] * data[idx+4])
-                      * gain * _channel->panLeftGain();
+                  f1 = (coeffs[0] * getData(idx-2)
+                      + coeffs[1] * getData(idx)
+                      + coeffs[2] * getData(idx+2)
+                      + coeffs[3] * getData(idx+4))
+                      * gain * _channel->panLeftGain() * z->ccGain;
 
-                  f2 = (coeffs[0] * data[idx-1]
-                      + coeffs[1] * data[idx+1]
-                      + coeffs[2] * data[idx+3]
-                      + coeffs[3] * data[idx+5])
-                      * gain * _channel->panRightGain();
+                  f2 = (coeffs[0] * getData(idx-1)
+                      + coeffs[1] * getData(idx+1)
+                      + coeffs[2] * getData(idx+3)
+                      + coeffs[3] * getData(idx+5))
+                      * gain * _channel->panRightGain() * z->ccGain;
 
-                  if (_state == VoiceState::ATTACK) {
-                        if (attackEnv.step())
-                              _state = VoiceState::PLAYING;
-                        else {
-                              f1 *= attackEnv.val;
-                              f2 *= attackEnv.val;
-                              }
-                        }
-                  else if (_state == VoiceState::STOP) {
-                        if (stopEnv.step()) {
-                              off();
-                              break;
-                              }
-                        f1 *= stopEnv.val;
-                        f2 *= stopEnv.val;
-                        }
+                  updateEnvelopes();
+                  if (_state == VoiceState::OFF)
+                        break;
+
+                  f1 *= envelopes[currentEnvelope].val;
+                  f2 *= envelopes[currentEnvelope].val;
 
                   f1      += -a1 * hist1l - a2 * hist2l;
                   float vl = b02 * (f1 + hist2l) + b1 * hist1l;
@@ -336,8 +425,49 @@ void Voice::process(int frames, float* p)
                   *p++  += vl;
                   *p++  += vr;
                   phase += phaseIncr;
+                  _samplesSinceStart++;
                   }
             }
+      }
+
+//---------------------------------------------------------
+//   updateLoop
+//---------------------------------------------------------
+
+void Voice::updateLoop()
+      {
+      int idx = phase.index();
+      int loopOffset = (audioChan * 3) - 1; // offset due to interpolation
+      bool validLoop = _loopEnd > 0 && _loopStart >= 0 && (_loopEnd <= (eidx/audioChan));
+      bool shallLoop = loopMode() == LoopMode::CONTINUOUS || (loopMode() == LoopMode::SUSTAIN && (_state < VoiceState::STOP));
+
+      if (!(validLoop && shallLoop)) {
+            _looping = false;
+            return;
+            }
+
+      if (idx + loopOffset > _loopEnd)
+            _looping = true;
+      if (idx > _loopEnd)
+            phase.setIndex(_loopStart+(idx-_loopEnd-1));
+      }
+
+short Voice::getData(int pos) {
+      if (pos < 0 && !_looping)
+            return 0;
+
+      if (!_looping)
+            return data[pos];
+
+      int loopEnd = _loopEnd * audioChan;
+      int loopStart = _loopStart * audioChan;
+
+      if (pos < loopStart)
+            return data[loopEnd + (pos - loopStart) + audioChan];
+      else if (pos > (loopEnd + audioChan - 1))
+            return data[loopStart + (pos - loopEnd) - audioChan];
+      else
+            return data[pos];
       }
 
 //---------------------------------------------------------

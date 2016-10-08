@@ -27,6 +27,7 @@ StaffText::StaffText(Score* s)
       {
       setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE | ElementFlag::ON_STAFF);
       setTextStyleType(TextStyleType::STAFF);
+      setPlacement(Placement::ABOVE);     // default
       _setAeolusStops = false;
       _swing = false;
       clearAeolusStops();
@@ -42,9 +43,9 @@ void StaffText::write(Xml& xml) const
       if (!xml.canWrite(this))
             return;
       xml.stag("StaffText");
-      foreach(ChannelActions s, _channelActions) {
+      for (ChannelActions s : _channelActions) {
             int channel = s.channel;
-            foreach(QString name, s.midiActionNames)
+            for (QString name : s.midiActionNames)
                   xml.tagE(QString("MidiAction channel=\"%1\" name=\"%2\"").arg(channel).arg(name));
             }
       for (int voice = 0; voice < VOICES; ++voice) {
@@ -170,6 +171,69 @@ void StaffText::setAeolusStop(int group, int idx, bool val)
 bool StaffText::getAeolusStop(int group, int idx) const
       {
       return aeolusStops[group] & (1 << idx);
+      }
+
+//---------------------------------------------------------
+//   layout
+//---------------------------------------------------------
+
+void StaffText::layout()
+      {
+      if (autoplace())
+            setUserOff(QPointF());
+      QPointF p(textStyle().offset(spatium()));
+      if (placement() == Element::Placement::BELOW)
+            p.ry() =  - p.ry() + lineHeight();
+      setPos(p);
+      Text::layout1();
+      if (!parent()) // palette & clone trick
+          return;
+
+      if (autoplace() && segment()) {
+            qreal minDistance = score()->styleP(StyleIdx::dynamicsMinDistance);  // TODO
+            Shape s1          = segment()->staffShape(staffIdx()).translated(segment()->pos());
+            Shape s2          = shape().translated(segment()->pos());
+
+            if (placement() == Element::Placement::ABOVE) {
+                  qreal d = s2.minVerticalDistance(s1);
+                  if (d > -minDistance)
+                        rUserYoffset() = -d - minDistance;
+                  }
+            else {
+                  qreal d = s1.minVerticalDistance(s2);
+                  if (d > -minDistance)
+                        rUserYoffset() = d + minDistance;
+                  }
+            }
+      adjustReadPos();
+      }
+
+//---------------------------------------------------------
+//   segment
+//---------------------------------------------------------
+
+Segment* StaffText::segment() const
+      {
+      if (!parent()->isSegment()) {
+            qDebug("StaffText parent %s\n", parent()->name());
+            return 0;
+            }
+      Segment* s = toSegment(parent());
+      return s;
+      }
+
+//---------------------------------------------------------
+//   propertyDefault
+//---------------------------------------------------------
+
+QVariant StaffText::propertyDefault(P_ID id) const
+      {
+      switch(id) {
+            case P_ID::PLACEMENT:
+                  return int(Placement::ABOVE);
+            default:
+                  return Text::propertyDefault(id);
+            }
       }
 
 }

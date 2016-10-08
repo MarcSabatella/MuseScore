@@ -1,28 +1,23 @@
 <RCC>
     <qresource prefix="/">
         <file>data/shortcuts.xml</file>
-        <file>data/paper1.png</file>
-        <file>data/paper2.png</file>
-        <file>data/paper3.png</file>
-        <file>data/paper4.png</file>
-        <file>data/paper5.png</file>
         <file>data/icons/edit.svg</file>
-        <file alias="fonts/mscore/glyphnames.json">../fonts/mscore/glyphnames.json</file>
         <file alias="fonts/mscore/metadata.json">../fonts/mscore/metadata.json</file>
-        <file alias="fonts/gootville/glyphnames.json">../fonts/gootville/glyphnames.json</file>
         <file alias="fonts/gootville/metadata.json">../fonts/gootville/metadata.json</file>
-        <file alias="fonts/bravura/glyphnames.json">../fonts/bravura/glyphnames.json</file>
         <file alias="fonts/bravura/metadata.json">../fonts/bravura/metadata.json</file>
-        <file alias="fonts/bravura/classes.json">../fonts/bravura/classes.json</file>
-        <file alias="fonts/bravura/ranges.json">../fonts/bravura/ranges.json</file>
+        <file alias="fonts/smufl/classes.json">../fonts/smufl/classes.json</file>
+        <file alias="fonts/smufl/ranges.json">../fonts/smufl/ranges.json</file>
+        <file alias="fonts/smufl/glyphnames.json">../fonts/smufl/glyphnames.json</file>
         <file alias="fonts/fonts_tablature.xml">../fonts/fonts_tablature.xml</file>
         <file alias="fonts/fonts_figuredbass.xml">../fonts/fonts_figuredbass.xml</file>
         <file alias="data/instruments.xml">../share/instruments/instruments.xml</file>
+        <file alias="themes/style.css">../share/themes/style.css</file>
+        <file alias="themes/palette_light.json">../share/themes/palette_light.json</file>
+        <file alias="themes/palette_dark.json">../share/themes/palette_dark.json</file>
         <file>data/splash.png</file>
         <file alias="data/My_First_Score.mscz">../share/templates/My_First_Score.mscz</file>
         <file alias="data/Create_New_Score.mscz">../share/templates/Create_New_Score.mscz</file>
         <file alias="data/Empty_Score.mscz">../share/templates/01-General/00-Blank.mscz</file>
-        <file alias="data/Getting_Started.mscz">../share/templates/Getting_Started.mscz</file>
         <file>data/tab_sample.mscx</file>
         <file>data/style.qss</file>
         <file>data/mscore.png</file>
@@ -91,8 +86,11 @@
         <file>data/icons/media-playback-start.svg</file>
         <file>data/icons/media-skip-backward.svg</file>
         <file>data/icons/mode-notes.svg</file>
+        <file>data/icons/mode-notes-repitch.svg</file>
+        <file>data/icons/mode-notes-rhythm.svg</file>
+        <file>data/icons/mode-notes-realtime-manual.svg</file>
+        <file>data/icons/mode-notes-realtime-auto.svg</file>
         <file>data/icons/mode-photo.svg</file>
-        <file>data/icons/mode-repitch.svg</file>
         <file>data/icons/note-1.svg</file>
         <file>data/icons/note-2.svg</file>
         <file>data/icons/note-4.svg</file>
@@ -103,6 +101,8 @@
         <file>data/icons/note-128.svg</file>
         <file>data/icons/note-breve.svg</file>
         <file>data/icons/note-dot.svg</file>
+        <file>data/icons/note-dot3.svg</file>
+        <file>data/icons/note-dot4.svg</file>
         <file>data/icons/note-double-dot.svg</file>
         <file>data/icons/note-double-flat.svg</file>
         <file>data/icons/note-double-sharp.svg</file>
@@ -158,5 +158,7 @@
         <file>data/icons/arrow_down.svg</file>
         <file>data/icons/arrow_up.svg</file>
         <file>data/icons/clef-bass.svg</file>
+        <file>data/solid_note_head.dat</file>
+        <file>data/icons/edit-swap.svg</file>
     </qresource>
 </RCC>

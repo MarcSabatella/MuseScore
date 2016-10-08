@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -147,8 +147,9 @@
           <lid>9</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>volumeswell</subtype>
+            <subtype>guitarVolumeSwell</subtype>
             <lid>8</lid>
+            <anchor>0</anchor>
             </Articulation>
           <Note>
             <lid>10</lid>
@@ -162,10 +163,27 @@
           <lid>11</lid>
           <durationType>quarter</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
+        <move>0/1</move>
+        <Rest>
+          <lid>12</lid>
+          <track>1</track>
+          <durationType>quarter</durationType>
+          </Rest>
+        <Rest>
+          <lid>13</lid>
+          <track>1</track>
+          <durationType>quarter</durationType>
+          </Rest>
+        <Rest>
+          <lid>14</lid>
+          <track>1</track>
+          <durationType>quarter</durationType>
+          </Rest>
+        <Rest>
+          <lid>15</lid>
+          <track>1</track>
+          <durationType>quarter</durationType>
+          </Rest>
         </Measure>
       </Staff>
     <Score>
@@ -336,8 +354,9 @@
             <lid>9</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>volumeswell</subtype>
+              <subtype>guitarVolumeSwell</subtype>
               <lid>8</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>10</lid>
@@ -351,10 +370,27 @@
             <lid>11</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
+          <move>0/1</move>
+          <Rest>
+            <lid>12</lid>
+            <track>1</track>
+            <durationType>quarter</durationType>
+            </Rest>
+          <Rest>
+            <lid>13</lid>
+            <track>1</track>
+            <durationType>quarter</durationType>
+            </Rest>
+          <Rest>
+            <lid>14</lid>
+            <track>1</track>
+            <durationType>quarter</durationType>
+            </Rest>
+          <Rest>
+            <lid>15</lid>
+            <track>1</track>
+            <durationType>quarter</durationType>
+            </Rest>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -375,8 +411,9 @@
             <lid>9</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>volumeswell</subtype>
+              <subtype>guitarVolumeSwell</subtype>
               <lid>8</lid>
+              <anchor>0</anchor>
               </Articulation>
             <Note>
               <lid>10</lid>
@@ -390,10 +427,27 @@
             <lid>11</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
+          <move>0/1</move>
+          <Rest>
+            <lid>12</lid>
+            <track>5</track>
+            <durationType>quarter</durationType>
+            </Rest>
+          <Rest>
+            <lid>13</lid>
+            <track>5</track>
+            <durationType>quarter</durationType>
+            </Rest>
+          <Rest>
+            <lid>14</lid>
+            <track>5</track>
+            <durationType>quarter</durationType>
+            </Rest>
+          <Rest>
+            <lid>15</lid>
+            <track>5</track>
+            <durationType>quarter</durationType>
+            </Rest>
           </Measure>
         </Staff>
       <name>S-Gt</name>

@@ -23,7 +23,6 @@
 #include "barline.h"
 #include "slur.h"
 #include "hook.h"
-#include "lyrics.h"
 #include "bracket.h"
 #include "line.h"
 #include "staff.h"
@@ -36,55 +35,53 @@ namespace Ms {
 #define MM(x) ((x)/INCH)
 
 const PaperSize paperSizes[] = {
-      PaperSize("Custom",    MM(1),    MM(1)),
-      PaperSize("A4",        MM(210),  MM(297)),
-      PaperSize("B5",        MM(176),  MM(250)),
-      PaperSize("Letter",    8.5,      11),
-      PaperSize("Legal",     8.5,      14),
-      PaperSize("Executive", 7.5,      10),
-      PaperSize("A0",        MM(841),  MM(1189)),
-      PaperSize("A1",        MM(594),  MM(841)),
-      PaperSize("A2",        MM(420),  MM(594)),
-      PaperSize("A3",        MM(297),  MM(420)),
-      PaperSize("A5",        MM(148),  MM(210)),
-      PaperSize("A6",        MM(105),  MM(148)),
-      PaperSize("A7",        MM(74),   MM(105)),
-      PaperSize("A8",        MM(52),   MM(74)),
-      PaperSize("A9",        MM(37),   MM(52)),
-      PaperSize("A10",       MM(26),   MM(37)),
-      PaperSize("B0",        MM(1000), MM(1414)),
-      PaperSize("B1",        MM(707),  MM(1000)),
-      PaperSize("B2",        MM(500),  MM(707)),
-      PaperSize("B3",        MM(353),  MM(500)),
-      PaperSize("B4",        MM(250),  MM(353)),
-      PaperSize("B6",        MM(125),  MM(176)),
-      PaperSize("B7",        MM(88),   MM(125)),
-      PaperSize("B8",        MM(62),   MM(88)),
-      PaperSize("B9",        MM(44),   MM(62)),
-      PaperSize("B10",       MM(31),   MM(44)),
-      PaperSize("Comm10E",   MM(105),  MM(241)),
-      PaperSize("DLE",       MM(110),  MM(220)),
-      PaperSize("Folio",     MM(210),  MM(330)),
-      PaperSize("Ledger",    MM(432),  MM(279)),
-      PaperSize("Tabloid",   MM(279),  MM(432)),
-      PaperSize(0,           MM(1),    MM(1))   // mark end of list
+      PaperSize(QT_TRANSLATE_NOOP("paperSizes","Custom"),   MM(1),      MM(1)),
+      PaperSize("A4 (210 x 297 mm)",                        MM(210),    MM(297)),
+      PaperSize("Letter (8.5 x 11 in)",                     8.5,        11),
+      PaperSize("Legal (8.5 x 14 in)",                      8.5,        14),
+      PaperSize("Tabloid (11 x 17 in)",                     11,         17),
+      PaperSize("Statement (5.5 x 8.5 in)",                 5.5,        8.25),
+      PaperSize("Executive (7.25 x 10.5 in)",               7.25,       10.5),
+      //: Do not translate "9 x 12 in"
+      PaperSize(QT_TRANSLATE_NOOP("paperSizes","Concert Part (9 x 12 in)"),
+                9,          12),
+      //: Do not translate "6.75 x 5.25 in"
+      PaperSize(QT_TRANSLATE_NOOP("paperSizes","Flip Folder (7 x 5.25 in)"),
+                7,          5.25),
+      //: Do not translate "6.75 x 10.5 in"
+      PaperSize(QT_TRANSLATE_NOOP("paperSizes","Choral Octavo (6.75 x 10.5 in)"),
+                6.75,       10.5),
+      //: Do not translate "5.75 x 8.25 in"
+      PaperSize(QT_TRANSLATE_NOOP("paperSizes","Hymn (5.75 x 8.25 in)"),
+                5.75,       8.25),
+      PaperSize("A0 (841 x 1189 mm)",                       MM(841),    MM(1189)),
+      PaperSize("A1 (594 x 841 mm)",                        MM(594),    MM(841)),
+      PaperSize("A2 (420 x 594 mm)",                        MM(420),    MM(594)),
+      PaperSize("A3 (297 x 420 mm)",                        MM(297),    MM(420)),
+      PaperSize("A5 (148 x 210 mm)",                        MM(148),    MM(210)),
+      PaperSize("A6 (105 x 148 mm)",                        MM(105),    MM(148)),
+      PaperSize("A7 (74 x 105 mm)",                         MM(74),     MM(105)),
+      PaperSize("A8 (52 x 74 mm)",                          MM(52),     MM(74)),
+      PaperSize("A9 (37 x 52 mm)",                          MM(37),     MM(52)),
+      PaperSize("A10 (26 x 37 mm)",                         MM(26),     MM(37)),
+      PaperSize("B0 (1000 x 1414 mm)",                      MM(1000),   MM(1414)),
+      PaperSize("B1 (707 x 1000 mm)",                       MM(707),    MM(1000)),
+      PaperSize("B2 (500 x 707 mm)",                        MM(500),    MM(707)),
+      PaperSize("B3 (353 x 500 mm)",                        MM(353),    MM(500)),
+      PaperSize("B4 (250 x 353 mm)",                        MM(250),    MM(353)),
+      PaperSize("B5 (176 x 250 mm)",                        MM(176),    MM(250)),
+      PaperSize("B6 (125 x 176 mm)",                        MM(125),    MM(176)),
+      PaperSize("B7 (88 x 125 mm)",                         MM(88),     MM(125)),
+      PaperSize("B8 (62 x 88 mm)",                          MM(62),     MM(88)),
+      PaperSize("B9 (44 x 62 mm)",                          MM(44),     MM(62)),
+      PaperSize("B10 (31 x 44 mm)",                         MM(31),     MM(44)),
+      PaperSize("Comm10E (105 x 241 mm)",                   MM(105),    MM(241)),
+      PaperSize("DLE (110 x 220 mm)",                       MM(110),    MM(220)),
+      PaperSize("Folio (8.5 x 13 in)",                      8.5,        13),
+      PaperSize("F4 (210 x 330 mm)",                        MM(210),    MM(330)),
+      PaperSize("Ledger (17 x 11 in)",                      17,         11),
+      PaperSize(0,                                          MM(1),      MM(1)) // mark end of list
       };
-
-//---------------------------------------------------------
-//   getPaperSize
-//---------------------------------------------------------
-
-const PaperSize* getPaperSize(const QString& name)
-      {
-      for (int i = 0;;++i) {
-            if (paperSizes[i].name == 0)
-                  break;
-            if (name == paperSizes[i].name)
-                  return &paperSizes[i];
-            }
-      qDebug("unknown paper size");
-      return &paperSizes[0];
-      }
 
 //---------------------------------------------------------
 //   paperSizeSizeToIndex
@@ -107,9 +104,7 @@ const PaperSize* getPaperSize(const qreal wi, const qreal hi)
       {
       if (wi < minSize || hi < minSize)
             return &paperSizes[0];
-      for (int i = 0;;++i) {
-            if (paperSizes[i].name == 0)
-                  break;
+      for (int i = 0; paperSizes[i].name; ++i) {
             if (sizeError(wi, paperSizes[i].w) < maxError
                && sizeError(hi, paperSizes[i].h) < maxError)
                   return &paperSizes[i];
@@ -178,15 +173,6 @@ void Page::appendSystem(System* s)
       }
 
 //---------------------------------------------------------
-//   setNo
-//---------------------------------------------------------
-
-void Page::setNo(int n)
-      {
-      _no = n;
-      }
-
-//---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
@@ -208,22 +194,22 @@ void Page::draw(QPainter* painter) const
       // draw header/footer
       //
 
-      int n = no() + 1 + _score->pageNumberOffset();
+      int n = no() + 1 + score()->pageNumberOffset();
       painter->setPen(curColor());
 
       QString s1, s2, s3;
 
-      if (_score->styleB(StyleIdx::showHeader) && (no() || _score->styleB(StyleIdx::headerFirstPage))) {
-            bool odd = (n & 1) || !_score->styleB(StyleIdx::headerOddEven);
+      if (score()->styleB(StyleIdx::showHeader) && (no() || score()->styleB(StyleIdx::headerFirstPage))) {
+            bool odd = (n & 1) || !score()->styleB(StyleIdx::headerOddEven);
             if (odd) {
-                  s1 = _score->styleSt(StyleIdx::oddHeaderL);
-                  s2 = _score->styleSt(StyleIdx::oddHeaderC);
-                  s3 = _score->styleSt(StyleIdx::oddHeaderR);
+                  s1 = score()->styleSt(StyleIdx::oddHeaderL);
+                  s2 = score()->styleSt(StyleIdx::oddHeaderC);
+                  s3 = score()->styleSt(StyleIdx::oddHeaderR);
                   }
             else {
-                  s1 = _score->styleSt(StyleIdx::evenHeaderL);
-                  s2 = _score->styleSt(StyleIdx::evenHeaderC);
-                  s3 = _score->styleSt(StyleIdx::evenHeaderR);
+                  s1 = score()->styleSt(StyleIdx::evenHeaderL);
+                  s2 = score()->styleSt(StyleIdx::evenHeaderC);
+                  s3 = score()->styleSt(StyleIdx::evenHeaderR);
                   }
 
             drawHeaderFooter(painter, 0, s1);
@@ -231,17 +217,17 @@ void Page::draw(QPainter* painter) const
             drawHeaderFooter(painter, 2, s3);
             }
 
-      if (_score->styleB(StyleIdx::showFooter) && (no() || _score->styleB(StyleIdx::footerFirstPage))) {
-            bool odd = (n & 1) || !_score->styleB(StyleIdx::footerOddEven);
+      if (score()->styleB(StyleIdx::showFooter) && (no() || score()->styleB(StyleIdx::footerFirstPage))) {
+            bool odd = (n & 1) || !score()->styleB(StyleIdx::footerOddEven);
             if (odd) {
-                  s1 = _score->styleSt(StyleIdx::oddFooterL);
-                  s2 = _score->styleSt(StyleIdx::oddFooterC);
-                  s3 = _score->styleSt(StyleIdx::oddFooterR);
+                  s1 = score()->styleSt(StyleIdx::oddFooterL);
+                  s2 = score()->styleSt(StyleIdx::oddFooterC);
+                  s3 = score()->styleSt(StyleIdx::oddFooterR);
                   }
             else {
-                  s1 = _score->styleSt(StyleIdx::evenFooterL);
-                  s2 = _score->styleSt(StyleIdx::evenFooterC);
-                  s3 = _score->styleSt(StyleIdx::evenFooterR);
+                  s1 = score()->styleSt(StyleIdx::evenFooterL);
+                  s2 = score()->styleSt(StyleIdx::evenFooterC);
+                  s3 = score()->styleSt(StyleIdx::evenFooterR);
                   }
 
             drawHeaderFooter(painter, 3, s1);
@@ -287,8 +273,11 @@ void Page::drawHeaderFooter(QPainter* p, int area, const QString& ss) const
 
 void Page::scanElements(void* data, void (*func)(void*, Element*), bool all)
       {
-      for (System* s :_systems)
+      for (System* s :_systems) {
+            for (MeasureBase* m : s->measures())
+                  m->scanElements(data, func, false);
             s->scanElements(data, func, all);
+            }
       func(data, this);
       }
 
@@ -349,9 +338,8 @@ QString PageFormat::name() const
 //  <page-layout>
 //      <page-height>
 //      <page-width>
-//      <pageFormat>A6</pageFormat>
 //      <landscape>1</landscape>
-//      <page-margins>
+//      <page-margins type="both">
 //         <left-margin>28.3465</left-margin>
 //         <right-margin>28.3465</right-margin>
 //         <top-margin>28.3465</top-margin>
@@ -360,20 +348,15 @@ QString PageFormat::name() const
 //      </page-layout>
 //---------------------------------------------------------
 
-void PageFormat::read(XmlReader& e, Score* score)
+void PageFormat::read(XmlReader& e)
       {
       qreal _oddRightMargin  = 0.0;
       qreal _evenRightMargin = 0.0;
-      bool landscape = false;
       QString type;
 
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
-            if (tag == "pageFormat")            // obsolete
-                  setSize(getPaperSize(e.readElementText()));
-            else if (tag == "landscape")        // obsolete
-                  landscape = e.readInt();
-            else if (tag == "page-margins") {
+            if (tag == "page-margins") {
                   type = e.attribute("type","both");
                   qreal lm = 0.0, rm = 0.0, tm = 0.0, bm = 0.0;
                   while (e.readNextStartElement()) {
@@ -408,18 +391,11 @@ void PageFormat::read(XmlReader& e, Score* score)
                   _size.rheight() = e.readDouble() * 0.5 / PPI;
             else if (tag == "page-width")
                   _size.rwidth() = e.readDouble() * .5 / PPI;
-            else if (tag == "page-offset") {           // obsolete, moved to Score
-                  QString val(e.readElementText());
-                  if(score)
-                        score->setPageNumberOffset(val.toInt());
-                  }
             else
                   e.unknown();
             }
-      if (landscape)
-            _size.transpose();
-      qreal w1 = _size.width() - _oddLeftMargin - _oddRightMargin;
-      qreal w2 = _size.width() - _evenLeftMargin - _evenRightMargin;
+      qreal w1        = _size.width() - _oddLeftMargin - _oddRightMargin;
+      qreal w2        = _size.width() - _evenLeftMargin - _evenRightMargin;
       _printableWidth = qMin(w1, w2);     // silently adjust right margins
       }
 
@@ -461,37 +437,48 @@ void PageFormat::write(Xml& xml) const
       xml.etag();
       }
 
+#ifdef USE_BSP
+//---------------------------------------------------------
+//   bspInsert
+//---------------------------------------------------------
+
+static void bspInsert(void* bspTree, Element* e)
+      {
+      ((BspTree*) bspTree)->insert(e);
+      }
+
+static void countElements(void* data, Element* /*e*/)
+      {
+      ++(*(int*)data);
+      }
+
 //---------------------------------------------------------
 //   doRebuildBspTree
 //---------------------------------------------------------
 
-#ifdef USE_BSP
 void Page::doRebuildBspTree()
       {
-      QList<Element*> el;
-      for (System* s : _systems) {
-            for (MeasureBase* m : s->measures())
-                  m->scanElements(&el, collectElements, false);
-            }
-      scanElements(&el, collectElements, false);
+      int n = 0;
+      scanElements(&n, countElements, false);
 
-      int n = el.size();
+      QRectF r;
       if (score()->layoutMode() == LayoutMode::LINE) {
             qreal w = 0.0;
             qreal h = 0.0;
-            if (!_systems.isEmpty()) {
+            if (!_systems.empty()) {
                   h = _systems.front()->height();
-                  if (!_systems.front()->measures().isEmpty()) {
+                  if (!_systems.front()->measures().empty()) {
                         MeasureBase* mb = _systems.front()->measures().back();
                         w = mb->x() + mb->width();
                         }
                   }
-            bspTree.initialize(QRectF(0.0, 0.0, w, h), n);
+            r = QRectF(0.0, 0.0, w, h);
             }
       else
-            bspTree.initialize(abbox(), n);
-      for (int i = 0; i < n; ++i)
-            bspTree.insert(el.at(i));
+            r = abbox();
+
+      bspTree.initialize(r, n);
+      scanElements(&bspTree, &bspInsert, false);
       bspTreeValid = true;
       }
 #endif
@@ -503,6 +490,8 @@ void Page::doRebuildBspTree()
 //    $P          - page number, on all pages
 //    $N          - page number, if there is more than one
 //    $n          - number of pages
+//    $i          - part name, except on first page
+//    $I          - part name, on all pages
 //    $f          - file name
 //    $F          - file path+name
 //    $d          - current date
@@ -512,7 +501,7 @@ void Page::doRebuildBspTree()
 //    $C          - copyright, on first page only
 //    $c          - copyright, on all pages
 //    $$          - the $ sign itself
-//    $:tag:      - meta data tag
+//    $:tag:      - any metadata tag
 //
 //       tags already defined:
 //       (see Score::init()))
@@ -537,51 +526,56 @@ QString Page::replaceTextMacros(const QString& s) const
                         case 'p': // not on first page 1
                               if (_no) // FALLTHROUGH
                         case 'N': // on page 1 only if there are multiple pages
-                              if ( (_score->npages() + _score->pageNumberOffset()) > 1 ) // FALLTHROUGH
+                              if ( (score()->npages() + score()->pageNumberOffset()) > 1 ) // FALLTHROUGH
                         case 'P': // on all pages
                               {
-                              int no = _no + 1 + _score->pageNumberOffset();
+                              int no = _no + 1 + score()->pageNumberOffset();
                               if (no > 0 )
                                     d += QString("%1").arg(no);
                               }
                               break;
                         case 'n':
-                              d += QString("%1").arg(_score->npages() + _score->pageNumberOffset());
+                              d += QString("%1").arg(score()->npages() + score()->pageNumberOffset());
+                              break;
+                        case 'i': // not on first page
+                              if (_no) // FALLTHROUGH
+                        case 'I':
+                              d += score()->metaTag("partName").toHtmlEscaped();
                               break;
                         case 'f':
-                              d += _score->rootScore()->name().toHtmlEscaped();
+                              d += masterScore()->fileInfo()->completeBaseName().toHtmlEscaped();
                               break;
                         case 'F':
-                              d += _score->rootScore()->fileInfo()->absoluteFilePath().toHtmlEscaped();
+                              d += masterScore()->fileInfo()->absoluteFilePath().toHtmlEscaped();
                               break;
                         case 'd':
                               d += QDate::currentDate().toString(Qt::DefaultLocaleShortDate);
                               break;
                         case 'D':
                               {
-                              QString creationDate = _score->metaTag("creationDate");
+                              QString creationDate = score()->metaTag("creationDate");
                               if (creationDate.isNull())
-                                    d += _score->fileInfo()->created().date().toString(Qt::DefaultLocaleShortDate);
+                                    d += masterScore()->fileInfo()->created().date().toString(Qt::DefaultLocaleShortDate);
                               else
                                     d += QDate::fromString(creationDate, Qt::ISODate).toString(Qt::DefaultLocaleShortDate);
                               }
                               break;
                         case 'm':
-                              if ( _score->dirty() )
+                              if ( score()->dirty() )
                                     d += QTime::currentTime().toString(Qt::DefaultLocaleShortDate);
                               else
-                                    d += _score->rootScore()->fileInfo()->lastModified().time().toString(Qt::DefaultLocaleShortDate);
+                                    d += masterScore()->fileInfo()->lastModified().time().toString(Qt::DefaultLocaleShortDate);
                               break;
                         case 'M':
-                              if ( _score->dirty() )
+                              if ( score()->dirty() )
                                     d += QDate::currentDate().toString(Qt::DefaultLocaleShortDate);
                               else
-                                    d += _score->rootScore()->fileInfo()->lastModified().date().toString(Qt::DefaultLocaleShortDate);
+                                    d += masterScore()->fileInfo()->lastModified().date().toString(Qt::DefaultLocaleShortDate);
                               break;
                         case 'C': // only on first page
                               if (!_no) // FALLTHROUGH
                         case 'c':
-                              d += _score->metaTag("copyright").toHtmlEscaped();
+                              d += score()->metaTag("copyright").toHtmlEscaped();
                               break;
                         case '$':
                               d += '$';
@@ -596,7 +590,7 @@ QString Page::replaceTextMacros(const QString& s) const
                                     tag += s[k];
                                     }
                               if (k != n) {       // found ':' ?
-                                    d += _score->metaTag(tag).toHtmlEscaped();
+                                    d += score()->metaTag(tag).toHtmlEscaped();
                                     i = k-1;
                                     }
                               }
@@ -620,7 +614,7 @@ QString Page::replaceTextMacros(const QString& s) const
 
 bool Page::isOdd() const
       {
-      return (_no + 1 + _score->pageNumberOffset()) & 1;
+      return (_no + 1 + score()->pageNumberOffset()) & 1;
       }
 
 //---------------------------------------------------------
@@ -645,7 +639,7 @@ void Page::read(XmlReader& e)
       while (e.readNextStartElement()) {
             if (e.name() == "System") {
                   System* system = new System(score());
-                  score()->systems()->append(system);
+                  score()->systems().push_back(system);
                   system->read(e);
                   }
             else
@@ -702,7 +696,7 @@ QList<System*> Page::searchSystem(const QPointF& pos) const
 Measure* Page::searchMeasure(const QPointF& p) const
       {
       QList<System*> systems = searchSystem(p);
-      if (systems.isEmpty())
+      if (systems.empty())
             return 0;
 
       foreach(System* system, systems) {
@@ -807,13 +801,9 @@ MeasureBase* Page::pos2measure(const QPointF& p, int* rst, int* pitch,
 //   elements
 //---------------------------------------------------------
 
-QList<const Element*> Page::elements()
+QList<Element*> Page::elements()
       {
-      QList<const Element*> el;
-      foreach (System* s, _systems) {
-            foreach(MeasureBase* m, s->measures())
-                  m->scanElements(&el, collectElements, false);
-            }
+      QList<Element*> el;
       scanElements(&el, collectElements, false);
       return el;
       }
@@ -824,8 +814,8 @@ QList<const Element*> Page::elements()
 
 qreal Page::tm() const
       {
-      const PageFormat* pf = _score->pageFormat();
-      return ((!pf->twosided() || isOdd()) ? pf->oddTopMargin() : pf->evenTopMargin()) * MScore::DPI;
+      const PageFormat* pf = score()->pageFormat();
+      return ((!pf->twosided() || isOdd()) ? pf->oddTopMargin() : pf->evenTopMargin()) * DPI;
       }
 
 //---------------------------------------------------------
@@ -834,8 +824,8 @@ qreal Page::tm() const
 
 qreal Page::bm() const
       {
-      const PageFormat* pf = _score->pageFormat();
-      return ((!pf->twosided() || isOdd()) ? pf->oddBottomMargin() : pf->evenBottomMargin()) * MScore::DPI;
+      const PageFormat* pf = score()->pageFormat();
+      return ((!pf->twosided() || isOdd()) ? pf->oddBottomMargin() : pf->evenBottomMargin()) * DPI;
       }
 
 //---------------------------------------------------------
@@ -844,8 +834,8 @@ qreal Page::bm() const
 
 qreal Page::lm() const
       {
-      const PageFormat* pf = _score->pageFormat();
-      return ((!pf->twosided() || isOdd()) ? pf->oddLeftMargin() : pf->evenLeftMargin()) * MScore::DPI;
+      const PageFormat* pf = score()->pageFormat();
+      return ((!pf->twosided() || isOdd()) ? pf->oddLeftMargin() : pf->evenLeftMargin()) * DPI;
       }
 
 //---------------------------------------------------------
@@ -854,8 +844,8 @@ qreal Page::lm() const
 
 qreal Page::rm() const
       {
-      const PageFormat* pf = _score->pageFormat();
-      return ((!pf->twosided() || isOdd()) ? pf->oddRightMargin() : pf->evenRightMargin()) * MScore::DPI;
+      const PageFormat* pf = score()->pageFormat();
+      return ((!pf->twosided() || isOdd()) ? pf->oddRightMargin() : pf->evenRightMargin()) * DPI;
       }
 
 //---------------------------------------------------------
@@ -869,8 +859,8 @@ QRectF Page::tbbox()
       qreal x2 = 0.0;
       qreal y1 = height();
       qreal y2 = 0.0;
-      const QList<const Element*> el = elements();
-      for (const Element* e : el) {
+      const QList<Element*> el = elements();
+      for (Element* e : el) {
             if (e == this || !e->isPrintable())
                   continue;
             QRectF ebbox = e->pageBoundingRect();
@@ -889,5 +879,13 @@ QRectF Page::tbbox()
             return abbox();
       }
 
+//---------------------------------------------------------
+//   endTick
+//---------------------------------------------------------
+
+int Page::endTick() const
+      {
+      return _systems.empty() ? -1 : _systems.back()->measures().back()->endTick();
+      }
 }
 

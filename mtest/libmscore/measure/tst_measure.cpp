@@ -25,6 +25,7 @@
 #include "libmscore/image.h"
 #include "libmscore/element.h"
 #include "libmscore/system.h"
+#include "libmscore/durationtype.h"
 #include "mtest/testutils.h"
 
 #define DIR QString("libmscore/measure/")
@@ -53,7 +54,11 @@ class TestMeasure : public QObject, public MTest
       void spanner_B();
       void spanner_C();
       void spanner_D();
+      void deleteLast();
       void minWidth();
+
+      void gap();
+      void checkMeasure();
       };
 
 //---------------------------------------------------------
@@ -71,15 +76,13 @@ void TestMeasure::initTestCase()
 
 void TestMeasure::insertMeasureMiddle()
       {
-      Score* score = readScore(DIR + "measure-1.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-1.mscx");
 
-      Measure* m = score->firstMeasure()->nextMeasure();
       score->startCmd();
+      Measure* m = score->firstMeasure()->nextMeasure();
       score->insertMeasure(Element::Type::MEASURE, m);
       score->endCmd();
+
       QVERIFY(saveCompareScore(score, "measure-1.mscx", DIR + "measure-1-ref.mscx"));
       delete score;
       }
@@ -90,16 +93,14 @@ void TestMeasure::insertMeasureMiddle()
 
 void TestMeasure::insertMeasureBegin()
       {
-      Score* score = readScore(DIR + "measure-1.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-1.mscx");
 
-      Measure* m = score->firstMeasure();
       score->startCmd();
+      Measure* m = score->firstMeasure();
       score->insertMeasure(Element::Type::MEASURE, m);
       score->endCmd();
       QVERIFY(saveCompareScore(score, "measure-2.mscx", DIR + "measure-2-ref.mscx"));
+
       delete score;
       }
 
@@ -109,14 +110,12 @@ void TestMeasure::insertMeasureBegin()
 
 void TestMeasure::insertMeasureEnd()
       {
-      Score* score = readScore(DIR + "measure-1.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-1.mscx");
 
       score->startCmd();
       score->insertMeasure(Element::Type::MEASURE, 0);
       score->endCmd();
+
       QVERIFY(saveCompareScore(score, "measure-3.mscx", DIR + "measure-3-ref.mscx"));
       delete score;
       }
@@ -127,8 +126,7 @@ void TestMeasure::insertMeasureEnd()
 
 void TestMeasure::insertBfClefChange()
       {
-      Score* score = readScore(DIR + "measure-insert_bf_clef.mscx");
-      score->doLayout();
+      MasterScore* score = readScore(DIR + "measure-insert_bf_clef.mscx");
       // 4th measure
       Measure* m = score->firstMeasure()->nextMeasure();
       m = m->nextMeasure()->nextMeasure();
@@ -137,8 +135,7 @@ void TestMeasure::insertBfClefChange()
       score->endCmd();
       QVERIFY(score->checkClefs());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_clef.mscx", DIR + "measure-insert_bf_clef-ref.mscx"));
-      score->undo()->undo();
-      score->endUndoRedo();
+      score->undoRedo(true);
       QVERIFY(score->checkClefs());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_clef_undo.mscx", DIR + "measure-insert_bf_clef.mscx"));
       m = score->firstMeasure()->nextMeasure()->nextMeasure()->nextMeasure()->nextMeasure()->nextMeasure();
@@ -147,13 +144,11 @@ void TestMeasure::insertBfClefChange()
       score->endCmd();
       QVERIFY(score->checkClefs());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_clef-2.mscx", DIR + "measure-insert_bf_clef-2-ref.mscx"));
-      score->undo()->undo();
-      score->endUndoRedo();
+      score->undoRedo(true);
       QVERIFY(score->checkClefs());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_clef_undo.mscx", DIR + "measure-insert_bf_clef.mscx"));
       delete score;
       }
-
 
 //---------------------------------------------------------
 ///   insertBfKeyChange
@@ -161,8 +156,7 @@ void TestMeasure::insertBfClefChange()
 
 void TestMeasure::insertBfKeyChange()
       {
-      Score* score = readScore(DIR + "measure-insert_bf_key.mscx");
-      score->doLayout();
+      MasterScore* score = readScore(DIR + "measure-insert_bf_key.mscx");
       // 4th measure
       Measure* m = score->firstMeasure()->nextMeasure();
       m = m->nextMeasure()->nextMeasure();
@@ -171,8 +165,7 @@ void TestMeasure::insertBfKeyChange()
       score->endCmd();
       QVERIFY(score->checkKeys());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_key.mscx", DIR + "measure-insert_bf_key-ref.mscx"));
-      score->undo()->undo();
-      score->endUndoRedo();
+      score->undoRedo(true);
       QVERIFY(score->checkKeys());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_key_undo.mscx", DIR + "measure-insert_bf_key.mscx"));
       m = score->firstMeasure()->nextMeasure()->nextMeasure()->nextMeasure()->nextMeasure()->nextMeasure();
@@ -181,8 +174,7 @@ void TestMeasure::insertBfKeyChange()
       score->endCmd();
       QVERIFY(score->checkKeys());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_key-2.mscx", DIR + "measure-insert_bf_key-2-ref.mscx"));
-      score->undo()->undo();
-      score->endUndoRedo();
+      score->undoRedo(true);
       QVERIFY(score->checkKeys());
       QVERIFY(saveCompareScore(score, "measure-insert_bf_key_undo.mscx", DIR + "measure-insert_bf_key.mscx"));
       delete score;
@@ -194,32 +186,31 @@ void TestMeasure::insertBfKeyChange()
 
 void TestMeasure::minWidth()
       {
-      Score* score = readScore(DIR + "measure-2.mscx");
-      score->doLayout();
-      int n = score->systems()->size();
+      MasterScore* score = readScore(DIR + "measure-2.mscx");
+
+      int n = score->systems().size();
       int measuresSystem[n];
       for (int i = 0; i < n; ++i)
-            measuresSystem[i] = score->systems()->at(i)->measures().size();
-
-      Measure* m1 = score->systems()->at(1)->lastMeasure();
-      Measure* m2 = score->systems()->at(2)->firstMeasure();
-      qreal mw1 = m1->minWidth1();
-      qreal mw2 = m2->minWidth1();
+            measuresSystem[i] = score->systems().at(i)->measures().size();
 
       score->doLayout();
 
-      printf("m1: %f / %f\n", mw1, m1->minWidth1());
-      printf("m2: %f / %f\n", mw2, m2->minWidth1());
+      Measure* m1 = score->systems().at(1)->lastMeasure();
+      Measure* m2 = score->systems().at(2)->firstMeasure();
+      qreal mw1   = m1->minWidth1();
+      qreal mw2   = m2->minWidth1();
+
+      score->doLayout();
+
       QCOMPARE(mw1, m1->minWidth1());
       QCOMPARE(mw2, m2->minWidth1());
 
       // after second layout nothing should be changed:
       for (int i = 0; i < n; ++i) {
-            printf("==%d %d == %d\n", i,
-               measuresSystem[i], score->systems()->at(i)->measures().size());
-            QCOMPARE(measuresSystem[i], score->systems()->at(i)->measures().size());
+            QCOMPARE(measuresSystem[i], int(score->systems().at(i)->measures().size()));
             }
       }
+
 //---------------------------------------------------------
 ///   spanner_a
 //
@@ -230,10 +221,7 @@ void TestMeasure::minWidth()
 
 void TestMeasure::spanner_a()
       {
-      Score* score = readScore(DIR + "measure-3.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-3.mscx");
 
       Measure* m = score->firstMeasure()->nextMeasure();
       score->startCmd();
@@ -253,10 +241,7 @@ void TestMeasure::spanner_a()
 
 void TestMeasure::spanner_b()
       {
-      Score* score = readScore(DIR + "measure-4.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-4.mscx");
 
       Measure* m = score->firstMeasure();
       score->startCmd();
@@ -275,15 +260,12 @@ void TestMeasure::spanner_b()
 
 void TestMeasure::spanner_A()
       {
-      Score* score = readScore(DIR + "measure-6.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-6.mscx");
 
       Measure* m = score->firstMeasure();
       score->startCmd();
       score->select(m);
-      score->cmdDeleteSelectedMeasures();
+      score->cmdTimeDelete();
       score->endCmd();
       QVERIFY(saveCompareScore(score, "measure-6.mscx", DIR + "measure-6-ref.mscx"));
       delete score;
@@ -299,16 +281,14 @@ void TestMeasure::spanner_A()
 
 void TestMeasure::spanner_B()
       {
-      Score* score = readScore(DIR + "measure-7.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-7.mscx");
 
-      Measure* m = score->firstMeasure()->nextMeasure();
       score->startCmd();
+      Measure* m = score->firstMeasure()->nextMeasure();
       score->select(m);
-      score->cmdDeleteSelectedMeasures();
+      score->cmdTimeDelete();
       score->endCmd();
+
       QVERIFY(saveCompareScore(score, "measure-7.mscx", DIR + "measure-7-ref.mscx"));
       delete score;
       }
@@ -323,16 +303,14 @@ void TestMeasure::spanner_B()
 
 void TestMeasure::spanner_C()
       {
-      Score* score = readScore(DIR + "measure-8.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-8.mscx");
 
-      Measure* m = score->firstMeasure()->nextMeasure();
       score->startCmd();
+      Measure* m = score->firstMeasure()->nextMeasure();
       score->select(m);
-      score->cmdDeleteSelectedMeasures();
+      score->cmdTimeDelete();
       score->endCmd();
+
       QVERIFY(saveCompareScore(score, "measure-8.mscx", DIR + "measure-8-ref.mscx"));
       delete score;
       }
@@ -347,19 +325,136 @@ void TestMeasure::spanner_C()
 
 void TestMeasure::spanner_D()
       {
-      Score* score = readScore(DIR + "measure-9.mscx");
-      score->doLayout();
-      foreach(Excerpt* e, score->excerpts())
-            e->partScore()->doLayout();
+      MasterScore* score = readScore(DIR + "measure-9.mscx");
 
-      Measure* m = score->firstMeasure()->nextMeasure();
       score->startCmd();
+      Measure* m = score->firstMeasure()->nextMeasure();
       score->select(m);
-      score->cmdDeleteSelectedMeasures();
+      score->cmdTimeDelete();
       score->endCmd();
+
       QVERIFY(saveCompareScore(score, "measure-9.mscx", DIR + "measure-9-ref.mscx"));
       delete score;
       }
+
+//---------------------------------------------------------
+//    deleteLast
+//---------------------------------------------------------
+
+void TestMeasure::deleteLast()
+      {
+      MasterScore* score = readScore(DIR + "measure-10.mscx");
+
+      score->startCmd();
+      Measure* m = score->lastMeasure();
+      score->select(m);
+      score->cmdTimeDelete();
+      score->endCmd();
+
+      QVERIFY(saveCompareScore(score, "measure-10.mscx", DIR + "measure-10-ref.mscx"));
+      delete score;
+      }
+
+
+//---------------------------------------------------------
+///   gaps
+//
+//    delete rests and check reorganization of lengths
+//
+//---------------------------------------------------------
+
+void TestMeasure::gap()
+      {
+      MasterScore* score = readScore(DIR + "gaps.mscx");
+      Element* tst       = 0;
+
+      //Select and delete third quarter rest in first Measure (voice 2)
+      score->startCmd();
+      Measure* m  = score->firstMeasure();
+      Segment* s  = m->undoGetSegment(Segment::Type::ChordRest, 960);
+      Element* el = s->element(1);
+      score->select(el);
+      score->cmdDeleteSelection();
+      score->endCmd();
+
+      tst = s->element(1);
+      Q_ASSERT(tst);
+
+      QVERIFY(tst->isRest() && toRest(tst)->isGap() /*&& toRest(tst)->durationType() == TDuration::DurationType::V_QUARTER*/);
+
+      //Select and delete second quarter rest in third Measure (voice 4)
+      score->startCmd();
+      m  = m->nextMeasure()->nextMeasure();
+      s  = m->undoGetSegment(Segment::Type::ChordRest, 4320);
+      el = s->element(3);
+      score->select(el);
+      score->cmdDeleteSelection();
+      score->endCmd();
+
+      tst = s->element(3);
+      Q_ASSERT(tst);
+
+      QVERIFY(tst->isRest() && toRest(tst)->isGap() /*&& toRest(tst)->durationType() == TDuration::DurationType::V_QUARTER*/);
+
+      //Select and delete first quarter rest in third Measure (voice 4)
+      score->startCmd();
+      s  = m->undoGetSegment(Segment::Type::ChordRest, 3840);
+      el = s->element(3);
+      score->select(el);
+      score->cmdDeleteSelection();
+      score->endCmd();
+
+      tst = s->element(3);
+      Q_ASSERT(tst);
+
+      QVERIFY(tst->isRest() && toRest(tst)->isGap() && toRest(tst)->actualTicks() == 960/*&& toRest(tst)->durationType() == TDuration::DurationType::V_HALF*/);
+
+
+      delete score;
+      }
+
+//---------------------------------------------------------
+///   checkMeasure
+//
+//    import a Score with gaps in excerpt and
+//
+//---------------------------------------------------------
+
+void TestMeasure::checkMeasure()
+      {
+      MasterScore* score = readScore(DIR + "checkMeasure.mscx");
+      Element* tst       = 0;
+      Measure* m         = score->firstMeasure()->nextMeasure();
+
+      Segment* s = m->undoGetSegment(Segment::Type::ChordRest, 2880);
+      tst = s->element(1);
+      Q_ASSERT(tst);
+
+      QVERIFY(tst->isRest() && toRest(tst)->isGap() && toRest(tst)->actualTicks() == 480/*&& toRest(tst)->durationType() == TDuration::DurationType::V_HALF*/);
+
+      m = m->nextMeasure();
+//      s = m->undoGetSegment(Segment::Type::ChordRest, 3840);
+//      tst = s->element(2);
+//      Q_ASSERT(tst);
+
+//      QVERIFY(tst->isRest() && toRest(tst)->isGap() && toRest(tst)->actualTicks() == 480/*&& toRest(tst)->durationType() == TDuration::DurationType::V_HALF*/);
+
+      m = m->nextMeasure();
+      s = m->undoGetSegment(Segment::Type::ChordRest, 6240);
+      tst = s->element(1);
+      Q_ASSERT(tst);
+
+      QVERIFY(tst->isRest() && toRest(tst)->isGap() && toRest(tst)->actualTicks() == 120/*&& toRest(tst)->durationType() == TDuration::DurationType::V_HALF*/);
+
+      s = m->undoGetSegment(Segment::Type::ChordRest, 6480);
+      tst = s->element(1);
+      Q_ASSERT(tst);
+
+      QVERIFY(tst->isRest() && toRest(tst)->isGap() && toRest(tst)->actualTicks() == 120/*&& toRest(tst)->durationType() == TDuration::DurationType::V_HALF*/);
+
+      delete score;
+      }
+
 
 
 QTEST_MAIN(TestMeasure)

@@ -53,7 +53,7 @@ private slots:
       //void oveGraphicsTest()           { oveReadTest("graphics"); }
       //void oveGuitarBarreTest()        { oveReadTest("guitar-barre"); }
       //void oveGuitarBendTest()         { oveReadTest("guitar-bend"); }
-      //void oveHarmony2Test()           { oveReadTest("harmony 2"); }
+      void oveHarmony2Test()           { oveReadTest("harmony 2"); }
       //void oveGuitarFretTest()         { oveReadTest("harmony-guitar-frame"); }
       //void oveHarmonyTypeTest()        { oveReadTest("harmony-type"); }
       //void oveHarmonyTest()            { oveReadTest("harmony"); }
@@ -145,11 +145,11 @@ void TestOveIO::initTestCase()
 void TestOveIO::oveReadTest(const char* file)
       {
       preferences.importCharsetOve = "GBK";
-      Score* score = readScore(DIR + file + ".ove");
+      MasterScore* score = readScore(DIR + file + ".ove");
       QVERIFY(score);
       score->doLayout();
       score->connectTies();
-      score->setLayoutAll(true);
+      score->setLayoutAll();
       score->update();
       QVERIFY(saveCompareScore(score, QString("%1.ove.mscx").arg(file),
                                DIR + QString("%1.ove-ref.mscx").arg(file)));

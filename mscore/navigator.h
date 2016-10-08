@@ -40,6 +40,7 @@ class NScrollArea : public QScrollArea {
 
    public:
       NScrollArea(QWidget* w = 0);
+      void orientationChanged();
       };
 
 //---------------------------------------------------------
@@ -70,6 +71,7 @@ class Navigator : public QWidget {
       ViewRect* viewRect;
       QPoint startMove;
       QTransform matrix;
+      bool _previewOnly;
 
       void rescale();
 
@@ -89,6 +91,7 @@ class Navigator : public QWidget {
       Navigator(NScrollArea* sa, QWidget* parent = 0);
       void setScoreView(ScoreView*);
       void setScore(Score*);
+      void setPreviewOnly(bool b) { _previewOnly = b; }
       Score* score() const { return _score; }
       void setViewRect(const QRectF& r);
       };

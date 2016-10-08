@@ -38,36 +38,45 @@ enum class AccidentalRole : char {
 //---------------------------------------------------------
 //   AccidentalType
 //---------------------------------------------------------
-
+// NOTE: keep this in sync with with accList array
 enum class AccidentalType : char {
       NONE,
-      SHARP,
       FLAT,
+      NATURAL,
+      SHARP,
       SHARP2,
       FLAT2,
-      NATURAL,
+      //SHARP3,
+      //FLAT3,
+      NATURAL_FLAT,
+      NATURAL_SHARP,
+      SHARP_SHARP,
 
-      FLAT_SLASH,
-      FLAT_SLASH2,
-      MIRRORED_FLAT2,
-      MIRRORED_FLAT,
-      MIRRORED_FLAT_SLASH,
-      FLAT_FLAT_SLASH,
-
-      SHARP_SLASH,
-      SHARP_SLASH2,
-      SHARP_SLASH3,
-      SHARP_SLASH4,
-
-      SHARP_ARROW_UP,
-      SHARP_ARROW_DOWN,
-      SHARP_ARROW_BOTH,
+      // Gould arrow quartertone
       FLAT_ARROW_UP,
       FLAT_ARROW_DOWN,
-      FLAT_ARROW_BOTH,
       NATURAL_ARROW_UP,
       NATURAL_ARROW_DOWN,
-      NATURAL_ARROW_BOTH,
+      SHARP_ARROW_UP,
+      SHARP_ARROW_DOWN,
+      SHARP2_ARROW_UP,
+      SHARP2_ARROW_DOWN,
+      FLAT2_ARROW_UP,
+      FLAT2_ARROW_DOWN,
+
+      // Stein-Zimmermann
+      MIRRORED_FLAT,
+      MIRRORED_FLAT2,
+      SHARP_SLASH,
+      SHARP_SLASH4,
+
+      //Arel-Ezgi-Uzdilek (AEU)
+      FLAT_SLASH2,
+      FLAT_SLASH,
+      SHARP_SLASH3,
+      SHARP_SLASH2,
+
+      // Persian
       SORI,
       KORON,
       END
@@ -85,7 +94,7 @@ struct SymElement {
 
 //---------------------------------------------------------
 //   @@ Accidental
-//   @P accType     enum  (Accidental.NONE, .SHARP, .FLAT, .SHARP2, .FLAT2, .NATURAL, .FLAT_SLASH, .FLAT_SLASH2, .MIRRORED_FLAT2, .MIRRORED_FLAT, .MIRRORED_FLAT_SLASH, .FLAT_FLAT_SLASH, .SHARP_SLASH, .SHARP_SLASH2, .SHARP_SLASH3, .SHARP_SLASH4, .SHARP_ARROW_UP, .SHARP_ARROW_DOWN, .SHARP_ARROW_BOTH, .FLAT_ARROW_UP, .FLAT_ARROW_DOWN, .FLAT_ARROW_BOTH, .NATURAL_ARROW_UP, .NATURAL_ARROW_DOWN, .NATURAL_ARROW_BOTH, .SORI, .KORON) (read only)
+//   @P accType     enum  (Accidental.NONE, .SHARP, .FLAT, .SHARP2, .FLAT2, .NATURAL, .FLAT_SLASH, .FLAT_SLASH2, .MIRRORED_FLAT2, .MIRRORED_FLAT, .SHARP_SLASH, .SHARP_SLASH2, .SHARP_SLASH3, .SHARP_SLASH4, .SHARP_ARROW_UP, .SHARP_ARROW_DOWN, .FLAT_ARROW_UP, .FLAT_ARROW_DOWN, .NATURAL_ARROW_UP, .NATURAL_ARROW_DOWN, .SORI, .KORON) (read only)
 //   @P hasBracket  bool
 //   @P role        enum  (Accidental.AUTO, .USER) (read only)
 //   @P small       bool
@@ -104,33 +113,42 @@ class Accidental : public Element {
       enum QmlAccidentalRole { AUTO, USER };
       enum QmlAccidentalType {
             NONE,
-            SHARP,
             FLAT,
+            NATURAL,
+            SHARP,
             SHARP2,
             FLAT2,
-            NATURAL,
+            //SHARP3,
+            //FLAT3,
+            NATURAL_FLAT,
+            NATURAL_SHARP,
+            SHARP_SHARP,
 
-            FLAT_SLASH,
-            FLAT_SLASH2,
-            MIRRORED_FLAT2,
-            MIRRORED_FLAT,
-            MIRRORED_FLAT_SLASH,
-            FLAT_FLAT_SLASH,
-
-            SHARP_SLASH,
-            SHARP_SLASH2,
-            SHARP_SLASH3,
-            SHARP_SLASH4,
-
-            SHARP_ARROW_UP,
-            SHARP_ARROW_DOWN,
-            SHARP_ARROW_BOTH,
+            // Gould arrow quartertone
             FLAT_ARROW_UP,
             FLAT_ARROW_DOWN,
-            FLAT_ARROW_BOTH,
             NATURAL_ARROW_UP,
             NATURAL_ARROW_DOWN,
-            NATURAL_ARROW_BOTH,
+            SHARP_ARROW_UP,
+            SHARP_ARROW_DOWN,
+            SHARP2_ARROW_UP,
+            SHARP2_ARROW_DOWN,
+            FLAT2_ARROW_UP,
+            FLAT2_ARROW_DOWN,
+
+            // Stein-Zimmermann
+            MIRRORED_FLAT,
+            MIRRORED_FLAT2,
+            SHARP_SLASH,
+            SHARP_SLASH4,
+
+            //Arel-Ezgi-Uzdilek (AEU)
+            FLAT_SLASH2,
+            FLAT_SLASH,
+            SHARP_SLASH3,
+            SHARP_SLASH2,
+
+            // Persian
             SORI,
             KORON,
             END
@@ -152,7 +170,7 @@ class Accidental : public Element {
       virtual Accidental* clone() const override  { return new Accidental(*this); }
       virtual Element::Type type() const override { return Element::Type::ACCIDENTAL; }
 
-      const char* subtypeUserName() const;
+      QString subtypeUserName() const;
       void setSubtype(const QString& s);
       void setAccidentalType(AccidentalType t)     { _accidentalType = t;    }
 
@@ -170,7 +188,7 @@ class Accidental : public Element {
       virtual void startEdit(MuseScoreView*, const QPointF&) override { setGenerated(false); }
 
       SymId symbol() const;
-      Note* note() const  { return (parent() && parent()->type() == Element::Type::NOTE) ? (Note*)parent() : 0; }
+      Note* note() const                  { return (parent() && parent()->isNote()) ? toNote(parent()) : 0; }
 
       bool hasBracket() const             { return _hasBracket;     }
       void setHasBracket(bool val)        { _hasBracket = val;      }
@@ -194,8 +212,9 @@ class Accidental : public Element {
       static const char* subtype2name(AccidentalType);
       static AccidentalType value2subtype(AccidentalVal);
       static AccidentalType name2subtype(const QString&);
+      static bool isMicrotonal(AccidentalType t)  { return t > AccidentalType::SHARP2; }
 
-      QString accessibleInfo() override;
+      QString accessibleInfo() const override;
       };
 
 }     // namespace Ms

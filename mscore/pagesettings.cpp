@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: pagesettings.cpp 5568 2012-04-22 10:08:43Z wschweer $
 //
-//  Copyright (C) 2002-2011 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -35,14 +35,16 @@ namespace Ms {
 //---------------------------------------------------------
 
 PageSettings::PageSettings(QWidget* parent)
-   : QDialog(parent)
+   : AbstractDialog(parent)
       {
+      setObjectName("PageSettings");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       setModal(true);
 
       NScrollArea* sa = new NScrollArea;
       preview = new Navigator(sa, this);
+      preview->setPreviewOnly(true);
 
       static_cast<QVBoxLayout*>(previewGroup->layout())->insertWidget(0, sa);
 
@@ -52,12 +54,16 @@ PageSettings::PageSettings(QWidget* parent)
             mmButton->setChecked(true);
       else
             inchButton->setChecked(true);
+
+      MuseScore::restoreGeometry(this);
+
       connect(mmButton,             SIGNAL(clicked()),            SLOT(mmClicked()));
       connect(inchButton,           SIGNAL(clicked()),            SLOT(inchClicked()));
       connect(buttonApply,          SIGNAL(clicked()),            SLOT(apply()));
       connect(buttonApplyToAllParts,SIGNAL(clicked()),            SLOT(applyToAllParts()));
       connect(buttonOk,             SIGNAL(clicked()),            SLOT(ok()));
-      connect(landscape,            SIGNAL(toggled(bool)),        SLOT(landscapeToggled(bool)));
+      connect(portraitButton,       SIGNAL(clicked()),            SLOT(portraitClicked()));
+      connect(landscapeButton,      SIGNAL(clicked()),            SLOT(landscapeClicked()));
       connect(twosided,             SIGNAL(toggled(bool)),        SLOT(twosidedToggled(bool)));
       connect(pageHeight,           SIGNAL(valueChanged(double)), SLOT(pageHeightChanged(double)));
       connect(pageWidth,            SIGNAL(valueChanged(double)), SLOT(pageWidthChanged(double)));
@@ -83,29 +89,37 @@ PageSettings::~PageSettings()
       }
 
 //---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void PageSettings::hideEvent(QHideEvent* ev)
+      {
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(ev);
+      }
+
+//---------------------------------------------------------
 //   setScore
 //---------------------------------------------------------
 
-void PageSettings::setScore(Score* s)
+void PageSettings::setScore(MasterScore* s)
       {
       cs  = s;
-      Score* sl = s->clone();
+      MasterScore* sl = s->clone();
       preview->setScore(sl);
 
       const PageFormat* pf = s->pageFormat();
       pageGroup->clear();
       int index = 0;
       const PaperSize* ps = pf->paperSize();
-      for (int i = 0; true; ++i) {
-            if (paperSizes[i].name == 0)
-                  break;
+      for (int i = 0; paperSizes[i].name; ++i) {
             if (ps == &paperSizes[i])
                   index = i;
-            pageGroup->addItem(QString(paperSizes[i].name));
+            pageGroup->addItem(qApp->translate("paperSizes", paperSizes[i].name));
             }
 
       pageGroup->setCurrentIndex(index);
-      buttonApplyToAllParts->setEnabled(s->parentScore() != nullptr);
+      buttonApplyToAllParts->setEnabled(!s->isMaster());
       updateValues();
       updatePreview(0);
       }
@@ -203,7 +217,7 @@ void PageSettings::updateValues()
             evenPageLeftMargin->setValue(pf->evenLeftMargin() * INCH);
             evenPageRightMargin->setValue(pf->evenRightMargin() * INCH);
 
-            spatiumEntry->setValue(sc->spatium()/MScore::DPMM);
+            spatiumEntry->setValue(sc->spatium()/DPMM);
             pageHeight->setValue(pf->size().height() * INCH);
             widthValue          *= INCH;
             }
@@ -218,7 +232,7 @@ void PageSettings::updateValues()
             evenPageLeftMargin->setValue(pf->evenLeftMargin());
             evenPageRightMargin->setValue(pf->evenRightMargin());
 
-            spatiumEntry->setValue(sc->spatium()/MScore::DPI);
+            spatiumEntry->setValue(sc->spatium()/DPI);
             pageHeight->setValue(pf->size().height());
             }
       pageWidth->setValue(widthValue);
@@ -242,7 +256,9 @@ void PageSettings::updateValues()
             evenPageLeftMargin->setValue(oddPageLeftMargin->value());
             }
 
-      landscape->setChecked(pf->width() > pf->height());
+      landscapeButton->setChecked(pf->width() > pf->height());
+      portraitButton->setChecked(pf->width() <= pf->height());
+
       twosided->setChecked(pf->twosided());
 
       pageOffsetEntry->setValue(sc->pageNumberOffset() + 1);
@@ -271,15 +287,27 @@ void PageSettings::mmClicked()
       }
 
 //---------------------------------------------------------
-//   landscapeToggled
+//   portraitClicked
 //---------------------------------------------------------
 
-void PageSettings::landscapeToggled(bool flag)
+void PageSettings::portraitClicked()
       {
       PageFormat pf;
-      pf.copy(*preview->score()->pageFormat());
-      if (flag ^ (pf.width() > pf.height()))
-            pf.setSize(QSizeF(pf.height(), pf.width()));
+      double f  = mmUnit ? 1.0/INCH : 1.0;
+      pf.setPrintableWidth(pf.width() - (oddPageLeftMargin->value() + oddPageRightMargin->value())  * f);
+      preview->score()->setPageFormat(pf);
+      updateValues();
+      updatePreview(0);
+      }
+
+//---------------------------------------------------------
+//   landscapeClicked
+//---------------------------------------------------------
+
+void PageSettings::landscapeClicked()
+      {
+      PageFormat pf;
+      pf.setSize(QSizeF(pf.height(), pf.width()));
       double f  = mmUnit ? 1.0/INCH : 1.0;
       pf.setPrintableWidth(pf.width() - (oddPageLeftMargin->value() + oddPageRightMargin->value())  * f);
       preview->score()->setPageFormat(pf);
@@ -318,7 +346,7 @@ void PageSettings::apply()
 void PageSettings::applyToScore(Score* s)
       {
       double f  = mmUnit ? 1.0/INCH : 1.0;
-      double f1 = mmUnit ? MScore::DPMM : MScore::DPI;
+      double f1 = mmUnit ? DPMM : DPI;
 
       PageFormat pf;
 
@@ -345,7 +373,7 @@ void PageSettings::applyToScore(Score* s)
 
 void PageSettings::applyToAllParts()
       {
-      for (Excerpt* e : cs->rootScore()->excerpts())
+      for (Excerpt* e : cs->excerpts())
             applyToScore(e->partScore());
       }
 
@@ -365,7 +393,7 @@ void PageSettings::ok()
 
 void PageSettings::done(int val)
       {
-      cs->setLayoutAll(true);     // HACK
+      cs->setLayoutAll();     // HACK
       QDialog::done(val);
       }
 
@@ -559,7 +587,7 @@ void PageSettings::ebmChanged(double val)
 
 void PageSettings::spatiumChanged(double val)
       {
-      val *= mmUnit ? MScore::DPMM : MScore::DPI;
+      val *= mmUnit ? DPMM : DPI;
       double oldVal = preview->score()->spatium();
       preview->score()->setSpatium(val);
       preview->score()->spatiumChanged(oldVal, val);
@@ -634,7 +662,7 @@ void PageSettings::updatePreview(int val)
                   preview->score()->doLayout();
                   break;
             case 1:
-                  preview->score()->doLayoutPages();
+//TODO-ws                  preview->score()->doLayoutPages();
                   break;
             }
       preview->layoutChanged();

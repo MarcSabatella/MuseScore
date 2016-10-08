@@ -87,7 +87,7 @@ class SlurSegment : public SpannerSegment {
       virtual QString subtypeName() const { return name(spanner()->type()); }
 
       void layoutSegment(const QPointF& p1, const QPointF& p2);
-      virtual QPainterPath shape() const { return shapePath; }
+      virtual QPainterPath outline() const { return shapePath; }
       virtual void draw(QPainter*) const;
 
       bool isEdited() const;
@@ -112,7 +112,7 @@ class SlurSegment : public SpannerSegment {
 
       void writeSlur(Xml& xml, int no) const;
       void read(XmlReader&);
-      virtual void reset();
+      virtual void reset() override;
       void setSlurOffset(Grip i, const QPointF& val) { _ups[int(i)].off = val;  }
       const struct UP& ups(Grip i) const             { return _ups[int(i)]; }
       struct UP& ups(Grip i)                         { return _ups[int(i)]; }
@@ -131,8 +131,8 @@ class SlurSegment : public SpannerSegment {
 class SlurTie : public Spanner {
       Q_OBJECT
       Q_PROPERTY(int lineType                         READ lineType       WRITE undoSetLineType)
-      Q_PROPERTY(Ms::MScore::Direction slurDirection  READ slurDirection  WRITE undoSetSlurDirection)
-      Q_ENUMS(Ms::MScore::Direction)
+//TODO-WS      Q_PROPERTY(Ms::Direction slurDirection  READ slurDirection  WRITE undoSetSlurDirection)
+//TODO-WS      Q_ENUMS(Ms::MScore::Direction)
 
       int _lineType;    // 0 = solid, 1 = dotted, 2 = dashed
 
@@ -144,7 +144,7 @@ class SlurTie : public Spanner {
       bool _up;               // actual direction
 
       QQueue<SlurSegment*> delSegments;   // "deleted" segments
-      MScore::Direction _slurDirection;
+      Direction _slurDirection;
       qreal firstNoteRestSegmentX(System* system);
       void fixupSegments(unsigned nsegs);
 
@@ -156,17 +156,15 @@ class SlurTie : public Spanner {
       virtual Element::Type type() const = 0;
       bool up() const                             { return _up; }
 
-      MScore::Direction slurDirection() const     { return _slurDirection; }
-      void setSlurDirection(MScore::Direction d)  { _slurDirection = d; }
-      void undoSetSlurDirection(MScore::Direction d);
+      Direction slurDirection() const     { return _slurDirection; }
+      void setSlurDirection(Direction d)  { _slurDirection = d; }
+      void undoSetSlurDirection(Direction d);
 
       virtual void layout2(const QPointF, int, struct UP&)  {}
       virtual bool contains(const QPointF&) const { return false; }  // not selectable
 
       void writeProperties(Xml& xml) const;
       bool readProperties(XmlReader&);
-
-      virtual void reset();
 
       int lineType() const                { return _lineType; }
       void setLineType(int val)           { _lineType = val;  }
@@ -199,14 +197,15 @@ class Slur : public SlurTie {
    public:
       Slur(Score* = 0);
       ~Slur();
-      virtual Slur* clone() const      { return new Slur(*this); }
-      virtual Element::Type type() const { return Element::Type::SLUR; }
-      virtual void write(Xml& xml) const;
-      virtual void read(XmlReader&);
-      virtual void layout();
-      virtual void setTrack(int val);
-      virtual void slurPos(SlurPos*);
-      virtual void computeBezier(SlurSegment*, QPointF so = QPointF());
+      virtual Slur* clone() const override        { return new Slur(*this); }
+      virtual Element::Type type() const override { return Element::Type::SLUR; }
+      virtual void write(Xml& xml) const override;
+      virtual void read(XmlReader&) override;
+      virtual void layout() override;
+      virtual SpannerSegment* layoutSystem(System*) override;
+      virtual void setTrack(int val) override;
+      virtual void slurPos(SlurPos*) override;
+      virtual void computeBezier(SlurSegment*, QPointF so = QPointF()) override;
       friend SlurSegment;
       };
 

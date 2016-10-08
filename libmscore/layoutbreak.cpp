@@ -35,9 +35,9 @@ LayoutBreak::LayoutBreak(Score* score)
 LayoutBreak::LayoutBreak(const LayoutBreak& lb)
    : Element(lb)
       {
-      _layoutBreakType = lb._layoutBreakType;
-      lw = lb.lw;
-      _pause = lb._pause;
+      _layoutBreakType     = lb._layoutBreakType;
+      lw                   = lb.lw;
+      _pause               = lb._pause;
       _startWithLongNames  = lb._startWithLongNames;
       _startWithMeasureOne = lb._startWithMeasureOne;
       layout0();
@@ -105,7 +105,6 @@ void LayoutBreak::draw(QPainter* painter) const
       QPainterPath stroke = stroker.createStroke(path);
 
       painter->fillPath(stroke, selected() ? MScore::selectColor[0] : MScore::layoutBreakColor);
-
 
       painter->setPen(QPen(selected() ? MScore::selectColor[0] : MScore::layoutBreakColor,
          lw, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
@@ -242,14 +241,13 @@ bool LayoutBreak::setProperty(P_ID propertyId, const QVariant& v)
                   break;
             case P_ID::PAUSE:
                   setPause(v.toDouble());
-                  score()->addLayoutFlags(LayoutFlag::FIX_TICKS);
                   break;
             default:
                   if (!Element::setProperty(propertyId, v))
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       setGenerated(false);
       return true;
       }

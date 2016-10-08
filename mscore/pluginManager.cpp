@@ -17,8 +17,6 @@
 
 namespace Ms {
 
-extern bool useFactorySettings;
-
 //---------------------------------------------------------
 //   PluginManager
 //---------------------------------------------------------
@@ -26,6 +24,7 @@ extern bool useFactorySettings;
 PluginManager::PluginManager(QWidget* parent)
    : QDialog(parent)
       {
+      setObjectName("PluginManager");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       connect(definePluginShortcut, SIGNAL(clicked()), SLOT(definePluginShortcutClicked()));
@@ -58,7 +57,7 @@ void PluginManager::init()
             Shortcut* s = &d.shortcut;
             localShortcuts[s->key()] = new Shortcut(*s);
 
-            QListWidgetItem* item = new QListWidgetItem(QFileInfo(d.path).baseName(),  pluginList);
+            QListWidgetItem* item = new QListWidgetItem(QFileInfo(d.path).completeBaseName(),  pluginList);
             item->setFlags(item->flags() | Qt::ItemIsEnabled);
             item->setCheckState(d.load ? Qt::Checked : Qt::Unchecked);
             item->setData(Qt::UserRole, i);
@@ -126,7 +125,7 @@ void PluginManager::pluginListItemChanged(QListWidgetItem* item, QListWidgetItem
       int idx = item->data(Qt::UserRole).toInt();
       const PluginDescription& d = prefs.pluginList[idx];
       QFileInfo fi(d.path);
-      pluginName->setText(fi.baseName());
+      pluginName->setText(fi.completeBaseName());
       pluginPath->setText(fi.absolutePath());
       pluginVersion->setText(d.version);
       pluginShortcut->setText(d.shortcut.keysToString());
@@ -201,10 +200,7 @@ void PluginManager::clearPluginShortcutClicked()
 
 void PluginManager::writeSettings()
       {
-      QSettings settings;
-      settings.beginGroup("PluginManager");
-      settings.setValue("geometry", saveGeometry());
-      settings.endGroup();
+      MuseScore::saveGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -213,12 +209,7 @@ void PluginManager::writeSettings()
 
 void PluginManager::readSettings()
       {
-      if (!useFactorySettings) {
-            QSettings settings;
-            settings.beginGroup("PluginManager");
-            restoreGeometry(settings.value("geometry").toByteArray());
-            settings.endGroup();
-            }
+      MuseScore::restoreGeometry(this);
       }
 
 }

@@ -166,15 +166,15 @@ void MuseScore::oscCloseAll()
 
 void MuseScore::oscTempo(int val)
       {
-      if (val < 0)
-            val = 0;
-      if (val > 127)
-            val = 127;
-      val = (val * 240) / 128;
+      if (val < 10)
+            val = 10;
+      if (val > 300)
+            val = 300;
+      qreal t = val * .01;
       if (playPanel)
-            playPanel->setRelTempo(val);
+            playPanel->setRelTempo(t);
       if (seq)
-            seq->setRelTempo(double(val));
+            seq->setRelTempo(double(t));
       }
 
 //---------------------------------------------------------
@@ -236,10 +236,9 @@ void MuseScore::oscColorNote(QVariantList list)
             Element* e = s->element(i);
             if (e && e->isChordRest()) {
                   ChordRest* cr = static_cast<ChordRest*>(e);
-                  if(cr->type() == Element::Type::CHORD) {
+                  if (cr->type() == Element::Type::CHORD) {
                         Chord* chord = static_cast<Chord*>(cr);
-                        for (int idx = 0; idx < chord->notes().length(); idx++) {
-                              Note* note = chord->notes()[idx];
+                        for (Note* note : chord->notes()) {
                               if (note->pitch() == pitch) {
                                     cs->startCmd();
                                     cs->undo(new ChangeProperty(note, P_ID::COLOR, noteColor));
@@ -267,12 +266,12 @@ void MuseScore::oscVolume(int val)
 
 void MuseScore::oscVolChannel(double val)
       {
-      if(!cs)
+      if (!cs)
             return;
       PathObject* po = (PathObject*) sender();
 
       int i = po->path().mid(4).toInt() - 1;
-      QList<MidiMapping>* mms = cs->midiMapping();
+      QList<MidiMapping>* mms = cs->masterScore()->midiMapping();
       if( i >= 0 && i < mms->size()) {
             MidiMapping mm = mms->at(i);
             Channel* channel = mm.articulation;
@@ -290,13 +289,13 @@ void MuseScore::oscVolChannel(double val)
 
 void MuseScore::oscPanChannel(double val)
       {
-      if(!cs)
+      if (!cs)
             return;
       PathObject* po = (PathObject*) sender();
 
       int i = po->path().mid(4).toInt() - 1;
-      QList<MidiMapping>* mms = cs->midiMapping();
-      if( i >= 0 && i < mms->size()) {
+      QList<MidiMapping>* mms = cs->masterScore()->midiMapping();
+      if (i >= 0 && i < mms->size()) {
             MidiMapping mm = mms->at(i);
             Channel* channel = mm.articulation;
             int iv = lrint((val + 1) * 64);
@@ -313,18 +312,18 @@ void MuseScore::oscPanChannel(double val)
 
 void MuseScore::oscMuteChannel(double val)
       {
-      if(!cs)
+      if (!cs)
             return;
       PathObject* po = (PathObject*) sender();
 
       int i = po->path().mid(5).toInt() - 1;
-      QList<MidiMapping>* mms = cs->midiMapping();
-      if( i >= 0 && i < mms->size()) {
+      QList<MidiMapping>* mms = cs->masterScore()->midiMapping();
+      if (i >= 0 && i < mms->size()) {
             MidiMapping mm = mms->at(i);
             Channel* channel = mm.articulation;
             channel->mute = (val==0.0f ? false : true);
             if (mixer)
-                  mixer->partEdit(i)->mute->setCheckState(val==0.0f ? Qt::Unchecked:Qt::Checked);
+                  mixer->partEdit(i)->mute->setChecked(val==0.0f ? Qt::Unchecked : Qt::Checked);
             }
       }
 #endif // #ifndef OSC

@@ -26,9 +26,6 @@
          <property name="title">
           <string>Staves</string>
          </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QTableWidget" name="staves">
@@ -103,9 +100,6 @@
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Measure Duration</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout">
           <property name="verticalSpacing">
@@ -273,9 +267,6 @@
          </property>
          <property name="title">
           <string>Other</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout1">
           <property name="horizontalSpacing">
@@ -452,22 +443,42 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QPushButton" name="previousButton">
+          <widget class="QToolButton" name="previousButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Go to previous measure</string>
            </property>
            <property name="text">
-            <string notr="true" extracomment="&amp;larr;">←</string>
+            <string notr="true"/>
+           </property>
+           <property name="icon">
+            <iconset resource="musescore.qrc">
+             <normaloff>:/data/icons/go-previous.svg</normaloff>:/data/icons/go-previous.svg</iconset>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="nextButton">
+          <widget class="QToolButton" name="nextButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Go to next measure</string>
            </property>
            <property name="text">
-            <string notr="true" extracomment="&amp;rarr;">→</string>
+            <string notr="true"/>
+           </property>
+           <property name="icon">
+            <iconset resource="musescore.qrc">
+             <normaloff>:/data/icons/go-next.svg</normaloff>:/data/icons/go-next.svg</iconset>
            </property>
           </widget>
          </item>
@@ -502,7 +513,9 @@
   <tabstop>previousButton</tabstop>
   <tabstop>nextButton</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="musescore.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

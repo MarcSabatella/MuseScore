@@ -13,7 +13,6 @@
 #ifndef __XML_H__
 #define __XML_H__
 
-#include "thirdparty/xmlstream/xmlstream.h"
 #include "stafftype.h"
 #include "interval.h"
 #include "element.h"
@@ -27,6 +26,7 @@ class Spanner;
 class Beam;
 class Tuplet;
 class Measure;
+class LinkedElements;
 
 //---------------------------------------------------------
 //   SpannerValues
@@ -42,7 +42,7 @@ struct SpannerValues {
 //   XmlReader
 //---------------------------------------------------------
 
-class XmlReader : public XmlStreamReader {
+class XmlReader : public QXmlStreamReader {
       QString docName;  // used for error reporting
 
       // Score read context (for read optimizations):
@@ -54,19 +54,23 @@ class XmlReader : public XmlStreamReader {
       Measure* _lastMeasure { nullptr };
       QHash<int, Beam*>    _beams;
       QHash<int, Tuplet*>  _tuplets;
+
       QList<SpannerValues> _spannerValues;
       QList<std::pair<int,Spanner*>> _spanner;
       QList<StaffType> _staffTypes;
+
       void htmlToString(int level, QString*);
       Interval _transpose;
-      QList<QList<std::pair<int, ClefType>>> _clefs;   // for 1.3 scores
+      QMap<int, LinkedElements*> _elinks;
+      QMultiMap<int, int> _tracks;
 
    public:
-      XmlReader(QFile* f) : XmlStreamReader(f), docName(f->fileName()) {}
-      XmlReader(const QByteArray& d, const QString& s = QString()) : XmlStreamReader(d), docName(s)  {}
-      XmlReader(QIODevice* d, const QString& s = QString()) : XmlStreamReader(d), docName(s) {}
-      XmlReader(const QString& d, const QString& s = QString()) : XmlStreamReader(d), docName(s) {}
+      XmlReader(QFile* f) : QXmlStreamReader(f), docName(f->fileName()) {}
+      XmlReader(const QByteArray& d, const QString& s = QString()) : QXmlStreamReader(d), docName(s)  {}
+      XmlReader(QIODevice* d, const QString& s = QString()) : QXmlStreamReader(d), docName(s) {}
+      XmlReader(const QString& d, const QString& s = QString()) : QXmlStreamReader(d), docName(s) {}
 
+      bool hasAccidental;                     // used for userAccidental backward compatibility
       void unknown();
 
       // attribute helper routines:
@@ -122,12 +126,17 @@ class XmlReader : public XmlStreamReader {
 
       void addSpannerValues(const SpannerValues& sv) { _spannerValues.append(sv); }
       const SpannerValues* spannerValues(int id) const;
-      QList<StaffType>& staffType() { return _staffTypes; }
-      Interval transpose() const { return _transpose; }
+      QList<StaffType>& staffType()     { return _staffTypes; }
+      Interval transpose() const        { return _transpose; }
       void setTransposeChromatic(int v) { _transpose.chromatic = v; }
-      void setTransposeDiatonic(int v) { _transpose.diatonic = v; }
+      void setTransposeDiatonic(int v)  { _transpose.diatonic = v; }
 
-      QList<std::pair<int, ClefType>>& clefs(int idx);
+//      QList<std::pair<int, ClefType>>& clefs(int idx);
+
+      QMap<int, LinkedElements*>& linkIds() { return _elinks;     }
+      QMultiMap<int, int>& tracks()         { return _tracks;     }
+
+      void checkTuplets();
       };
 
 //---------------------------------------------------------
@@ -166,7 +175,6 @@ class Xml : public QTextStream {
 
       void sTag(const char* name, Spatium sp) { Xml::tag(name, QVariant(sp.val())); }
       void pTag(const char* name, PlaceText);
-      void fTag(const char* name, const Fraction&);
 
       void header();
 

@@ -154,7 +154,7 @@ QLineF BSymbol::dragAnchor() const
       {
       if (parent() && parent()->type() == Element::Type::SEGMENT) {
             System* system = segment()->measure()->system();
-            qreal y        = system->staff(staffIdx())->y() + system->y();
+            qreal y        = system->staffCanvasYpage(staffIdx());
 //            QPointF anchor(segment()->pageX(), y);
             QPointF anchor(segment()->canvasPos().x(), y);
             return QLineF(canvasPos(), anchor);
@@ -233,7 +233,9 @@ FSymbol::FSymbol(const FSymbol& s)
 void FSymbol::draw(QPainter* painter) const
       {
       QString s;
-      painter->setFont(_font);
+      QFont f(_font);
+      f.setPointSizeF(f.pointSizeF() * MScore::pixelRatio);
+      painter->setFont(f);
       if (_code & 0xffff0000) {
             s = QChar(QChar::highSurrogate(_code));
             s += QChar(QChar::lowSurrogate(_code));
@@ -252,7 +254,7 @@ void FSymbol::write(Xml& xml) const
       {
       xml.stag(name());
       xml.tag("font",     _font.family());
-      xml.tag("fontsize", _font.pixelSize());
+      xml.tag("fontsize", _font.pointSizeF());
       xml.tag("code",     _code);
       BSymbol::writeProperties(xml);
       xml.etag();
@@ -269,7 +271,7 @@ void FSymbol::read(XmlReader& e)
             if (tag == "font")
                   _font.setFamily(e.readElementText());
             else if (tag == "fontsize")
-                  _font.setPixelSize(e.readInt());
+                  _font.setPointSizeF(e.readDouble());
             else if (tag == "code")
                   _code = e.readInt();
             else if (!BSymbol::readProperties(e))
@@ -291,7 +293,7 @@ void FSymbol::layout()
             }
       else
             s = QChar(_code);
-      QFontMetricsF fm(_font);
+      QFontMetricsF fm(_font, MScore::paintDevice());
       setbbox(fm.boundingRect(s));
       adjustReadPos();
       }

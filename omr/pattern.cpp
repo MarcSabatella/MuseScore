@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "libmscore/sym.h"
 #include "omr.h"
+#include <math.h>
 
 namespace Ms {
 
@@ -35,6 +36,11 @@ Pattern::Pattern()
 
 Pattern::~Pattern()
       {
+#if 0
+      for(int i = 0; i < rows; ++i)
+            delete []model[i];
+      delete []model;
+#endif
       }
 
 //---------------------------------------------------------
@@ -61,34 +67,75 @@ double Pattern::match(const Pattern* a) const
       return 1.0 - (double(k) / (h() * w()));
       }
 
-double Pattern::match(const QImage* img, int col, int row) const
-      {
-      int rows      = h();
-      int bytes     = ((w() + 7) / 8) - 1;
-      int shift     = col & 7;
-      int k         = 0;
-      int eshift    = (col + w()) & 7;
+double Pattern::match(const QImage*, int , int) const
+    {
+    //QImage *image, int col, int row
+    return 0.0;
+    }
 
+double Pattern::match(const QImage* img, int col, int row, double bg_parm) const
+      {
+#if 0
+      double scr = 0;
       for (int y = 0; y < rows; ++y) {
-            const uchar* p1 = image()->scanLine(y);
-            const uchar* p2 = img->scanLine(row + y) + (col/8);
-            for (int x = 0; x < bytes; ++x) {
-                  uchar a = *p1++;
-                  uchar b1 = *p2;
-                  uchar b2 = *(p2 + 1);
-                  p2++;
-                  uchar b  = (b1 >> shift) | (b2 << (7 - shift));
-                  uchar v = a ^ b;
-                  k += Omr::bitsSetTable[v];
+            for (int x = 0; x < cols; x++) {
+                  if(col+x >= img->size().width() || row+y >= img->size().height()) continue;
+                  QRgb c = img->pixel(col+x, row+y);
+                  bool black = (qGray(c) < 125);
+                  scr += black ? 1 : 0;
                   }
+            }
+      return scr;
+#endif
+      double k = 0;
+      
+      //return k;
+      if (bg_parm < 0.00001)
+            bg_parm = 0.00001;
+      if (bg_parm > 0.99999)
+            bg_parm = 0.99999;
+            
+      double log_bg_black = log(bg_parm);
+      double log_bg_white = log(1.0-bg_parm);
+      
+      for (int y = 0; y < rows; ++y) {
+            for (int x = 0; x < cols; x++) {
+                  if (col+x >= img->size().width() || row+y >= img->size().height())
+                        continue;
+                  QRgb c = img->pixel(col+x, row+y);
+                  bool black = (qGray(c) < 125);
+
+                  double bs_scr = model[y][x];
+                  if (bs_scr < 0.00001)
+                        bs_scr = 0.00001;
+                  if (bs_scr > 0.99999)
+                        bs_scr = 0.99999;
+                  
+                  double log_black = log(bs_scr) - log_bg_black;
+                  double log_white = log(1.0 - bs_scr) - log_bg_white;
+                  
+                  k += black?log_black:log_white;
+                  
+                  }
+            }
+      return k;
+#if 0
+      for (int x = 0; x < bytes; ++x) {
             uchar a = *p1++;
             uchar b1 = *p2;
-            uchar b2 = *(p2 + 1) & (0xff << eshift);
+            uchar b2 = *(p2 + 1);
+            p2++;
             uchar b  = (b1 >> shift) | (b2 << (7 - shift));
             uchar v = a ^ b;
             k += Omr::bitsSetTable[v];
             }
-      return 1.0 - (double(k) / (h() * w()));
+      uchar a = *p1++;
+      uchar b1 = *p2;
+      uchar b2 = *(p2 + 1) & (0xff << eshift);
+      uchar b  = (b1 >> shift) | (b2 << (7 - shift));
+      uchar v = a ^ b;
+      k += Omr::bitsSetTable[v];
+#endif
       }
 
 //---------------------------------------------------------
@@ -96,16 +143,15 @@ double Pattern::match(const QImage* img, int col, int row) const
 //    create a Pattern from symbol
 //---------------------------------------------------------
 
-Pattern::Pattern(int id, Sym* symbol, double spatium)
+Pattern::Pattern(Score *s, SymId id, double spatium)
       {
+      _score = s;
       _id = id;
-      _sym = symbol;
-      QFont f("MScore");
+
+      QFont f("Bravura");
       f.setPixelSize(lrint(spatium * 4));
       QFontMetrics fm(f);
-      QString s;
-      QChar code(_sym->code());
-      QRect r(fm.boundingRect(code));
+      QRectF r = _score->scoreFont()->bbox(id, 9.0);
       int _w = r.right() - r.left() + 2;
       int _h = ((r.height() + 1) / 2) * 2;
       _base = QPoint(-r.left(), -r.top());
@@ -120,12 +166,12 @@ Pattern::Pattern(int id, Sym* symbol, double spatium)
       QPainter painter;
       painter.begin(&_image);
       painter.setFont(f);
-      painter.drawText(-r.left() + 1, -r.y(), code);
+      painter.drawText(-r.left() + 1, -r.y(), _score->scoreFont()->toString(id));
       painter.end();
 
       int ww = _w % 32;
       if (ww == 0)
-            return;
+          return;
       uint mask = 0xffffffff << ww;
       int n = ((_w + 31) / 32) - 1;
       for (int i = 0; i < _h; ++i) {
@@ -133,6 +179,35 @@ Pattern::Pattern(int id, Sym* symbol, double spatium)
             *p = ((*p) & ~mask);
             }
       }
+
+//---------------------------------------------------------
+//   Pattern
+//    create a Pattern from symbol name
+//---------------------------------------------------------
+
+Pattern::Pattern(Score *s, QString name)
+      {
+      _score = s;
+
+      QFile f(QString(":/data/%1.dat").arg(name));
+      if (!f.open(QIODevice::ReadOnly)) {
+            rows = 0;
+            cols = 0;
+            }
+      else {
+            QTextStream in(&f);
+            in >> rows >> cols;
+            model = new float*[rows];
+            for(int i = 0; i < rows; i++)
+                  model[i] = new float[cols];
+            for(int i = 0; i < rows; i++) {
+                  for(int j = 0; j < cols; j++)
+                        in >> model[i][j];
+                  }
+            }
+      f.close();
+      }
+
 
 //---------------------------------------------------------
 //   Pattern

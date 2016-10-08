@@ -23,31 +23,28 @@ namespace Ms {
 //---------------------------------------------------------
 
 InspectorOttava::InspectorOttava(QWidget* parent)
-   : InspectorBase(parent)
+   : InspectorElementBase(parent)
       {
-      e.setupUi(addWidget());
       l.setupUi(addWidget());
       setupLineStyle(l.lineStyle);
       //tl.setupUi(addWidget());
       o.setupUi(addWidget());
 
-      iList = {
-            { P_ID::COLOR,        0, 0, e.color,       e.resetColor      },
-            { P_ID::VISIBLE,      0, 0, e.visible,     e.resetVisible    },
-            { P_ID::USER_OFF,     0, 0, e.offsetX,     e.resetX          },
-            { P_ID::USER_OFF,     1, 0, e.offsetY,     e.resetY          },
-            { P_ID::DIAGONAL,     0, 0, l.diagonal,    l.resetDiagonal   },
-            { P_ID::LINE_VISIBLE, 0, 0, l.lineVisible, l.resetLineVisible  },
-            { P_ID::LINE_COLOR,   0, 0, l.lineColor,   l.resetLineColor  },
-            { P_ID::LINE_WIDTH,   0, 0, l.lineWidth,   l.resetLineWidth  },
-            { P_ID::LINE_STYLE,   0, 0, l.lineStyle,   l.resetLineStyle  },
+      std::vector<InspectorItem> il = {
+            { P_ID::DIAGONAL,      0, 0, l.diagonal,       l.resetDiagonal       },
+            { P_ID::LINE_VISIBLE,  0, 0, l.lineVisible,    l.resetLineVisible    },
+            { P_ID::LINE_COLOR,    0, 0, l.lineColor,      l.resetLineColor      },
+            { P_ID::LINE_WIDTH,    0, 0, l.lineWidth,      l.resetLineWidth      },
+            { P_ID::LINE_STYLE,    0, 0, l.lineStyle,      l.resetLineStyle      },
+            { P_ID::DASH_LINE_LEN, 0, 0, l.dashLineLength, l.resetDashLineLength },
+            { P_ID::DASH_GAP_LEN,  0, 0, l.dashGapLength,  l.resetDashGapLength  },
             // tl missing
-            { P_ID::OTTAVA_TYPE,  0, 0, o.ottavaType,  o.resetOttavaType  },
-            { P_ID::PLACEMENT,    0, 0, o.placement,   o.resetPlacement   },
-            { P_ID::NUMBERS_ONLY, 0, 0, o.numbersOnly, o.resetNumbersOnly }
+            { P_ID::OTTAVA_TYPE,   0, 0, o.ottavaType,     o.resetOttavaType     },
+            { P_ID::PLACEMENT,     0, 0, o.placement,      o.resetPlacement      },
+            { P_ID::NUMBERS_ONLY,  0, 0, o.numbersOnly,    o.resetNumbersOnly    }
             };
 
-      mapSignals();
+      mapSignals(il);
       }
 }
 

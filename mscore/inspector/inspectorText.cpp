@@ -20,20 +20,14 @@ namespace Ms {
 //---------------------------------------------------------
 
 InspectorText::InspectorText(QWidget* parent)
-   : InspectorBase(parent)
+   : InspectorElementBase(parent)
       {
-      e.setupUi(addWidget());
       t.setupUi(addWidget());
 
-      iList = {
-            { P_ID::COLOR,              0, 0, e.color,    e.resetColor    },
-            { P_ID::VISIBLE,            0, 0, e.visible,  e.resetVisible  },
-            { P_ID::USER_OFF,           0, 0, e.offsetX,  e.resetX        },
-            { P_ID::USER_OFF,           1, 0, e.offsetY,  e.resetY        },
-            { P_ID::TEXT_STYLE_TYPE,    0, 0, t.style,    t.resetStyle    }
-            };
-      mapSignals();
+      iList.push_back({ P_ID::TEXT_STYLE_TYPE,    0, 0, t.style,    t.resetStyle    });
+
       connect(t.resetToStyle, SIGNAL(clicked()), SLOT(resetToStyle()));
+      mapSignals();
       }
 
 //---------------------------------------------------------
@@ -54,23 +48,7 @@ void InspectorText::setElement()
                   t.style->addItem(qApp->translate("TextStyle",ts.at(i).name().toUtf8().data()), i);
             }
       t.style->blockSignals(false);
-      InspectorBase::setElement();
-      }
-
-//---------------------------------------------------------
-//   resetToStyle
-//---------------------------------------------------------
-
-void InspectorText::resetToStyle()
-      {
-      Score* score = inspector->element()->score();
-      score->startCmd();
-      for (Element* e : inspector->el()) {
-            Text* text = static_cast<Text*>(e);
-            text->undoChangeProperty(P_ID::TEXT_STYLE, QVariant::fromValue(score->textStyle(text->textStyleType())));
-            text->undoChangeProperty(P_ID::TEXT, text->plainText());
-            }
-      score->endCmd();
+      InspectorElementBase::setElement();
       }
 
 }

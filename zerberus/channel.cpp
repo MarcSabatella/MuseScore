@@ -14,6 +14,8 @@
 #include "zerberus.h"
 #include "channel.h"
 #include "voice.h"
+#include "instrument.h"
+#include "zone.h"
 
 // static const float PI_2 =  1.57079632679489661923;    /* pi/2 */
 
@@ -85,8 +87,12 @@ void Channel::controller(int c, int val)
                   for (Voice* v = _msynth->getActiveVoices(); v; v = v->next())
                         v->off();
                   _instrument = zi;
+                  resetCC();
                   }
             }
+
+      for (Zone *z : instrument()->zones())
+            z->updateCCGain(this);
 //      else
 //            qDebug("Zerberus: ctrl 0x%02x 0x%02x", ctrl, val);
       }
@@ -100,3 +106,18 @@ int Channel::sustain() const
       return ctrl[Ms::CTRL_SUSTAIN];
       }
 
+int Channel::getCtrl(int CTRL) const
+      {
+      return ctrl[CTRL];
+      }
+
+
+void Channel::resetCC()
+      {
+      if (!_instrument)
+            return;
+      for (int i = 0; i < 128; i++) {
+            if (_instrument->getSetCC(i) != -1)
+                  ctrl[i] = _instrument->getSetCC(i);
+            }
+      }

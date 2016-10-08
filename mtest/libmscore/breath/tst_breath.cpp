@@ -17,6 +17,7 @@
 #include "libmscore/undo.h"
 #include "libmscore/measure.h"
 #include "libmscore/breath.h"
+#include "libmscore/sym.h"
 
 #define DIR QString("libmscore/breath/")
 
@@ -56,26 +57,26 @@ void TestBreath::breath()
       QString writeFile2("breath02-test.mscx");
       QString reference2(DIR  + "breath02-ref.mscx");
 
-      Score* score = readScore(readFile);
+      MasterScore* score = readScore(readFile);
       score->doLayout();
 
       // do
       score->startCmd();
       score->cmdSelectAll();
       for (Element* e : score->selection().elements()) {
-          DropData dd;
-          dd.view = 0;
-          Breath* b = new Breath(score);
-          b->setBreathType(0);
-          dd.element = b;
+            DropData dd;
+            dd.view = 0;
+            Breath* b = new Breath(score);
+            b->setSymId(SymId::breathMarkComma);
+            dd.element = b;
             if (e->acceptDrop(dd))
                   e->drop(dd);
-      }
+          }
       score->endCmd();
       QVERIFY(saveCompareScore(score, writeFile1, reference1));
 
       // undo
-      score->undo()->undo();
+      score->undoStack()->undo();
       QVERIFY(saveCompareScore(score, writeFile2, reference2));
 
       delete score;

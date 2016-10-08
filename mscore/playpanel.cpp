@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: playpanel.cpp 4775 2011-09-12 14:25:31Z wschweer $
 //
-//  Copyright (C) 2002-2011 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -28,9 +28,6 @@
 
 namespace Ms {
 
-static const int DEFAULT_POS_X  = 300;
-static const int DEFAULT_POS_Y  = 100;
-
 //---------------------------------------------------------
 //   PlayPanel
 //---------------------------------------------------------
@@ -38,6 +35,7 @@ static const int DEFAULT_POS_Y  = 100;
 PlayPanel::PlayPanel(QWidget* parent)
    : QWidget(parent, Qt::Dialog)
       {
+      setObjectName("PlayPanel");
       cachedTickPosition = -1;
       cachedTimePosition = -1;
       cs                 = 0;
@@ -46,9 +44,7 @@ PlayPanel::PlayPanel(QWidget* parent)
       setWindowFlags(Qt::Tool);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-      QSettings settings;
-      restoreGeometry(settings.value("playPanel/geometry").toByteArray());
-      move(settings.value("playPanel/pos", QPoint(DEFAULT_POS_X, DEFAULT_POS_Y)).toPoint());
+      MuseScore::restoreGeometry(this);
 
       setScore(0);
 
@@ -76,13 +72,11 @@ PlayPanel::PlayPanel(QWidget* parent)
 
 PlayPanel::~PlayPanel()
       {
-      QSettings settings;
       // if widget is visible, store geometry and pos into settings
       // if widget is not visible/closed, pos is not reliable (and anyway
       // has been stored into settings when the widget has been hidden)
       if (isVisible()) {
-            settings.setValue("playPanel/pos", pos());
-            settings.setValue("playPanel/geometry", saveGeometry());
+            MuseScore::saveGeometry(this);
             }
       }
 
@@ -94,7 +88,10 @@ void PlayPanel::relTempoChanged(double d, int)
       {
       double relTempo = d * .01;
       emit relTempoChanged(relTempo);
-
+      // Snap tempo slider to 100% when it gets close
+      if (relTempo < 1.01 && relTempo > 0.99) {
+            relTempo = 1.00;
+            }
       setTempo(seq->curTempo() * relTempo);
       setRelTempo(relTempo);
       }
@@ -134,9 +131,7 @@ void PlayPanel::closeEvent(QCloseEvent* ev)
 
 void PlayPanel::hideEvent(QHideEvent* ev)
       {
-      QSettings settings;
-      settings.setValue("playPanel/pos", pos());
-      settings.setValue("playPanel/geometry", saveGeometry());
+      MuseScore::saveGeometry(this);
       QWidget::hideEvent(ev);
       }
 
@@ -334,5 +329,17 @@ void PlayPanel::tempoSliderReleased(int)
       {
       tempoSliderIsPressed = false;
       }
+
+//---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void PlayPanel::changeEvent(QEvent *event)
+      {
+      QWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            retranslate();
+      }
+
 }
 

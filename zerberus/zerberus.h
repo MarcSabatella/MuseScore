@@ -20,8 +20,8 @@
 
 #include "synthesizer/synthesizer.h"
 #include "synthesizer/event.h"
+#include "voice.h"
 
-class Voice;
 class Channel;
 class ZInstrument;
 enum class Trigger : char;
@@ -43,6 +43,10 @@ class VoiceFifo {
    public:
       VoiceFifo() {
             n = 0;
+            }
+      ~VoiceFifo() {
+            for (Voice* v : buffer)
+                  delete v;
             }
       void push(Voice* v) {
             buffer[writeIdx++] = v;
@@ -80,7 +84,7 @@ class Zerberus : public Ms::Synthesizer {
       bool _loadWasCanceled = false;
 
       void programChange(int channel, int program);
-      void trigger(Channel*, int key, int velo, Trigger);
+      void trigger(Channel*, int key, int velo, Trigger, int cc, int ccVal, double durSinceNoteOn);
       void processNoteOff(Channel*, int pitch);
       void processNoteOn(Channel* cp, int key, int velo);
 

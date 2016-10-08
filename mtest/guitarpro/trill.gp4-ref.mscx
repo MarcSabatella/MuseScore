@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -129,7 +129,7 @@
           <lid>12</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>trill</subtype>
+            <subtype>ornamentTrill</subtype>
             <lid>11</lid>
             </Articulation>
           <Note>
@@ -144,10 +144,6 @@
           <lid>14</lid>
           <durationType>quarter</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -300,7 +296,7 @@
             <lid>12</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>trill</subtype>
+              <subtype>ornamentTrill</subtype>
               <lid>11</lid>
               </Articulation>
             <Note>
@@ -315,10 +311,6 @@
             <lid>14</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -339,7 +331,7 @@
             <lid>12</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>trill</subtype>
+              <subtype>ornamentTrill</subtype>
               <lid>11</lid>
               </Articulation>
             <Note>
@@ -354,10 +346,6 @@
             <lid>14</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>Track 1</name>

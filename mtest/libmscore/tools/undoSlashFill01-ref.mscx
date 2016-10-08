@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -382,7 +382,7 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
-        <tick>1920</tick>
+        <move>0/1</move>
         <Chord>
           <track>1</track>
           <durationType>quarter</durationType>
@@ -458,7 +458,7 @@
         <Rest>
           <durationType>half</durationType>
           </Rest>
-        <tick>3840</tick>
+        <move>0/1</move>
         <Chord>
           <track>1</track>
           <durationType>whole</durationType>
@@ -468,9 +468,8 @@
             <tpc>18</tpc>
             </Note>
           </Chord>
-        <tick>3840</tick>
+        <move>0/1</move>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -486,7 +485,6 @@
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -502,7 +500,6 @@
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -518,7 +515,6 @@
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>quarter</durationType>

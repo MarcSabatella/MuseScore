@@ -3,7 +3,7 @@
 #  Music Composition & Notation
 #  $Id:$
 #
-#  Copyright (C) 2011 Werner Schweer
+#  Copyright (C) 2016 Werner Schweer
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License version 2
@@ -11,9 +11,9 @@
 #  the file LICENSE.GPL
 #=============================================================================
 
-# if (SCRIPT_INTERFACE)
+#if (SCRIPT_INTERFACE)
       set (LIB_SCRIPT_FILES plugins.cpp)
-# endif (SCRIPT_INTERFACE)
+#endif (SCRIPT_INTERFACE)
 
 add_custom_command(
    OUTPUT ${PROJECT_BINARY_DIR}/all.h
@@ -50,9 +50,9 @@ add_library (
       rendermidi.cpp repeat.cpp repeatlist.cpp rest.cpp
       score.cpp segment.cpp select.cpp shadownote.cpp slur.cpp tie.cpp
       spacer.cpp spanner.cpp staff.cpp staffstate.cpp
-      stafftext.cpp stafftype.cpp stem.cpp style.cpp symbol.cpp
+      stafftext.cpp stafftype.cpp stem.cpp style.cpp textstyle.cpp symbol.cpp
       sym.cpp system.cpp stringdata.cpp tempotext.cpp text.cpp
-      textframe.cpp textline.cpp timesig.cpp
+      textframe.cpp textline.cpp textlinebase.cpp timesig.cpp
       tremolobar.cpp tremolo.cpp trill.cpp tuplet.cpp
       utils.cpp velo.cpp volta.cpp xml.cpp mscore.cpp
       undo.cpp cmd.cpp scorefile.cpp revisions.cpp
@@ -61,18 +61,19 @@ add_library (
       figuredbass.cpp rehearsalmark.cpp transpose.cpp
       property.cpp range.cpp elementmap.cpp notedot.cpp imageStore.cpp
       audio.cpp splitMeasure.cpp joinMeasure.cpp
-      cursor.cpp read114.cpp paste.cpp
+      cursor.cpp paste.cpp
       bsymbol.cpp marker.cpp jump.cpp stemslash.cpp ledgerline.cpp
       synthesizerstate.cpp mcursor.cpp groups.cpp mscoreview.cpp
       noteline.cpp spannermap.cpp
       bagpembell.cpp ambitus.cpp keylist.cpp scoreElement.cpp
+      shape.cpp systemdivider.cpp midimapping.cpp
+      read114.cpp read206.cpp read300.cpp
       )
 
 set_target_properties (
       libmscore
       PROPERTIES
-         COMPILE_FLAGS "-g ${PCH_INCLUDE} -Wall -Wextra -Winvalid-pch"
-#         COMPILE_FLAGS "-g ${PCH_INCLUDE} -Wall -Wextra -Winvalid-pch -Woverloaded-virtual"
+         COMPILE_FLAGS "-g ${PCH_INCLUDE} -Wall -Wextra -Winvalid-pch -Woverloaded-virtual"
       )
 
 xcode_pch(libmscore all)

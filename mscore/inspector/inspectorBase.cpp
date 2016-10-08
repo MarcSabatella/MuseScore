@@ -14,6 +14,7 @@
 #include "libmscore/score.h"
 #include "libmscore/element.h"
 #include "libmscore/beam.h"
+#include "libmscore/undo.h"
 #include "musescore.h"
 #include "inspectorBase.h"
 #include "inspector.h"
@@ -32,6 +33,7 @@ InspectorBase::InspectorBase(QWidget* parent)
       setAccessibleName(tr("Inspector"));
       resetMapper  = new QSignalMapper(this);
       valueMapper  = new QSignalMapper(this);
+      styleMapper  = new QSignalMapper(this);
 
       inspector = static_cast<Inspector*>(parent);
       _layout    = new QVBoxLayout;
@@ -39,6 +41,9 @@ InspectorBase::InspectorBase(QWidget* parent)
       _layout->setContentsMargins(0, 10, 0, 0);
       _layout->addStretch(100);
       setLayout(_layout);
+      connect(resetMapper, SIGNAL(mapped(int)), SLOT(resetClicked(int)));
+      connect(valueMapper, SIGNAL(mapped(int)), SLOT(valueChanged(int)));
+      connect(styleMapper, SIGNAL(mapped(int)), SLOT(setStyleClicked(int)));
       }
 
 //---------------------------------------------------------
@@ -79,9 +84,28 @@ QVariant InspectorBase::getValue(const InspectorItem& ii) const
             case P_TYPE::TEMPO:
                   v = v.toDouble() / 60.0;
                   break;
+            case P_TYPE::ZERO_INT:
+                  v = v.toInt() - 1;
+                  break;
             case P_TYPE::POINT_MM:
             case P_TYPE::SIZE_MM:
-                  v = v.toDouble() * MScore::DPMM;
+                  v = v.toDouble() * DPMM;
+                  break;
+            case P_TYPE::BARLINE_TYPE:
+                  v = QVariant::fromValue(BarLineType(v.toInt()));
+                  break;
+            case P_TYPE::DIRECTION:
+                  v = QVariant::fromValue(Direction(v.toInt()));
+                  break;
+            case P_TYPE::INT_LIST: {
+                  QStringList sl = v.toString().split(",", QString::SkipEmptyParts);
+                  QList<int> il;
+                  for (const QString& l : sl) {
+                        int i = l.simplified().toInt();
+                        il.append(i);
+                        }
+                  v = QVariant::fromValue(il);
+                  }
                   break;
             default:
                   break;
@@ -100,16 +124,40 @@ void InspectorBase::setValue(const InspectorItem& ii, QVariant val)
 
       P_ID id  = ii.t;
 
-      P_TYPE t = propertyType(id);
-      if (t == P_TYPE::POINT || t == P_TYPE::SP_REAL)
-            val = val.toDouble() / inspector->element()->score()->spatium();
-      else if (t == P_TYPE::TEMPO)
-            val = val.toDouble() * 60.0;
-      else if (t == P_TYPE::POINT_MM)
-            val = val.toDouble() / MScore::DPMM;
-      else if (t == P_TYPE::SIZE_MM)
-            val = val.toDouble() / MScore::DPMM;
+      switch (propertyType(id)) {
+            case P_TYPE::POINT:
+            case P_TYPE::SP_REAL:
+                  val = val.toDouble() / inspector->element()->score()->spatium();
+                  break;
+            case P_TYPE::TEMPO:
+                  val = val.toDouble() * 60.0;
+                  break;
+            case P_TYPE::ZERO_INT:
+                  val = val.toInt() + 1;
+                  break;
+            case P_TYPE::POINT_MM:
+                  val = val.toDouble() / DPMM;
+            case P_TYPE::SIZE_MM:
+                  val = val.toDouble() / DPMM;
+                  break;
+            case P_TYPE::DIRECTION:
+                  val = int(val.value<Direction>());
+                  break;
+            case P_TYPE::INT_LIST: {
+                  QString s;
+                  QList<int> il = val.value<QList<int>>();
+                  for (int i : il) {
+                        if (!s.isEmpty())
+                              s += ", ";
+                        s += QString("%1").arg(i);
+                        }
+                  val = s;
+                  }
+                  break;
 
+            default:
+                  break;
+            }
       if (qobject_cast<QDoubleSpinBox*>(w))
             static_cast<QDoubleSpinBox*>(w)->setValue(val.toDouble());
       else if (qobject_cast<QSpinBox*>(w))
@@ -176,7 +224,7 @@ bool InspectorBase::isDefault(const InspectorItem& ii)
 
 bool InspectorBase::dirty() const
       {
-      foreach(const InspectorItem& ii, iList) {
+      for (const InspectorItem& ii : iList) {
             Element* e = inspector->element();
             for (int i = 0; i < ii.parent; ++i)
                   e = e->parent();
@@ -192,7 +240,7 @@ bool InspectorBase::dirty() const
 
 void InspectorBase::setElement()
       {
-      foreach (const InspectorItem& ii, iList) {
+      for  (const InspectorItem& ii : iList) {
             P_ID id    = ii.t;
             P_TYPE pt  = propertyType(id);
 
@@ -222,9 +270,6 @@ void InspectorBase::setElement()
                         val = QVariant(f.denominator());
                   }
 
-	      if (ii.r)
-		      ii.r->setIcon(*icons[int(Icons::reset_ICON)]);
-
             ii.w->blockSignals(true);
             setValue(ii, val);
             ii.w->blockSignals(false);
@@ -247,7 +292,7 @@ void InspectorBase::checkDifferentValues(const InspectorItem& ii)
             P_TYPE pt    = propertyType(id);
             QVariant val = getValue(ii);
 
-            foreach(Element* e, inspector->el()) {
+            for (Element* e : inspector->el()) {
                   for (int k = 0; k < ii.parent; ++k)
                         e = e->parent();
                   if (pt == P_TYPE::SIZE || pt == P_TYPE::SCALE || pt == P_TYPE::SIZE_MM) {
@@ -276,7 +321,7 @@ void InspectorBase::checkDifferentValues(const InspectorItem& ii)
                   if (valuesAreDifferent)
                         break;
                   }
-            QColor c(preferences.globalStyle == MuseScoreStyleType::DARK ? Qt::yellow : Qt::blue);
+            QColor c(preferences.isThemeDark() ? Qt::yellow : Qt::blue);
 
             // ii.w->setStyleSheet(valuesAreDifferent ? QString("* { color: %1 }").arg(MScore::selectColor[0].name()) : "");
             ii.w->setStyleSheet(valuesAreDifferent ? QString("* { color: %1 }").arg(c.name()) : "");
@@ -324,7 +369,7 @@ void InspectorBase::valueChanged(int idx, bool reset)
       Score* score  = inspector->element()->score();
 
       score->startCmd();
-      foreach (Element* e, inspector->el()) {
+      for (Element* e : inspector->el()) {
             for (int i = 0; i < ii.parent; ++i)
                   e = e->parent();
 
@@ -343,11 +388,11 @@ void InspectorBase::valueChanged(int idx, bool reset)
                   QSizeF sz = val1.toSizeF();
                   if (ii.sv == 0) {
                         if (sz.width() != v)
-                              score->undoChangeProperty(e, id, QVariant(QSizeF(v, sz.height())), ps);
+                              e->undoChangeProperty(id, QVariant(QSizeF(v, sz.height())), ps);
                         }
                   else {
                         if (sz.height() != v)
-                              score->undoChangeProperty(e, id, QVariant(QSizeF(sz.width(), v)), ps);
+                              e->undoChangeProperty(id, QVariant(QSizeF(sz.width(), v)), ps);
                         }
                   }
             else if (pt == P_TYPE::POINT || pt == P_TYPE::POINT_MM) {
@@ -355,11 +400,11 @@ void InspectorBase::valueChanged(int idx, bool reset)
                   QPointF sz = val1.toPointF();
                   if (ii.sv == 0) {
                         if (sz.x() != v)
-                              score->undoChangeProperty(e, id, QVariant(QPointF(v, sz.y())), ps);
+                              e->undoChangeProperty(id, QVariant(QPointF(v, sz.y())), ps);
                         }
                   else {
                         if (sz.y() != v)
-                              score->undoChangeProperty(e, id, QVariant(QPointF(sz.x(), v)), ps);
+                              e->undoChangeProperty(id, QVariant(QPointF(sz.x(), v)), ps);
                         }
                   }
             else if (pt == P_TYPE::FRACTION) {
@@ -369,20 +414,20 @@ void InspectorBase::valueChanged(int idx, bool reset)
                         if (f.numerator() != v) {
                               QVariant va;
                               va.setValue(Fraction(v, f.denominator()));
-                              score->undoChangeProperty(e, id, va, ps);
+                              e->undoChangeProperty(id, va, ps);
                               }
                         }
                   else {
                         if (f.denominator() != v) {
                               QVariant va;
                               va.setValue(Fraction(f.numerator(), v));
-                              score->undoChangeProperty(e, id, va, ps);
+                              e->undoChangeProperty(id, va, ps);
                               }
                         }
                   }
             else {
                   if (val1 != val2 || (reset && ps != PropertyStyle::NOSTYLE))
-                        score->undoChangeProperty(e, id, val2, ps);
+                        e->undoChangeProperty(id, val2, ps);
                   }
             }
       inspector->setInspectorEdit(true);
@@ -415,18 +460,51 @@ void InspectorBase::resetClicked(int i)
       }
 
 //---------------------------------------------------------
+//   setStyleClicked
+//---------------------------------------------------------
+
+void InspectorBase::setStyleClicked(int i)
+      {
+      Element* e   = inspector->element();
+      const InspectorItem& ii = iList[i];
+
+      StyleIdx sidx = e->getPropertyStyle(ii.t);
+      if (sidx == StyleIdx::NOSTYLE)
+            return;
+      e->score()->startCmd();
+      QVariant val = getValue(ii);
+      e->undoChangeProperty(ii.t, val, PropertyStyle::STYLED);
+      e->score()->undo(new ChangeStyleVal(e->score(), sidx, val));
+      checkDifferentValues(ii);
+      e->score()->endCmd();
+      }
+
+//---------------------------------------------------------
 //   mapSignals
 //    initialize inspector panel
 //---------------------------------------------------------
 
-void InspectorBase::mapSignals()
+void InspectorBase::mapSignals(const std::vector<InspectorItem>& il)
       {
+      for (auto& i : il)
+            iList.push_back(i);
       int i = 0;
-      foreach (const InspectorItem& ii, iList) {
+      for (const InspectorItem& ii : iList) {
             QToolButton* resetButton = ii.r;
             if (resetButton) {
+                  resetButton->setIcon(*icons[int(Icons::reset_ICON)]);
                   connect(resetButton, SIGNAL(clicked()), resetMapper, SLOT(map()));
+
                   resetMapper->setMapping(resetButton, i);
+                  StyleIdx sidx = inspector->element()->getPropertyStyle(ii.t);
+                  if (sidx != StyleIdx::NOSTYLE) {
+                        QMenu* menu = new QMenu(this);
+                        resetButton->setMenu(menu);
+                        resetButton->setPopupMode(QToolButton::MenuButtonPopup);
+                        QAction* a = menu->addAction(tr("set style"));
+                        styleMapper->setMapping(a, i);
+                        connect(a, SIGNAL(triggered()), styleMapper, SLOT(map()));
+                        }
                   }
             QWidget* w = ii.w;
             valueMapper->setMapping(w, i);
@@ -446,8 +524,6 @@ void InspectorBase::mapSignals()
                   qFatal("not supported widget %s", w->metaObject()->className());
             ++i;
             }
-      connect(resetMapper, SIGNAL(mapped(int)), SLOT(resetClicked(int)));
-      connect(valueMapper, SIGNAL(mapped(int)), SLOT(valueChanged(int)));
       }
 
 //---------------------------------------------------------
@@ -484,5 +560,23 @@ void InspectorBase::setupLineStyle(QComboBox* cb)
       cb->setItemData(4, int(Qt::DashDotDotLine));
       cb->setItemData(5, int(Qt::CustomDashLine));
       }
+
+//---------------------------------------------------------
+//   resetToStyle
+//---------------------------------------------------------
+
+void InspectorBase::resetToStyle()
+      {
+      Score* score = inspector->element()->score();
+      score->startCmd();
+      for (Element* e : inspector->el()) {
+            Text* text = static_cast<Text*>(e);
+            text->undoChangeProperty(P_ID::TEXT_STYLE, QVariant::fromValue(score->textStyle(text->textStyleType())));
+            // Preserve <sym> tags
+            text->undoChangeProperty(P_ID::TEXT, text->plainText().toHtmlEscaped().replace("&lt;sym&gt;","<sym>").replace("&lt;/sym&gt;","</sym>"));
+            }
+      score->endCmd();
+      }
+
 }
 

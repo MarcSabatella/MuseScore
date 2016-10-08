@@ -29,16 +29,11 @@ enum ImageControl : char {
 //---------------------------------------------------------
 
 InspectorImage::InspectorImage(QWidget* parent)
-   : InspectorBase(parent)
+   : InspectorElementBase(parent)
       {
-      e.setupUi(addWidget());
       b.setupUi(addWidget());
 
-      iList = {
-            { P_ID::COLOR,         0, 0, e.color,       e.resetColor       },
-            { P_ID::VISIBLE,       0, 0, e.visible,     e.resetVisible     },
-            { P_ID::USER_OFF,      0, 0, e.offsetX,     e.resetX           },
-            { P_ID::USER_OFF,      1, 0, e.offsetY,     e.resetY           },
+      const std::vector<InspectorItem> iiList = {
             { P_ID::AUTOSCALE,         0, false, b.autoscale,       b.resetAutoscale       },
             { P_ID::SIZE,              0, false, b.sizeWidth,       0                      },
             { P_ID::SIZE,              1, false, b.sizeHeight,      0                      },
@@ -48,7 +43,7 @@ InspectorImage::InspectorImage(QWidget* parent)
             { P_ID::SIZE_IS_SPATIUM,   0, false, b.sizeIsSpatium,   b.resetSizeIsSpatium   }
             };
 
-      mapSignals();
+      mapSignals(iiList);
       }
 
 //---------------------------------------------------------
@@ -179,19 +174,19 @@ void InspectorImage::valueChanged(int idx)
             if (cb->isChecked()) {
                   b1->setSuffix("sp");
                   b2->setSuffix("sp");
-                  b1->setValue(b1->value() * MScore::DPMM / _spatium);
-                  b2->setValue(b2->value() * MScore::DPMM / _spatium);
+                  b1->setValue(b1->value() * DPMM / _spatium);
+                  b2->setValue(b2->value() * DPMM / _spatium);
                   }
             else {
                   b1->setSuffix("mm");
                   b2->setSuffix("mm");
-                  b1->setValue(b1->value() * _spatium / MScore::DPMM);
-                  b2->setValue(b2->value() * _spatium / MScore::DPMM);
+                  b1->setValue(b1->value() * _spatium / DPMM);
+                  b2->setValue(b2->value() * _spatium / DPMM);
                   }
             b1->blockSignals(false);
             b2->blockSignals(false);
             }
-      InspectorBase::valueChanged(idx);
+      InspectorElementBase::valueChanged(idx);
       }
 
 //---------------------------------------------------------
@@ -217,7 +212,7 @@ void InspectorImage::setElement(Element* e)
       iList[SCALE_H].w->setEnabled(v);
       iList[SCALE_W].w->setEnabled(v);
 
-      InspectorBase::setElement();
+      InspectorElementBase::setElement();
       }
 }
 

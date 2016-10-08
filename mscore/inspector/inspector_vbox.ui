@@ -63,9 +63,6 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <property name="spacing">
-      <number>0</number>
-     </property>
      <property name="leftMargin">
       <number>0</number>
      </property>
@@ -78,6 +75,9 @@
      <property name="bottomMargin">
       <number>0</number>
      </property>
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item row="5" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
@@ -88,29 +88,37 @@
      <item row="0" column="2">
       <widget class="QToolButton" name="resetTopGap">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="whatsThis">
         <string/>
        </property>
        <property name="accessibleName">
-        <string>Reset Top gap value</string>
+        <string>Reset 'Top gap' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
       <widget class="QToolButton" name="resetBottomGap">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Bottom gap value</string>
+        <string>Reset 'Bottom gap' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -322,52 +330,68 @@
      <item row="4" column="2">
       <widget class="QToolButton" name="resetLeftMargin">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Left margin value</string>
+        <string>Reset 'Left margin' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="5" column="2">
       <widget class="QToolButton" name="resetRightMargin">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Right margin value</string>
+        <string>Reset 'Right margin' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="6" column="2">
       <widget class="QToolButton" name="resetTopMargin">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Top margin value</string>
+        <string>Reset 'Top margin' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="7" column="2">
       <widget class="QToolButton" name="resetBottomMargin">
        <property name="toolTip">
-        <string>Reset value</string>
+        <string>Reset to default</string>
        </property>
        <property name="accessibleName">
-        <string>Reset Bottom margin value</string>
+        <string>Reset 'Bottom margin' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -397,6 +421,8 @@
   <tabstop>bottomMargin</tabstop>
   <tabstop>resetBottomMargin</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../musescore.qrc"/>
+ </resources>
  <connections/>
 </ui>

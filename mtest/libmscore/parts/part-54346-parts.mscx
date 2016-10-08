@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -344,7 +344,7 @@
             </StaffType>
           <bracket type="-1" span="0"/>
           </Staff>
-        <trackName></trackName>
+        <trackName>B♭ Trumpet</trackName>
         <Instrument>
           <longName>B♭ Trumpet</longName>
           <shortName>B♭ Tpt.</shortName>
@@ -533,7 +533,7 @@
             </StaffType>
           <bracket type="-1" span="0"/>
           </Staff>
-        <trackName></trackName>
+        <trackName>C Trumpet</trackName>
         <Instrument>
           <longName>C Trumpet</longName>
           <shortName>C Tpt.</shortName>
@@ -605,7 +605,7 @@
             <lid>19</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <tick>240</tick>
+          <move>1/8</move>
           <StaffText>
             <swing unit="eighth" ratio= "60"/>
             <lid>4</lid>

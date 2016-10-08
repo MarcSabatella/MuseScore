@@ -1,9 +1,9 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id:$
+//  $Id: drumtools.cpp
 //
-//  Copyright (C) 2010 Werner Schweer and others
+//  Copyright (C) 2010-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -46,7 +46,6 @@ DrumTools::DrumTools(QWidget* parent)
       drumset = 0;
       _score  = 0;
       setObjectName("drum-tools");
-      setWindowTitle(tr("Drum Tools"));
       setAllowedAreas(Qt::DockWidgetAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea));
 
       QWidget* w = new QWidget(this);
@@ -55,14 +54,12 @@ DrumTools::DrumTools(QWidget* parent)
       w->setLayout(layout);
 
       QVBoxLayout* layout1 = new QVBoxLayout;
-      QToolButton* tb = new QToolButton;
-      tb->setText(tr("Edit Drumset"));
-      layout1->addWidget(tb);
+      editButton = new QToolButton;
+      layout1->addWidget(editButton);
       layout1->addStretch();
       layout->addLayout(layout1);
 
       drumPalette = new Palette;
-      drumPalette->setName(tr("Drums"));
       drumPalette->setMag(0.8);
       drumPalette->setSelectable(true);
       drumPalette->setGrid(28, 60);
@@ -76,9 +73,21 @@ DrumTools::DrumTools(QWidget* parent)
       w = new QWidget(this);
       setTitleBarWidget(w);
       titleBarWidget()->hide();
-      connect(tb, SIGNAL(clicked()), SLOT(editDrumset()));
+      connect(editButton, SIGNAL(clicked()), SLOT(editDrumset()));
       void boxClicked(int);
       connect(drumPalette, SIGNAL(boxClicked(int)), SLOT(drumNoteSelected(int)));
+      retranslate();
+      }
+
+//---------------------------------------------------------
+//   updateDrumset
+//---------------------------------------------------------
+
+void DrumTools::retranslate()
+      {
+      setWindowTitle(tr("Drum Tools"));
+      editButton->setText(tr("Edit Drumset"));
+      drumPalette->setName(tr("Drums"));
       }
 
 //---------------------------------------------------------
@@ -99,10 +108,10 @@ void DrumTools::updateDrumset(const Drumset* ds)
             int line      = drumset->line(pitch);
             NoteHead::Group noteHead  = drumset->noteHead(pitch);
             int voice     = drumset->voice(pitch);
-            MScore::Direction dir = drumset->stemDirection(pitch);
-            if (dir == MScore::Direction::UP)
+            Direction dir = drumset->stemDirection(pitch);
+            if (dir == Direction::UP)
                   up = true;
-            else if (dir == MScore::Direction::DOWN)
+            else if (dir == Direction::DOWN)
                   up = false;
             else
                   up = line > 4;
@@ -158,8 +167,8 @@ void DrumTools::editDrumset()
             _score->startCmd();
             _score->undo(new ChangeDrumset(staff->part()->instrument(), eds.drumset()));
             mscore->updateDrumTools(eds.drumset());
-            if (_score->undo()->active()) {
-                  _score->setLayoutAll(true);
+            if (_score->undoStack()->active()) {
+                  _score->setLayoutAll();
                   _score->endCmd();
                   }
             }
@@ -206,5 +215,11 @@ int DrumTools::selectedDrumNote()
             }
       }
 
+void DrumTools::changeEvent(QEvent *event)
+      {
+      QDockWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            retranslate();
+      }
 }
 

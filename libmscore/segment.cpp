@@ -22,7 +22,6 @@
 #include "measure.h"
 #include "barline.h"
 #include "part.h"
-#include "lyrics.h"
 #include "repeat.h"
 #include "staff.h"
 #include "line.h"
@@ -53,17 +52,18 @@ const char* Segment::subTypeName(Type t)
       {
       switch(t) {
             case Type::Invalid:              return "Invalid";
+            case Type::BeginBarLine:         return "BeginBarLine";
             case Type::Clef:                 return "Clef";
             case Type::KeySig:               return "Key Signature";
             case Type::Ambitus:              return "Ambitus";
             case Type::TimeSig:              return "Time Signature";
             case Type::StartRepeatBarLine:   return "Begin Repeat";
             case Type::BarLine:              return "BarLine";
-            case Type::ChordRest:            return "ChordRest";
             case Type::Breath:               return "Breath";
+            case Type::ChordRest:            return "ChordRest";
             case Type::EndBarLine:           return "EndBarLine";
-            case Type::TimeSigAnnounce:      return "Time Sig Precaution";
             case Type::KeySigAnnounce:       return "Key Sig Precaution";
+            case Type::TimeSigAnnounce:      return "Time Sig Precaution";
             default:
                   return "??";
             }
@@ -78,7 +78,7 @@ void Segment::setElement(int track, Element* el)
       if (el) {
             el->setParent(this);
             _elist[track] = el;
-            empty = false;
+            _empty = false;
             }
       else {
             _elist[track] = 0;
@@ -113,7 +113,7 @@ Segment::Segment(Measure* m)
       {
       setParent(m);
       init();
-      empty = true;
+      _empty = true;
       }
 
 Segment::Segment(Measure* m, Type st, int t)
@@ -123,7 +123,7 @@ Segment::Segment(Measure* m, Type st, int t)
       _segmentType = st;
       setTick(t);
       init();
-      empty = true;
+      _empty = true;
       }
 
 //---------------------------------------------------------
@@ -133,31 +133,32 @@ Segment::Segment(Measure* m, Type st, int t)
 Segment::Segment(const Segment& s)
    : Element(s)
       {
-      _next = 0;
-      _prev = 0;
-
-      empty               = s.empty;           // cached value
+      _next               = 0;
+      _prev               = 0;
+      _empty              = s._empty;           // cached value
       _segmentType        = s._segmentType;
       _tick               = s._tick;
       _extraLeadingSpace  = s._extraLeadingSpace;
-      _extraTrailingSpace = s._extraTrailingSpace;
 
-      foreach (Element* e, s._annotations) {
-            Element* ne = e->clone();
-            add(ne);
-            }
+      for (Element* e : s._annotations)
+            add(e->clone());
 
       _elist.reserve(s._elist.size());
-      foreach (Element* e, s._elist) {
+      for (Element* e : s._elist) {
             Element* ne = 0;
             if (e) {
                   ne = e->clone();
                   ne->setParent(this);
                   }
-            _elist.append(ne);
+            _elist.push_back(ne);
             }
       _dotPosX = s._dotPosX;
+      _shapes  = s._shapes;
       }
+
+//---------------------------------------------------------
+//   setSegmentType
+//---------------------------------------------------------
 
 void Segment::setSegmentType(Type t)
       {
@@ -172,17 +173,17 @@ void Segment::setSegmentType(Type t)
 void Segment::setScore(Score* score)
       {
       Element::setScore(score);
-      foreach(Element* e, _elist) {
+      for (Element* e : _elist) {
             if (e)
                   e->setScore(score);
             }
-      foreach(Element* e, _annotations)
+      for (Element* e : _annotations)
             e->setScore(score);
       }
 
 Segment::~Segment()
       {
-      foreach(Element* e, _elist) {
+      for (Element* e : _elist) {
             if (!e)
                   continue;
             if (e->type() == Element::Type::TIMESIG)
@@ -199,12 +200,9 @@ void Segment::init()
       {
       int staves = score()->nstaves();
       int tracks = staves * VOICES;
-      _elist.reserve(tracks);
-      for (int i = 0; i < tracks; ++i)
-            _elist.push_back(0);
-      _dotPosX.reserve(staves);
-      for (int i = 0; i < staves; ++i)
-            _dotPosX.push_back(0.0);
+      _elist.assign(tracks, 0);
+      _dotPosX.assign(staves, 0.0);
+      _shapes.assign(staves, Shape());
       _prev = 0;
       _next = 0;
       }
@@ -379,10 +377,11 @@ void Segment::insertStaff(int staff)
       {
       int track = staff * VOICES;
       for (int voice = 0; voice < VOICES; ++voice)
-            _elist.insert(track, 0);
-      _dotPosX.insert(staff, 0.0);
+            _elist.insert(_elist.begin() + track, 0);
+      _dotPosX.insert(_dotPosX.begin()+staff, 0.0);
+      _shapes.insert(_shapes.begin()+staff, Shape());
 
-      foreach(Element* e, _annotations) {
+      for (Element* e : _annotations) {
             int staffIdx = e->staffIdx();
             if (staffIdx >= staff && !e->systemFlag())
                   e->setTrack(e->track() + VOICES);
@@ -398,9 +397,10 @@ void Segment::removeStaff(int staff)
       {
       int track = staff * VOICES;
       _elist.erase(_elist.begin() + track, _elist.begin() + track + VOICES);
-      _dotPosX.removeAt(staff);
+      _dotPosX.erase(_dotPosX.begin() + staff);
+      _shapes.erase(_shapes.begin()+staff);
 
-      foreach(Element* e, _annotations) {
+      for (Element* e : _annotations) {
             int staffIdx = e->staffIdx();
             if (staffIdx > staff && !e->systemFlag())
                   e->setTrack(e->track() - VOICES);
@@ -419,6 +419,7 @@ void Segment::checkElement(Element* el, int track)
             qDebug("Segment::add(%s) there is already a %s at %s(%d) track %d. score %p",
                el->name(), _elist[track]->name(),
                qPrintable(score()->sigmap()->pos(tick())), tick(), track, score());
+            // abort();
             }
       }
 
@@ -429,18 +430,18 @@ void Segment::checkElement(Element* el, int track)
 void Segment::add(Element* el)
       {
 //      qDebug("%p segment %s add(%d, %d, %s)", this, subTypeName(), tick(), el->track(), el->name());
+
       el->setParent(this);
 
       int track = el->track();
       Q_ASSERT(track != -1);
       Q_ASSERT(el->score() == score());
-      Q_ASSERT(score()->nstaves() * VOICES == _elist.size());
+      Q_ASSERT(score()->nstaves() * VOICES == int(_elist.size()));
 
       switch (el->type()) {
             case Element::Type::REPEAT_MEASURE:
-                  measure()->setRepeatFlags(measure()->repeatFlags() | Repeat::MEASURE);
                   _elist[track] = el;
-                  empty = false;
+                  _empty = false;
                   break;
 
             case Element::Type::DYNAMIC:
@@ -458,6 +459,7 @@ void Segment::add(Element* el)
             case Element::Type::FIGURED_BASS:
                   _annotations.push_back(el);
                   break;
+
             case Element::Type::STAFF_STATE:
                   if (static_cast<StaffState*>(el)->staffStateType() == StaffStateType::INSTRUMENT) {
                         StaffState* ss = static_cast<StaffState*>(el);
@@ -483,7 +485,7 @@ void Segment::add(Element* el)
                         el->staff()->setClef(static_cast<Clef*>(el));
                         updateNoteLines(this, el->track());
                         }
-                  empty = false;
+                  _empty = false;
                   break;
 
             case Element::Type::TIMESIG:
@@ -491,7 +493,7 @@ void Segment::add(Element* el)
                   checkElement(el, track);
                   _elist[track] = el;
                   el->staff()->addTimeSig(static_cast<TimeSig*>(el));
-                  empty = false;
+                  _empty = false;
                   break;
 
             case Element::Type::KEYSIG:
@@ -500,7 +502,7 @@ void Segment::add(Element* el)
                   _elist[track] = el;
                   if (!el->generated())
                         el->staff()->setKey(tick(), static_cast<KeySig*>(el)->keySigEvent());
-                  empty = false;
+                  _empty = false;
                   break;
 
             case Element::Type::CHORD:
@@ -521,7 +523,8 @@ void Segment::add(Element* el)
                               }
                         else
                               v = el->visible();
-                        if (v)
+
+                        if (v && int(measure()->mstaves().size() * VOICES) > track)
                               measure()->mstaff(track / VOICES)->hasVoices = true;
                         }
 
@@ -533,14 +536,14 @@ void Segment::add(Element* el)
                         checkElement(el, track);
                         _elist[track] = el;
                         }
-                  empty = false;
+                  _empty = false;
                   break;
 
             case Element::Type::AMBITUS:
                   Q_ASSERT(_segmentType == Type::Ambitus);
                   checkElement(el, track);
                   _elist[track] = el;
-                  empty = false;
+                  _empty = false;
                   break;
 
             default:
@@ -565,11 +568,20 @@ void Segment::remove(Element* el)
                   _elist[track] = 0;
                   int staffIdx = el->staffIdx();
                   measure()->checkMultiVoices(staffIdx);
+                  // spanners with this cr as start or end element will need relayout
+                  SpannerMap& smap = score()->spannerMap();
+                  auto spanners = smap.findOverlapping(tick(), tick());
+                  for (auto interval : spanners) {
+                        Spanner* s = interval.value;
+                        if (s->startElement() == el)
+                              s->setStartElement(nullptr);
+                        if (s->endElement() == el)
+                              s->setEndElement(nullptr);
+                        }
                   }
                   break;
 
             case Element::Type::REPEAT_MEASURE:
-                  measure()->resetRepeatFlag(Repeat::MEASURE);
                   _elist[track] = 0;
                   break;
 
@@ -620,10 +632,8 @@ void Segment::remove(Element* el)
                   break;
 
             case Element::Type::CLEF:
-                  if (!el->generated()) {
-                        el->staff()->removeClef(static_cast<Clef*>(el));
-                        updateNoteLines(this, el->track());
-                        }
+                  el->staff()->removeClef(static_cast<Clef*>(el));
+                  // updateNoteLines(this, el->track());
                   // fall through
 
             case Element::Type::BAR_LINE:
@@ -634,14 +644,13 @@ void Segment::remove(Element* el)
             case Element::Type::BREATH:
                   _elist[track] = 0;
                   score()->setPause(tick(), 0);
-                  score()->addLayoutFlags(LayoutFlag::FIX_TICKS);
-                  score()->setLayoutAll(true);
                   break;
 
             default:
                   qFatal("Segment::remove() unknown %s", el->name());
 
             }
+      score()->setLayout(tick());
       checkEmpty();
       }
 
@@ -681,10 +690,9 @@ Segment::Type Segment::segmentType(Element::Type type)
 
 void Segment::removeGeneratedElements()
       {
-      for (int i = 0; i < _elist.size(); ++i) {
-            if (_elist[i] && _elist[i]->generated()) {
+      for (unsigned i = 0; i < _elist.size(); ++i) {
+            if (_elist[i] && _elist[i]->generated())
                   _elist[i] = 0;
-                  }
             }
       checkEmpty();
       }
@@ -695,21 +703,22 @@ void Segment::removeGeneratedElements()
 
 void Segment::sortStaves(QList<int>& dst)
       {
-      QList<Element*> dl;
+      std::vector<Element*> dl;
+      dl.reserve(dst.size());
 
       for (int i = 0; i < dst.size(); ++i) {
             int startTrack = dst[i] * VOICES;
             int endTrack   = startTrack + VOICES;
             for (int k = startTrack; k < endTrack; ++k)
-                  dl.append(_elist[k]);
+                  dl.push_back(_elist[k]);
             }
-      _elist = dl;
+      std::swap(_elist, dl);
       QMap<int, int> map;
       for (int k = 0; k < dst.size(); ++k) {
             map.insert(dst[k], k);
             }
-      foreach (Element* e, _annotations) {
-            if(!e->systemFlag())
+      for (Element* e : _annotations) {
+            if (!e->systemFlag())
                   e->setTrack(map[e->staffIdx()] * VOICES + e->voice());
             }
       fixStaffIdx();
@@ -722,7 +731,7 @@ void Segment::sortStaves(QList<int>& dst)
 void Segment::fixStaffIdx()
       {
       int track = 0;
-      foreach(Element* e, _elist) {
+      for (Element* e : _elist) {
             if (e)
                   e->setTrack(track);
             ++track;
@@ -736,13 +745,13 @@ void Segment::fixStaffIdx()
 void Segment::checkEmpty() const
       {
       if (!_annotations.empty()) {
-            empty = false;
+            _empty = false;
             return;
             }
-      empty = true;
-      foreach(const Element* e, _elist) {
+      _empty = true;
+      for (const Element* e : _elist) {
             if (e) {
-                  empty = false;
+                  _empty = false;
                   break;
                   }
             }
@@ -752,10 +761,12 @@ void Segment::checkEmpty() const
 //   tick
 //---------------------------------------------------------
 
+#if 0
 int Segment::tick() const
       {
       return _tick + measure()->tick();
       }
+#endif
 
 //---------------------------------------------------------
 //   setTick
@@ -767,35 +778,17 @@ void Segment::setTick(int t)
       }
 
 //---------------------------------------------------------
-//   segLyricsList
-//---------------------------------------------------------
-
-const QList<Lyrics*>* Segment::lyricsList(int track) const
-      {
-      if (!(segmentType() & (Type::ChordRest))) {
-            if (MScore::debugMode)
-                  qDebug("warning : lyricsList  bad segment type <%s><%s>", name(), subTypeName());
-            return 0;
-            }
-
-      ChordRest* cr = static_cast<ChordRest*>(element(track));
-      if (cr)
-            return &cr->lyricsList();
-
-      return 0;
-      }
-
-//---------------------------------------------------------
 //   swapElements
 //---------------------------------------------------------
 
 void Segment::swapElements(int i1, int i2)
       {
-      _elist.swap(i1, i2);
+      std::iter_swap(_elist.begin() + i1, _elist.begin() + i2);
       if (_elist[i1])
             _elist[i1]->setTrack(i1);
       if (_elist[i2])
             _elist[i2]->setTrack(i2);
+      score()->setLayout(tick());
       }
 
 //---------------------------------------------------------
@@ -807,11 +800,10 @@ void Segment::write(Xml& xml) const
       if (_written)
             return;
       _written = true;
-      if (_extraLeadingSpace.isZero() && _extraTrailingSpace.isZero())
+      if (_extraLeadingSpace.isZero())
             return;
       xml.stag(name());
       xml.tag("leadingSpace", _extraLeadingSpace.val());
-      xml.tag("trailingSpace", _extraTrailingSpace.val());
       xml.etag();
       }
 
@@ -828,8 +820,8 @@ void Segment::read(XmlReader& e)
                   e.skipCurrentElement();
             else if (tag == "leadingSpace")
                   _extraLeadingSpace = Spatium(e.readDouble());
-            else if (tag == "trailingSpace")
-                  _extraTrailingSpace = Spatium(e.readDouble());
+            else if (tag == "trailingSpace")          // obsolete
+                  e.readDouble();
             else
                   e.unknown();
             }
@@ -841,9 +833,11 @@ void Segment::read(XmlReader& e)
 
 QVariant Segment::getProperty(P_ID propertyId) const
       {
-      switch(propertyId) {
-            case P_ID::LEADING_SPACE:   return extraLeadingSpace().val();
-            case P_ID::TRAILING_SPACE:  return extraTrailingSpace().val();
+      switch (propertyId) {
+            case P_ID::TICK:
+                  return _tick;
+            case P_ID::LEADING_SPACE:
+                  return extraLeadingSpace();
             default:
                   return Element::getProperty(propertyId);
             }
@@ -855,9 +849,9 @@ QVariant Segment::getProperty(P_ID propertyId) const
 
 QVariant Segment::propertyDefault(P_ID propertyId) const
       {
-      switch(propertyId) {
-            case P_ID::LEADING_SPACE:   return 0.0;
-            case P_ID::TRAILING_SPACE:  return 0.0;
+      switch (propertyId) {
+            case P_ID::LEADING_SPACE:
+                  return Spatium(0.0);
             default:
                   return Element::getProperty(propertyId);
             }
@@ -869,12 +863,17 @@ QVariant Segment::propertyDefault(P_ID propertyId) const
 
 bool Segment::setProperty(P_ID propertyId, const QVariant& v)
       {
-      switch(propertyId) {
-            case P_ID::LEADING_SPACE: setExtraLeadingSpace(Spatium(v.toDouble())); break;
-            case P_ID::TRAILING_SPACE: setExtraTrailingSpace(Spatium(v.toDouble())); break;
+      switch (propertyId) {
+            case P_ID::TICK:
+                  _tick = v.toInt();
+                  break;
+            case P_ID::LEADING_SPACE:
+                  setExtraLeadingSpace(v.value<Spatium>());
+                  break;
             default:
                   return Element::setProperty(propertyId, v);
             }
+      score()->setLayout(tick());
       return true;
       }
 
@@ -978,8 +977,10 @@ void Segment::clearAnnotations()
 //    specifically intended to be called from QML plugins
 //---------------------------------------------------------
 
-Ms::Element* Segment::elementAt(int track) const {
-      Element* e = _elist.value(track);
+Ms::Element* Segment::elementAt(int track) const
+      {
+      Element* e = track < int(_elist.size()) ? _elist[track] : 0;
+
 #ifdef SCRIPT_INTERFACE
 // if called from QML/JS, tell QML engine not to garbage collect this object
       if (e)
@@ -996,14 +997,15 @@ void Segment::scanElements(void* data, void (*func)(void*, Element*), bool all)
       {
       // bar line visibility depends on spanned staves,
       // not simply on visibility of first staff
-      if (segmentType() == Segment::Type::BarLine || segmentType() == Segment::Type::EndBarLine
-          || segmentType() == Segment::Type::StartRepeatBarLine) {
-            for (int staffIdx = 0; staffIdx < _score->nstaves(); ++staffIdx) {
+
+      if (segmentType() & (Segment::Type::BarLine | Segment::Type::EndBarLine
+         | Segment::Type::StartRepeatBarLine | Segment::Type::BeginBarLine)) {
+            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
                   Element* e = element(staffIdx*VOICES);
                   if (e == 0)             // if no element, skip
                         continue;
                   // if staff not visible
-                  if (!all && !(measure()->visible(staffIdx) && _score->staff(staffIdx)->show())) {
+                  if (!all && !(/*measure()->visible(staffIdx) && */score()->staff(staffIdx)->show())) {
                         // if bar line spans just this staff...
                         if (static_cast<BarLine*>(e)->span() <= 1
                             // ...or span another staff but without entering INTO it...
@@ -1015,9 +1017,9 @@ void Segment::scanElements(void* data, void (*func)(void*, Element*), bool all)
                   }
             }
       else
-            for (int track = 0; track < _score->nstaves() * VOICES; ++track) {
+            for (int track = 0; track < score()->nstaves() * VOICES; ++track) {
                   int staffIdx = track/VOICES;
-                  if (!all && !(measure()->visible(staffIdx) && _score->staff(staffIdx)->show())) {
+                  if (!all && !(measure()->visible(staffIdx) && score()->staff(staffIdx)->show())) {
                         track += VOICES - 1;
                         continue;
                         }
@@ -1026,7 +1028,7 @@ void Segment::scanElements(void* data, void (*func)(void*, Element*), bool all)
                         continue;
                   e->scanElements(data, func, all);
                   }
-      foreach(Element* e, annotations()) {
+      for (Element* e : annotations()) {
             if (all || e->systemFlag() || measure()->visible(e->staffIdx()))
                   e->scanElements(data,  func, all);
             }
@@ -1040,9 +1042,9 @@ void Segment::scanElements(void* data, void (*func)(void*, Element*), bool all)
 
 Element* Segment::firstElement(int staff)
       {
-      if (this->segmentType() == Segment::Type::ChordRest) {
+      if (segmentType() == Segment::Type::ChordRest) {
             for (int v = staff * VOICES; v/VOICES == staff; v++) {
-                Element* el = this->element(v);
+                Element* el = element(v);
                 if (!el) {      //there is no chord or rest on this voice
                       continue;
                       }
@@ -1055,7 +1057,7 @@ Element* Segment::firstElement(int staff)
                 }
             }
       else {
-            return this->getElement(staff);
+            return getElement(staff);
             }
 
       return 0;
@@ -1069,9 +1071,9 @@ Element* Segment::firstElement(int staff)
 
 Element* Segment::lastElement(int staff)
       {
-      if (this->segmentType() == Segment::Type::ChordRest) {
+      if (segmentType() == Segment::Type::ChordRest) {
             for (int voice = staff * VOICES + (VOICES - 1); voice/VOICES == staff; voice--) {
-                  Element* el = this->element(voice);
+                  Element* el = element(voice);
                   if (!el) {      //there is no chord or rest on this voice
                         continue;
                         }
@@ -1084,7 +1086,7 @@ Element* Segment::lastElement(int staff)
                  }
             }
       else {
-            return this->getElement(staff);
+            return getElement(staff);
             }
 
       return 0;
@@ -1101,25 +1103,19 @@ Element* Segment::lastElement(int staff)
 
 Element* Segment::getElement(int staff)
       {
-      if (segmentType() == Segment::Type::ChordRest) {
+      if (segmentType() == Segment::Type::ChordRest)
             return firstElement(staff);
-            }
-      else if (segmentType() == Segment::Type::EndBarLine        ||
-               segmentType() == Segment::Type::BarLine           ||
-               segmentType() == Segment::Type::StartRepeatBarLine) {
+      else if (segmentType() & (Type::EndBarLine | Type::BarLine | Type::StartRepeatBarLine)) {
             for (int i = staff; i >= 0; i--) {
-                  if (!this->element(i*VOICES)) {
+                  if (!element(i * VOICES))
                         continue;
-                        }
-                  BarLine* b = static_cast<BarLine*>(this->element(i*VOICES));
-                  if (i + b->span() - 1 >= staff) {
-                        return this->element(i*VOICES);
-                        }
+                  BarLine* b = static_cast<BarLine*>(element(i*VOICES));
+                  if (i + b->span() - 1 >= staff)
+                        return element(i*VOICES);
                   }
             }
-      else {
-            return this->element(staff*VOICES);
-            }
+      else
+            return element(staff * VOICES);
       return 0;
       }
 
@@ -1204,12 +1200,12 @@ Element* Segment::lastInPrevSegments(int activeStaff)
 //   accessibleExtraInfo
 //---------------------------------------------------------
 
-QString Segment::accessibleExtraInfo()
+QString Segment::accessibleExtraInfo() const
       {
       QString rez = "";
-      if (!this->annotations().empty()) {
+      if (!annotations().empty()) {
             QString temp = "";
-            foreach (Element* a, this->annotations()) {
+            for (const Element* a : annotations()) {
                   if (!score()->selectionFilter().canSelect(a)) continue;
                   switch(a->type()) {
                         case Element::Type::DYNAMIC:
@@ -1226,14 +1222,13 @@ QString Segment::accessibleExtraInfo()
       QString startSpanners = "";
       QString endSpanners = "";
 
-      std::vector< ::Interval<Spanner*> > spanners = score()->spannerMap().findOverlapping(this->tick(), this->tick());
-      for (std::vector< ::Interval<Spanner*> >::iterator i = spanners.begin(); i < spanners.end(); i++) {
-            ::Interval<Spanner*> interval = *i;
+      auto spanners = score()->spannerMap().findOverlapping(this->tick(), this->tick());
+      for (auto interval : spanners) {
             Spanner* s = interval.value;
             if (!score()->selectionFilter().canSelect(s)) continue;
-            if (this->segmentType() == Segment::Type::EndBarLine       ||
-               this->segmentType() == Segment::Type::BarLine           ||
-               this->segmentType() == Segment::Type::StartRepeatBarLine) {
+            if (segmentType() == Segment::Type::EndBarLine       ||
+               segmentType() == Segment::Type::BarLine           ||
+               segmentType() == Segment::Type::StartRepeatBarLine) {
                   if (s->type() != Element::Type::VOLTA)
                         continue;
                   }
@@ -1243,17 +1238,17 @@ QString Segment::accessibleExtraInfo()
                         continue;
                   }
 
-            if (s->tick() == this->tick())
+            if (s->tick() == tick())
                   startSpanners += tr("Start of ") + s->accessibleInfo();
 
-            Segment* seg = 0;
+            const Segment* seg = 0;
             switch (s->type()) {
                   case Element::Type::VOLTA:
                   case Element::Type::SLUR:
                         seg = this;
                         break;
                   default:
-                        seg = this->next1MM(Segment::Type::ChordRest);
+                        seg = next1MM(Segment::Type::ChordRest);
                         break;
                   }
 
@@ -1263,18 +1258,199 @@ QString Segment::accessibleExtraInfo()
       return rez + " " + startSpanners + " " + endSpanners;
       }
 
-//--------------------------------------------------------
-//   qmlAnnotations
-//--------------------------------------------------------
+//---------------------------------------------------------
+//   createShapes
+//---------------------------------------------------------
 
-QQmlListProperty<Ms::Element> Segment::qmlAnnotations()
+void Segment::createShapes()
       {
-      _qmlAnnotations.clear();
-      for (std::vector<Element*>::iterator it = _annotations.begin();
-           it != _annotations.end(); ++it) {
-            _qmlAnnotations.append(*it);
+      for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx)
+            createShape(staffIdx);
+      }
+
+//---------------------------------------------------------
+//   createShape
+//---------------------------------------------------------
+
+void Segment::createShape(int staffIdx)
+      {
+      Shape& s = _shapes[staffIdx];
+      s.clear();
+
+      if (segmentType() & (Type::BarLine | Type::EndBarLine | Type::StartRepeatBarLine | Type::BeginBarLine)) {
+            BarLine* bl = static_cast<BarLine*>(element(0));
+            if (bl) {
+                  qreal w = BarLine::layoutWidth(score(), bl->barLineType(), 1.0);
+                  s.add(QRectF(bl->x(), 0.0, w, spatium() * 4.0));
+                  }
+            return;
             }
-      return QQmlListProperty<Ms::Element>(this, _qmlAnnotations);
+#if 0
+      for (int voice = 0; voice < VOICES; ++voice) {
+            Element* e = element(staffIdx * VOICES + voice);
+            if (e && e->visible()) {
+                  if (e->isChordRest()) {
+                        ChordRest* cr = toChordRest(e);
+                        int si = cr->vStaffIdx();
+                        _shapes[si].add(e->shape());
+                        }
+                  else
+                        s.add(e->shape());
+                  }
+            }
+#endif
+      for (Element* e : _elist) {
+            if (e && e->vStaffIdx() == staffIdx && e->visible())
+                  s.add(e->shape());
+            }
+      for (Element* e : _annotations) {
+            // probably only allow for lyrics and chordnames
+            if (e->staffIdx() == staffIdx
+               && e->visible()
+               && !e->isRehearsalMark()
+               && !e->isTempoText()
+               && !e->isDynamic()
+               && !e->isSymbol()
+               && !e->isFSymbol()
+               && !e->isStaffText())
+                  s.add(e->shape());
+            }
+      }
+
+//---------------------------------------------------------
+//   minRight
+//    calculate minimum distance needed to the right
+//---------------------------------------------------------
+
+qreal Segment::minRight() const
+      {
+      qreal distance = 0.0;
+      for (const Shape& sh : shapes())
+            distance = qMax(distance, sh.right());
+      return distance;
+      }
+
+//---------------------------------------------------------
+//   minLeft
+//    Calculate minimum distance needed to the left shape
+//    sl. Sl is the same for all staves.
+//---------------------------------------------------------
+
+qreal Segment::minLeft(const Shape& sl) const
+      {
+      qreal distance = 0.0;
+      for (const Shape& sh : shapes()) {
+            qreal d = sl.minHorizontalDistance(sh);
+            if (d > distance)
+                  distance = d;
+            }
+      return distance;
+      }
+
+qreal Segment::minLeft() const
+      {
+      qreal distance = 0.0;
+      for (const Shape& sh : shapes()) {
+            qreal l = sh.left();
+            if (l > distance)
+                  distance = l;
+            }
+      return distance;
+      }
+
+//---------------------------------------------------------
+//   minHorizontalDistance
+//---------------------------------------------------------
+
+qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
+      {
+      Segment::Type st  = segmentType();
+      Segment::Type nst = ns ? ns->segmentType() : Segment::Type::Invalid;
+
+
+      qreal w = 0.0;
+      for (unsigned staffIdx = 0; staffIdx < _shapes.size(); ++staffIdx) {
+            qreal d = staffShape(staffIdx).minHorizontalDistance(ns->staffShape(staffIdx));
+            w = qMax(w, d);
+            }
+
+      if (isChordRestType()) {
+            if (nst == Segment::Type::EndBarLine)
+                  w += score()->styleP(StyleIdx::noteBarDistance);
+            else if (nst == Segment::Type::Clef)
+                  w = qMax(w, score()->styleP(StyleIdx::clefLeftMargin));
+            else {
+                  bool isGap = false;
+                  for (int i = 0; i < score()->nstaves() * VOICES; i++) {
+                        Element* el = element(i);
+                        if (el && el->isRest() && toRest(el)->isGap())
+                              isGap = true;
+                        else if (el) {
+                              isGap = false;
+                              break;
+                              }
+                        }
+                  if (isGap)
+                        return 0.0;
+
+                  w = qMax(w, score()->noteHeadWidth()) + score()->styleP(StyleIdx::minNoteDistance);
+                  }
+            }
+      else if (nst == Segment::Type::ChordRest) {
+            qreal d;
+            if (systemHeaderGap) {
+                  if (st == Segment::Type::TimeSig)
+                        d = score()->styleP(StyleIdx::systemHeaderTimeSigDistance);
+                  else
+                        d = score()->styleP(StyleIdx::systemHeaderDistance);
+                  }
+            else
+                  d = score()->styleP(StyleIdx::barNoteDistance);
+            qreal dd = minRight() + ns->minLeft() + spatium();
+            w = qMax(d, dd);
+            // d -= ns->minLeft() * .7;      // hack
+            // d = qMax(d, ns->minLeft());
+            // d = qMax(d, spatium());       // minimum distance is one spatium
+            // w = qMax(w, minRight()) + d;
+            }
+      else if (st == Segment::Type::Clef) {
+            if (nst == Segment::Type::KeySig)
+                  w += score()->styleP(StyleIdx::clefKeyDistance);
+            else if (nst == Segment::Type::TimeSig)
+                  w += score()->styleP(StyleIdx::clefTimesigDistance);
+            else if (nst & (Segment::Type::EndBarLine | Segment::Type::StartRepeatBarLine))
+                  w += score()->styleP(StyleIdx::clefBarlineDistance);
+            else if (nst == Segment::Type::Ambitus)
+                  w += score()->styleP(StyleIdx::ambitusMargin);
+            }
+      else if ((st & (Segment::Type::KeySig | Segment::Type::KeySigAnnounce))
+         && (nst & (Segment::Type::TimeSig | Segment::Type::TimeSigAnnounce))) {
+            w += score()->styleP(StyleIdx::keyTimesigDistance);
+            }
+      else if (st == Segment::Type::KeySig && nst == Segment::Type::StartRepeatBarLine)
+            w += score()->styleP(StyleIdx::keyBarlineDistance);
+      else if (st == Segment::Type::StartRepeatBarLine)
+            w += score()->styleP(StyleIdx::noteBarDistance);
+      else if (st == Segment::Type::BeginBarLine && nst == Segment::Type::Clef)
+            w += score()->styleP(StyleIdx::clefLeftMargin);
+      else if (st == Segment::Type::EndBarLine) {
+            if (nst == Segment::Type::KeySigAnnounce)
+                  w += score()->styleP(StyleIdx::keysigLeftMargin);
+            else if (nst == Segment::Type::TimeSigAnnounce)
+                  w += score()->styleP(StyleIdx::timesigLeftMargin);
+            }
+      else if (st == Segment::Type::TimeSig && nst == Segment::Type::StartRepeatBarLine)
+            w += score()->styleP(StyleIdx::timesigBarlineDistance);
+      else if (st == Segment::Type::Breath)
+            w += spatium() * 1.5;
+      else if (st == Segment::Type::Ambitus)
+            w += score()->styleP(StyleIdx::ambitusMargin);
+
+      if (w < 0.0)
+            w = 0.0;
+      if (ns)
+            w += ns->extraLeadingSpace().val() * spatium();
+      return w;
       }
 
 }           // namespace Ms

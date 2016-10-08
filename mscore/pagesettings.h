@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: pagesettings.h 4998 2011-11-17 11:04:44Z wschweer $
 //
-//  Copyright (C) 2002-2009 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -22,9 +22,11 @@
 #define __PAGESETTINGS_H__
 
 #include "ui_pagesettings.h"
+#include "abstractdialog.h"
 
 namespace Ms {
 
+class MasterScore;
 class Score;
 class Navigator;
 
@@ -32,12 +34,14 @@ class Navigator;
 //   PageSettings
 //---------------------------------------------------------
 
-class PageSettings : public QDialog, private Ui::PageSettingsBase {
+class PageSettings : public AbstractDialog, private Ui::PageSettingsBase {
       Q_OBJECT
 
       Navigator* preview;
       bool mmUnit;
-      Score* cs;
+      MasterScore* cs;
+
+      virtual void hideEvent(QHideEvent*);
       void updateValues();
       void updatePreview(int);
       void blockSignals(bool);
@@ -54,7 +58,6 @@ class PageSettings : public QDialog, private Ui::PageSettingsBase {
       void done(int val);
 
       void twosidedToggled(bool);
-      void landscapeToggled(bool);
       void otmChanged(double val);
       void obmChanged(double val);
       void olmChanged(double val);
@@ -67,11 +70,16 @@ class PageSettings : public QDialog, private Ui::PageSettingsBase {
       void pageHeightChanged(double);
       void pageWidthChanged(double);
       void pageOffsetChanged(int val);
+      void portraitClicked();
+      void landscapeClicked();
+
+   protected:
+      virtual void retranslate() { retranslateUi(this); }
 
    public:
       PageSettings(QWidget* parent = 0);
       ~PageSettings();
-      void setScore(Score*);
+      void setScore(MasterScore*);
       };
 
 

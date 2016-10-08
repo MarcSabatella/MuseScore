@@ -13,6 +13,7 @@
 
 #include "libmscore/score.h"
 #include "libmscore/element.h"
+#include "libmscore/chord.h"
 #include "inspector.h"
 #include "inspectorGroupElement.h"
 
@@ -54,6 +55,11 @@ InspectorGroupElement::InspectorGroupElement(QWidget* parent)
       notes->setEnabled(true);
       hbox->addWidget(notes);
 
+      graceNotes = new QToolButton(this);
+      graceNotes->setText(tr("Grace Notes"));
+      graceNotes->setEnabled(true);
+      hbox->addWidget(graceNotes);
+
       rests = new QToolButton(this);
       rests->setText(tr("Rests"));
       rests->setEnabled(true);
@@ -61,6 +67,7 @@ InspectorGroupElement::InspectorGroupElement(QWidget* parent)
 
       _layout->addLayout(hbox);
       connect(notes, SIGNAL(clicked()), SLOT(notesClicked()));
+      connect(graceNotes, SIGNAL(clicked()), SLOT(graceNotesClicked()));
       connect(rests, SIGNAL(clicked()), SLOT(restsClicked()));
       }
 
@@ -74,9 +81,9 @@ void InspectorGroupElement::setColor()
             return;
       Score* score = inspector->el().front()->score();
       score->startCmd();
-      foreach(Element* e, inspector->el()) {
+      for (Element* e : inspector->el()) {
             if (e->getProperty(P_ID::COLOR) != QVariant(ge.color->color()))
-                  score->undoChangeProperty(e, P_ID::COLOR, ge.color->color());
+                  e->undoChangeProperty(P_ID::COLOR, ge.color->color());
             }
       score->endCmd();
       }
@@ -91,9 +98,9 @@ void InspectorGroupElement::setVisible()
             return;
       Score* score = inspector->el().front()->score();
       score->startCmd();
-      foreach(Element* e, inspector->el()) {
+      for (Element* e : inspector->el()) {
             if (!e->getProperty(P_ID::VISIBLE).toBool())
-                  e->score()->undoChangeProperty(e, P_ID::VISIBLE, true);
+                  e->undoChangeProperty(P_ID::VISIBLE, true);
             }
       score->endCmd();
       }
@@ -108,9 +115,9 @@ void InspectorGroupElement::setInvisible()
             return;
       Score* score = inspector->el().front()->score();
       score->startCmd();
-      foreach(Element* e, inspector->el()) {
+      for (Element* e : inspector->el()) {
             if (e->getProperty(P_ID::VISIBLE).toBool())
-                  e->score()->undoChangeProperty(e, P_ID::VISIBLE, false);
+                  e->undoChangeProperty(P_ID::VISIBLE, false);
             }
       score->endCmd();
       }
@@ -126,13 +133,41 @@ void InspectorGroupElement::notesClicked()
       QList<Element*> nel;
       score->deselectAll();
       for (Element* e : el) {
-            if (e->type() == Element::Type::NOTE) {
-                  nel.append(e);
-                  score->selection().add(e);
+            if (e->isNote()) {
+                  Note* note = toNote(e);
+                  //if note is not grace note, then add to selection
+                  if (!note->chord()->isGrace()) {
+                        nel.append(note);
+                        score->selection().add(note);
+                        }
                   }
             }
       inspector->setElements(nel);
-      score->end();
+      score->update();
+      }
+
+//---------------------------------------------------------
+//   graceNotesClicked
+//---------------------------------------------------------
+
+void InspectorGroupElement::graceNotesClicked()
+      {
+      Score* score = inspector->el().front()->score();
+      QList<Element*> el = score->selection().elements();
+      QList<Element*> nel;
+      score->deselectAll();
+      for (Element* e : el) {
+            if (e->isNote()) {
+                  Note* note = toNote(e);
+                  //if note is grace note, then add to selection
+                  if (note->chord()->isGrace()) {
+                        nel.append(note);
+                        score->selection().add(note);
+                        }
+                  }
+            }
+      inspector->setElements(nel);
+      score->update();
       }
 
 //---------------------------------------------------------
@@ -146,13 +181,13 @@ void InspectorGroupElement::restsClicked()
       QList<Element*> nel;
       score->deselectAll();
       for (Element* e : el) {
-            if (e->type() == Element::Type::REST) {
+            if (e->isRest()) {
                   nel.append(e);
                   score->selection().add(e);
                   }
             }
       inspector->setElements(nel);
-      score->end();
+      score->update();
       }
 
 }

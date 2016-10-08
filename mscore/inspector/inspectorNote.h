@@ -25,21 +25,12 @@ namespace Ms {
 //   InspectorNote
 //---------------------------------------------------------
 
-class InspectorNote : public InspectorBase {
+class InspectorNote : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement b;
       Ui::InspectorNote    n;
       Ui::InspectorChord   c;
       Ui::InspectorSegment s;
-
-      QToolButton* dot1;
-      QToolButton* dot2;
-      QToolButton* dot3;
-      QToolButton* hook;
-      QToolButton* stem;
-      QToolButton* beam;
-      QToolButton* tuplet;
 
       void block(bool);
 
@@ -47,6 +38,7 @@ class InspectorNote : public InspectorBase {
       void dot1Clicked();
       void dot2Clicked();
       void dot3Clicked();
+      void dot4Clicked();
       void hookClicked();
       void stemClicked();
       void beamClicked();

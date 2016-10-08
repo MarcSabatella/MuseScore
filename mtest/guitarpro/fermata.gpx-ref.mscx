@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -175,13 +175,13 @@
           <lid>15</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>fermata</subtype>
+            <subtype>fermataAbove</subtype>
             <lid>14</lid>
             </Articulation>
           <Note>
             <lid>16</lid>
             <Accidental>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>63</pitch>
             <tpc>11</tpc>
@@ -210,7 +210,7 @@
           <lid>22</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>fermata</subtype>
+            <subtype>fermataAbove</subtype>
             <lid>21</lid>
             </Articulation>
           <Note>
@@ -225,7 +225,7 @@
           <lid>25</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>fermata</subtype>
+            <subtype>fermataAbove</subtype>
             <lid>24</lid>
             </Articulation>
           </Rest>
@@ -233,13 +233,13 @@
           <lid>27</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>fermata</subtype>
+            <subtype>fermataAbove</subtype>
             <lid>26</lid>
             </Articulation>
           <Note>
             <lid>28</lid>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>49</pitch>
             <tpc>21</tpc>
@@ -257,7 +257,7 @@
           <lid>32</lid>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>fermata</subtype>
+            <subtype>fermataAbove</subtype>
             <lid>31</lid>
             </Articulation>
           <Note>
@@ -280,10 +280,6 @@
           <lid>36</lid>
           <durationType>quarter</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -482,13 +478,13 @@
             <lid>15</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>14</lid>
               </Articulation>
             <Note>
               <lid>16</lid>
               <Accidental>
-                <subtype>flat</subtype>
+                <subtype>accidentalFlat</subtype>
                 </Accidental>
               <pitch>63</pitch>
               <tpc>11</tpc>
@@ -517,7 +513,7 @@
             <lid>22</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>21</lid>
               </Articulation>
             <Note>
@@ -532,7 +528,7 @@
             <lid>25</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>24</lid>
               </Articulation>
             </Rest>
@@ -540,13 +536,13 @@
             <lid>27</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>26</lid>
               </Articulation>
             <Note>
               <lid>28</lid>
               <Accidental>
-                <subtype>sharp</subtype>
+                <subtype>accidentalSharp</subtype>
                 </Accidental>
               <pitch>49</pitch>
               <tpc>21</tpc>
@@ -564,7 +560,7 @@
             <lid>32</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>31</lid>
               </Articulation>
             <Note>
@@ -587,10 +583,6 @@
             <lid>36</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -639,7 +631,7 @@
             <lid>15</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>14</lid>
               </Articulation>
             <Note>
@@ -671,7 +663,7 @@
             <lid>22</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>21</lid>
               </Articulation>
             <Note>
@@ -686,7 +678,7 @@
             <lid>25</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>24</lid>
               </Articulation>
             </Rest>
@@ -694,7 +686,7 @@
             <lid>27</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>26</lid>
               </Articulation>
             <Note>
@@ -715,7 +707,7 @@
             <lid>32</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>fermata</subtype>
+              <subtype>fermataAbove</subtype>
               <lid>31</lid>
               </Articulation>
             <Note>
@@ -738,10 +730,6 @@
             <lid>36</lid>
             <durationType>quarter</durationType>
             </Rest>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>E-Gt</name>

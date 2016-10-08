@@ -76,12 +76,12 @@
        </property>
        <widget class="QWidget" name="tab1">
         <attribute name="title">
-         <string>Tab 1</string>
+         <string notr="true">Tab 1</string>
         </attribute>
        </widget>
        <widget class="QWidget" name="tab_2">
         <attribute name="title">
-         <string>Tab 2</string>
+         <string notr="true">Tab 2</string>
         </attribute>
        </widget>
       </widget>
@@ -93,14 +93,24 @@
      <item>
       <widget class="QPushButton" name="saveButton">
        <property name="text">
-        <string>Save As</string>
+        <string>Save As...</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="fileButton">
+      <widget class="QToolButton" name="fileButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
-        <string>Load</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="musescore.qrc">
+         <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
        </property>
       </widget>
      </item>
@@ -136,7 +146,9 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="musescore.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

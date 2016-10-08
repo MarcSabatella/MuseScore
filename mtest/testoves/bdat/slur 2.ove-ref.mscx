@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -111,7 +111,7 @@
           </Rest>
         <Slur id="2">
           <track>0</track>
-          <up>1</up>
+          <slurDirection>up</slurDirection>
           </Slur>
         <Chord>
           <BeamMode>no</BeamMode>
@@ -136,10 +136,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="2">
         <Chord>
@@ -160,10 +156,6 @@
         <Rest>
           <durationType>half</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     </Score>

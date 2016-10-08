@@ -47,7 +47,7 @@ namespace Ms {
 
 int Staff::idx() const
       {
-      return _score->staffIdx(this);
+      return score()->staves().indexOf((Staff*)this, 0);
       }
 
 //---------------------------------------------------------
@@ -81,7 +81,7 @@ void Staff::setBracket(int idx, BracketType val)
       for (int i = _brackets.size(); i <= idx; ++i)
             _brackets.append(BracketItem());
       _brackets[idx]._bracket = val;
-      while (!_brackets.isEmpty() && (_brackets.last()._bracket == BracketType::NO_BRACKET))
+      while (!_brackets.empty() && (_brackets.last()._bracket == BracketType::NO_BRACKET))
             _brackets.removeLast();
       }
 
@@ -104,14 +104,14 @@ void Staff::setBracketSpan(int idx, int val)
 
 void Staff::addBracket(BracketItem b)
       {
-      if (!_brackets.isEmpty() && _brackets[0]._bracket == BracketType::NO_BRACKET) {
+      if (!_brackets.empty() && _brackets[0]._bracket == BracketType::NO_BRACKET) {
             _brackets[0] = b;
             }
       else {
             //
             // create new bracket level
             //
-            foreach(Staff* s, _score->staves()) {
+            foreach(Staff* s, score()->staves()) {
                   if (s == this)
                         s->_brackets.append(b);
                   else
@@ -121,13 +121,41 @@ void Staff::addBracket(BracketItem b)
       }
 
 //---------------------------------------------------------
+//   innerBracket
+//    Return type inner bracket.
+//    The bracket type determines the staff distance.
+//---------------------------------------------------------
+
+BracketType Staff::innerBracket() const
+      {
+      int staffIdx = idx();
+
+      BracketType t = BracketType::NO_BRACKET;
+      int level = 1000;
+      for (int i = 0; i < score()->nstaves(); ++i) {
+            Staff* staff = score()->staff(i);
+            for (int k = 0; k < staff->brackets().size(); ++k) {
+                  const BracketItem& bi = staff->brackets().at(k);
+                  if (bi._bracket != BracketType::NO_BRACKET) {
+                        if (i < staffIdx && ((i + bi._bracketSpan) > staffIdx) && k < level) {
+                              t = bi._bracket;
+                              level = k;
+                              break;
+                              }
+                        }
+                  }
+            }
+      return t;
+      }
+
+//---------------------------------------------------------
 //   cleanupBrackets
 //---------------------------------------------------------
 
 void Staff::cleanupBrackets()
       {
       int index = idx();
-      int n = _score->nstaves();
+      int n = score()->nstaves();
       for (int i = 0; i < _brackets.size(); ++i) {
             if (_brackets[i]._bracket == BracketType::NO_BRACKET)
                   continue;
@@ -180,7 +208,7 @@ Staff::~Staff()
       {
       if (_linkedStaves) {
             _linkedStaves->remove(this);
-            if (_linkedStaves->isEmpty())
+            if (_linkedStaves->empty())
                   delete _linkedStaves;
             }
       }
@@ -195,7 +223,10 @@ ClefTypeList Staff::clefType(int tick) const
       if (ct._concertClef == ClefType::INVALID) {
             switch(_staffType.group()) {
                   case StaffGroup::TAB:
-                        ct = ClefTypeList(ClefType(score()->styleI(StyleIdx::tabClef)));
+                        {
+                        ClefType sct = ClefType(score()->styleI(StyleIdx::tabClef));
+                        ct = _staffType.lines() <= 4 ?  ClefTypeList(sct == ClefType::TAB ? ClefType::TAB4 : ClefType::TAB4_SERIF) : ClefTypeList(sct == ClefType::TAB ? ClefType::TAB : ClefType::TAB_SERIF);
+                        }
                         break;
                   case StaffGroup::STANDARD:
                         ct = defaultClefType();
@@ -262,6 +293,7 @@ void Staff::dumpTimeSigs(const char* title) const
 
 void Staff::setClef(Clef* clef)
       {
+//      qDebug("Staff::setClef generated %d", clef->generated());
       if (clef->generated())
             return;
       int tick = clef->segment()->tick();
@@ -281,6 +313,7 @@ void Staff::setClef(Clef* clef)
 
 void Staff::removeClef(Clef* clef)
       {
+//      qDebug("Staff::removeClef generated %d", clef->generated());
       if (clef->generated())
             return;
       int tick = clef->segment()->tick();
@@ -446,21 +479,19 @@ int Staff::currentKeyTick(int tick) const
 
 void Staff::write(Xml& xml) const
       {
-      int idx = score()->staffIdx(this);
+      int idx = this->idx();
       xml.stag(QString("Staff id=\"%1\"").arg(idx + 1));
       if (linkedStaves()) {
-            Score* s = score();
-            if (s->parentScore())
-                  s = s->parentScore();
+            Score* s = masterScore();
             foreach(Staff* staff, linkedStaves()->staves()) {
                   if ((staff->score() == s) && (staff != this))
-                        xml.tag("linkedTo", s->staffIdx(staff) + 1);
+                        xml.tag("linkedTo", staff->idx() + 1);
                   }
             }
 
       // for copy/paste we need to know the actual transposition
       if (xml.clipboardmode) {
-            Interval v = part()->instrument()->transpose();
+            Interval v = part()->instrument()->transpose(); // TODO: tick?
             if (v.diatonic)
                   xml.tag("transposeDiatonic", v.diatonic);
             if (v.chromatic)
@@ -482,8 +513,10 @@ void Staff::write(Xml& xml) const
             xml.tag("small", small());
       if (invisible())
             xml.tag("invisible", invisible());
-      if (neverHide())
-            xml.tag("neverHide", neverHide());
+      if (hideWhenEmpty() != HideMode::AUTO)
+            xml.tag("hideWhenEmpty", int(hideWhenEmpty()));
+      if (cutaway())
+            xml.tag("cutaway", cutaway());
       if (showIfEmpty())
             xml.tag("showIfSystemEmpty", showIfEmpty());
       if (_hideSystemBarLine)
@@ -500,23 +533,28 @@ void Staff::write(Xml& xml) const
       else {                                    // if some bar line, default is the default for span target staff
             int targetStaffIdx = idx + _barLineSpan - 1;
             if (targetStaffIdx >= score()->nstaves()) {
-                  qFatal("bad _barLineSpan %d for staff %d (nstaves %d)",
+                  qInfo("bad _barLineSpan %d for staff %d (nstaves %d)",
                      _barLineSpan, idx, score()->nstaves());
+                  targetStaffIdx = score()->nstaves() - 1;
                   }
             int targetStaffLines = score()->staff(targetStaffIdx)->lines();
             defaultLineTo = (targetStaffLines == 1 ? BARLINE_SPAN_1LINESTAFF_TO : (targetStaffLines-1) * 2);
             }
       if (_barLineSpan != 1 || _barLineFrom != defaultLineFrom || _barLineTo != defaultLineTo) {
-            if(_barLineFrom != defaultLineFrom || _barLineTo != defaultLineTo)
+            if (_barLineFrom != defaultLineFrom || _barLineTo != defaultLineTo)
                   xml.tag(QString("barLineSpan from=\"%1\" to=\"%2\"").arg(_barLineFrom).arg(_barLineTo), _barLineSpan);
             else
                   xml.tag("barLineSpan", _barLineSpan);
             }
       if (_userDist != 0.0)
-            xml.tag("distOffset", _userDist / spatium());
+            xml.tag("distOffset", _userDist / score()->spatium());
 
       writeProperty(xml, P_ID::MAG);
       writeProperty(xml, P_ID::COLOR);
+      writeProperty(xml, P_ID::PLAYBACK_VOICE1);
+      writeProperty(xml, P_ID::PLAYBACK_VOICE2);
+      writeProperty(xml, P_ID::PLAYBACK_VOICE3);
+      writeProperty(xml, P_ID::PLAYBACK_VOICE4);
       xml.etag();
       }
 
@@ -561,14 +599,21 @@ void Staff::read(XmlReader& e)
                   setSmall(e.readInt());
             else if (tag == "invisible")
                   setInvisible(e.readInt());
-            else if (tag == "neverHide")
-                  setNeverHide(e.readInt());
+            else if (tag == "hideWhenEmpty")
+                  setHideWhenEmpty(HideMode(e.readInt()));
+            else if (tag == "neverHide") {      // 2.0 compatibility
+                  bool v = e.readInt();
+                  if (v)
+                        setHideWhenEmpty(HideMode::NEVER);
+                  }
+            else if (tag == "cutaway")
+                  setCutaway(e.readInt());
             else if (tag == "showIfSystemEmpty")
                   setShowIfEmpty(e.readInt());
             else if (tag == "hideSystemBarLine")
                   _hideSystemBarLine = e.readInt();
             else if (tag == "keylist")
-                  _keys.read(e, _score);
+                  _keys.read(e, score());
             else if (tag == "bracket") {
                   BracketItem b;
                   b._bracket     = BracketType(e.intAttribute("type", -1));
@@ -598,16 +643,16 @@ void Staff::read(XmlReader& e)
                         _barLineTo = lines() == 1 ? BARLINE_SPAN_1LINESTAFF_TO : (lines() - 1) * 2;
                   }
             else if (tag == "distOffset")
-                  _userDist = e.readDouble() * spatium();
+                  _userDist = e.readDouble() * score()->spatium();
             else if (tag == "mag")
                   _userMag = e.readDouble(0.1, 10.0);
             else if (tag == "linkedTo") {
                   int v = e.readInt() - 1;
                   //
-                  // if this is an excerpt, link staff to parentScore()
+                  // if this is an excerpt, link staff to masterScore()
                   //
-                  if (score()->parentScore()) {
-                        Staff* st = score()->parentScore()->staff(v);
+                  if (!score()->isMaster()) {
+                        Staff* st = masterScore()->staff(v);
                         if (st)
                               linkTo(st);
                         else {
@@ -615,7 +660,7 @@ void Staff::read(XmlReader& e)
                               }
                         }
                   else {
-                        int idx = score()->staffIdx(this);
+                        int idx = this->idx();
                         if (v >= 0 && v < idx)
                               linkTo(score()->staff(v));
                         }
@@ -626,6 +671,14 @@ void Staff::read(XmlReader& e)
                   e.setTransposeDiatonic(e.readInt());
             else if (tag == "transposeChromatic")
                   e.setTransposeChromatic(e.readInt());
+            else if (tag == "playbackVoice1")
+                  setPlaybackVoice(0, e.readInt());
+            else if (tag == "playbackVoice2")
+                  setPlaybackVoice(1, e.readInt());
+            else if (tag == "playbackVoice3")
+                  setPlaybackVoice(2, e.readInt());
+            else if (tag == "playbackVoice4")
+                  setPlaybackVoice(3, e.readInt());
             else
                   e.unknown();
             }
@@ -646,7 +699,7 @@ qreal Staff::height() const
 
 qreal Staff::spatium() const
       {
-      return _score->spatium() * mag();
+      return score()->spatium() * mag();
       }
 
 //---------------------------------------------------------
@@ -677,7 +730,7 @@ SwingParameters Staff::swing(int tick) const
             swingUnit = 0;
       sp.swingRatio = swingRatio;
       sp.swingUnit = swingUnit;
-      if (_swingList.isEmpty())
+      if (_swingList.empty())
             return sp;
       QMap<int, SwingParameters>::const_iterator i = _swingList.upperBound(tick);
       if (i == _swingList.begin())
@@ -692,7 +745,7 @@ SwingParameters Staff::swing(int tick) const
 
 int Staff::channel(int tick,  int voice) const
       {
-      if (_channelList[voice].isEmpty())
+      if (_channelList[voice].empty())
             return 0;
       QMap<int, int>::const_iterator i = _channelList[voice].upperBound(tick);
       if (i == _channelList[voice].begin())
@@ -723,11 +776,63 @@ void Staff::setLines(int val)
 
 //---------------------------------------------------------
 //   lineDistance
+//    distance between staff lines
 //---------------------------------------------------------
 
 qreal Staff::lineDistance() const
       {
       return _staffType.lineDistance().val();
+      }
+
+//---------------------------------------------------------
+//   logicalLineDistance
+//    distance between logical (note) lines
+//---------------------------------------------------------
+
+qreal Staff::logicalLineDistance() const
+      {
+      return scaleNotesToLines() ? _staffType.lineDistance().val() : 1.0;
+      }
+
+//---------------------------------------------------------
+//   scaleNotesToLines
+//    returns true if logical line = physical line
+//---------------------------------------------------------
+
+bool Staff::scaleNotesToLines() const
+      {
+      // TODO: make style option
+      return !isDrumStaff();
+      }
+
+//---------------------------------------------------------
+//   middleLine
+//    returns logical line number of middle staff line
+//---------------------------------------------------------
+
+int Staff::middleLine() const
+      {
+      int line = lines() - 1;
+      if (scaleNotesToLines())
+            return line;
+      else
+            return line * lineDistance() / logicalLineDistance();
+      //return isTabStaff() ? line : line * lineDistance() / logicalLineDistance();
+      }
+
+//---------------------------------------------------------
+//   bottomLine
+//    returns logical line number of bottom staff line
+//---------------------------------------------------------
+
+int Staff::bottomLine() const
+      {
+      int line = (lines() - 1) * 2;
+      if (scaleNotesToLines())
+            return line;
+      else
+            return line * lineDistance() / logicalLineDistance();
+      //return isTabStaff() ? line : line * lineDistance() / logicalLineDistance();
       }
 
 //---------------------------------------------------------
@@ -780,7 +885,8 @@ void Staff::unlink(Staff* staff)
       {
       if (!_linkedStaves)
             return;
-      Q_ASSERT(_linkedStaves->staves().contains(staff));
+      if (!_linkedStaves->staves().contains(staff))
+            return;
       _linkedStaves->remove(staff);
       if (_linkedStaves->staves().size() <= 1) {
             delete _linkedStaves;
@@ -795,7 +901,8 @@ void Staff::unlink(Staff* staff)
 
 void LinkedStaves::add(Staff* staff)
       {
-      _staves.append(staff);
+      if (!_staves.contains(staff))
+            _staves.append(staff);
       }
 
 //---------------------------------------------------------
@@ -865,7 +972,7 @@ void Staff::setStaffType(const StaffType* st)
       _staffType = *st;
 
       if (linesNew != linesOld) {
-            int sIdx = score()->staffIdx(this);
+            int sIdx = this->idx();
             if (sIdx < 0) {                     // staff does not belong to score (yet?)
                   if (linesNew == 1) {          // 1-line staves have special bar lines
                         _barLineFrom = BARLINE_SPAN_1LINESTAFF_FROM;
@@ -919,7 +1026,8 @@ void Staff::init(const Staff* s)
       _barLineFrom       = s->_barLineFrom;
       _barLineTo         = s->_barLineTo;
       _invisible         = s->_invisible;
-      _neverHide         = s->_neverHide;
+      _hideWhenEmpty     = s->_hideWhenEmpty;
+      _cutaway           = s->_cutaway;
       _showIfEmpty       = s->_showIfEmpty;
       _hideSystemBarLine = s->_hideSystemBarLine;
       _color             = s->_color;
@@ -1004,7 +1112,7 @@ void Staff::updateOttava()
 
 void Staff::undoSetColor(const QColor& /*val*/)
       {
-//      score()->undoChangeProperty(this, P_ID::COLOR, val);
+//      undoChangeProperty(P_ID::COLOR, val);
       }
 
 //---------------------------------------------------------
@@ -1036,7 +1144,7 @@ void Staff::insertTime(int tick, int len)
       // check if there is a clef at the end of measure
       // before tick
       Clef* clef = 0;
-      Measure* m = _score->tick2measure(tick);
+      Measure* m = score()->tick2measure(tick);
       if (m && (m->tick() == tick) && (m->prevMeasure())) {
             m = m->prevMeasure();
             Segment* s = m->findSegment(Segment::Type::Clef, tick);
@@ -1124,6 +1232,20 @@ QVariant Staff::getProperty(P_ID id) const
                   return color();
             case P_ID::SMALL:
                   return small();
+            case P_ID::PLAYBACK_VOICE1:
+                  return playbackVoice(0);
+            case P_ID::PLAYBACK_VOICE2:
+                  return playbackVoice(1);
+            case P_ID::PLAYBACK_VOICE3:
+                  return playbackVoice(2);
+            case P_ID::PLAYBACK_VOICE4:
+                  return playbackVoice(3);
+            case P_ID::BARLINE_SPAN:
+                  return barLineSpan();
+            case P_ID::BARLINE_SPAN_FROM:
+                  return barLineFrom();
+            case P_ID::BARLINE_SPAN_TO:
+                  return barLineTo();
             default:
                   qDebug("Staff::getProperty: unhandled id");
                   return QVariant();
@@ -1152,11 +1274,32 @@ bool Staff::setProperty(P_ID id, const QVariant& v)
                   scaleChanged(oldVal, mag());
                   }
                   break;
+            case P_ID::PLAYBACK_VOICE1:
+                  setPlaybackVoice(0, v.toBool());
+                  break;
+            case P_ID::PLAYBACK_VOICE2:
+                  setPlaybackVoice(1, v.toBool());
+                  break;
+            case P_ID::PLAYBACK_VOICE3:
+                  setPlaybackVoice(2, v.toBool());
+                  break;
+            case P_ID::PLAYBACK_VOICE4:
+                  setPlaybackVoice(3, v.toBool());
+                  break;
+            case P_ID::BARLINE_SPAN:
+                  setBarLineSpan(v.toInt());
+                  break;
+            case P_ID::BARLINE_SPAN_FROM:
+                  setBarLineFrom(v.toInt());
+                  break;
+            case P_ID::BARLINE_SPAN_TO:
+                  setBarLineTo(v.toInt());
+                  break;
             default:
                   qDebug("Staff::setProperty: unhandled id");
                   break;
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       return true;
       }
 
@@ -1173,6 +1316,11 @@ QVariant Staff::propertyDefault(P_ID id) const
                   return QColor(Qt::black);
             case P_ID::SMALL:
                   return false;
+            case P_ID::PLAYBACK_VOICE1:
+            case P_ID::PLAYBACK_VOICE2:
+            case P_ID::PLAYBACK_VOICE3:
+            case P_ID::PLAYBACK_VOICE4:
+                  return true;
             default:
                   return QVariant();
             }

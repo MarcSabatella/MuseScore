@@ -22,6 +22,16 @@ namespace Ms {
 enum class SymId;
 
 //---------------------------------------------------------
+//   BreathType
+//---------------------------------------------------------
+
+struct BreathType {
+      SymId id;
+      bool isCaesura;
+      qreal pause;
+      };
+
+//---------------------------------------------------------
 //   @@ Breath
 //!    breathType() is index in symList
 //---------------------------------------------------------
@@ -29,23 +39,20 @@ enum class SymId;
 class Breath : public Element {
       Q_OBJECT
 
-      int _breathType;
       qreal _pause;
-      static const int breathSymbols = 4;
-      static SymId symList[breathSymbols];
+      SymId _symId;
 
    public:
       Breath(Score* s);
       virtual Element::Type type() const override { return Element::Type::BREATH; }
       virtual Breath* clone() const override      { return new Breath(*this); }
 
-      int breathType() const           { return _breathType; }
-      void setBreathType(int v)        { _breathType = v; }
+      void setSymId(SymId id)          { _symId = id; }
+      SymId symId() const              { return _symId; }
       qreal pause() const              { return _pause; }
       void setPause(qreal v)           { _pause = v; }
 
       Segment* segment() const         { return (Segment*)parent(); }
-      virtual Space space() const override;
 
       virtual void draw(QPainter*) const override;
       virtual void layout() override;
@@ -59,7 +66,11 @@ class Breath : public Element {
 
       virtual Element* nextElement() override;
       virtual Element* prevElement() override;
-      virtual QString accessibleInfo() override;
+      virtual QString accessibleInfo() const override;
+
+      bool isCaesura() const;
+
+      static const std::vector<BreathType> breathList;
       };
 
 

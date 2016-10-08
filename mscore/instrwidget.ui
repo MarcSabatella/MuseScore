@@ -205,34 +205,48 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="upButton">
+        <widget class="QToolButton" name="upButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="toolTip">
+          <string notr="true"/>
+         </property>
          <property name="accessibleName">
           <string>Up</string>
          </property>
          <property name="text">
-          <string>Up</string>
+          <string notr="true"/>
+         </property>
+         <property name="icon">
+          <iconset resource="musescore.qrc">
+           <normaloff>:/data/icons/arrow_up.svg</normaloff>:/data/icons/arrow_up.svg</iconset>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="downButton">
+        <widget class="QToolButton" name="downButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="toolTip">
+          <string notr="true"/>
+         </property>
          <property name="accessibleName">
           <string>Down</string>
          </property>
          <property name="text">
-          <string>Down</string>
+          <string notr="true"/>
+         </property>
+         <property name="icon">
+          <iconset resource="musescore.qrc">
+           <normaloff>:/data/icons/arrow_down.svg</normaloff>:/data/icons/arrow_down.svg</iconset>
          </property>
         </widget>
        </item>
@@ -364,6 +378,8 @@
   <tabstop>linkedButton</tabstop>
   <tabstop>partiturList</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="musescore.qrc"/>
+ </resources>
  <connections/>
 </ui>

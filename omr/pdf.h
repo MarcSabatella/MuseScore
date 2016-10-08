@@ -21,7 +21,10 @@
 #ifndef __PDF_H__
 #define __PDF_H__
 
-typedef struct fz_document_s fz_document;
+#include "qt5/poppler-qt5.h"
+
+class PDFDoc;
+class QImageOutputDev;
 
 namespace Ms {
 
@@ -31,8 +34,9 @@ namespace Ms {
 
 class Pdf {
       static int references;
-      fz_document* doc;
-
+      PDFDoc* _doc;
+      QImageOutputDev* imgOut;
+      Poppler::Document* _document;
    public:
       Pdf();
       bool open(const QString& path);
@@ -40,6 +44,7 @@ class Pdf {
 
       int numPages() const;
       QImage page(int);
+      QImage binarization(QImage image);
       };
 }
 

@@ -40,6 +40,7 @@
 #include "libmscore/measure.h"
 #include "libmscore/timesig.h"
 #include "libmscore/segment.h"
+#include "libmscore/sym.h"
 
 namespace Ms {
 
@@ -206,12 +207,12 @@ void MuseData::readNote(Part* part, const QString& s)
                   break;
                   }
             }
-      MScore::Direction dir = MScore::Direction::AUTO;
+      Direction dir = Direction::AUTO;
       if (s.size() >= 23) {
             if (s[22] == 'u')
-                  dir = MScore::Direction::UP;
+                  dir = Direction::UP;
             else if (s[22] == 'd')
-                  dir = MScore::Direction::DOWN;
+                  dir = Direction::DOWN;
             }
 
       int staffIdx = 0;
@@ -319,39 +320,39 @@ void MuseData::readNote(Part* part, const QString& s)
                   closeSlur(3, tick, staff, voice);
             else if (an[i] == '.') {
                   Articulation* atr = new Articulation(score);
-                  atr->setArticulationType(ArticulationType::Staccato);
+                  atr->setSymId(SymId::articStaccatoAbove);
                   chord->add(atr);
                   }
             else if (an[i] == '_') {
                   Articulation* atr = new Articulation(score);
-                  atr->setArticulationType(ArticulationType::Tenuto);
+                  atr->setSymId(SymId::articTenutoAbove);
                   chord->add(atr);
                   }
             else if (an[i] == 'v') {
                   Articulation* atr = new Articulation(score);
-                  atr->setArticulationType(ArticulationType::Upbow);
+                  atr->setSymId(SymId::stringsUpBow);
                   chord->add(atr);
                   }
             else if (an[i] == 'n') {
                   Articulation* atr = new Articulation(score);
-                  atr->setArticulationType(ArticulationType::Downbow);
+                  atr->setSymId(SymId::stringsDownBow);
                   chord->add(atr);
                   }
             else if (an[i] == 't') {
                   Articulation* atr = new Articulation(score);
-                  atr->setArticulationType(ArticulationType::Trill);
+                  atr->setSymId(SymId::ornamentTrill);
                   chord->add(atr);
                   }
             else if (an[i] == 'F') {
                   Articulation* atr = new Articulation(score);
                   atr->setUp(true);
-                  atr->setArticulationType(ArticulationType::Fermata);
+                  atr->setSymId(SymId::fermataAbove);
                   chord->add(atr);
                   }
             else if (an[i] == 'E') {
                   Articulation* atr = new Articulation(score);
                   atr->setUp(false);
-                  atr->setArticulationType(ArticulationType::Fermata);
+                  atr->setSymId(SymId::fermataBelow);
                   chord->add(atr);
                   }
             else if (an[i] == 'O') {
@@ -742,7 +743,7 @@ void MuseData::convert()
 //    return true on success
 //---------------------------------------------------------
 
-Score::FileError importMuseData(Score* score, const QString& name)
+Score::FileError importMuseData(MasterScore* score, const QString& name)
       {
       if(!QFileInfo(name).exists())
             return Score::FileError::FILE_NOT_FOUND;

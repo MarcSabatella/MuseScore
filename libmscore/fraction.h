@@ -26,7 +26,7 @@ class Fraction {
       int _denominator;
 
    public:
-      Fraction(int z = 0, int n = 1);
+      constexpr Fraction(int z = 0, int n = 1) : _numerator(z), _denominator(n) {}
       int numerator() const      { return _numerator;           }
       int denominator() const    { return _denominator;         }
       int& rnumerator()          { return _numerator;           }
@@ -75,6 +75,7 @@ class Fraction {
       bool operator!=(const Fraction&) const;
 
       QString print() const { return QString("%1/%2").arg(_numerator).arg(_denominator); }
+      operator QVariant() const { return QVariant::fromValue(*this); }
       };
 
 #ifdef SCRIPT_INTERFACE

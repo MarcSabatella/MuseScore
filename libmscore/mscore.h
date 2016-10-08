@@ -17,8 +17,8 @@
 
 namespace Ms {
 
-#define MSC_VERSION     "2.07"
-static const int MSCVERSION = 207;
+#define MSC_VERSION     "3.00"
+static constexpr int MSCVERSION = 300;
 
 // History:
 //    1.3   added staff->_barLineSpan
@@ -33,6 +33,7 @@ static const int MSCVERSION = 207;
 //    1.12  use durationType, remove tickLen
 //    1.13  Clefs: userOffset is not (mis)used for vertical layout position
 //    1.14  save user modified beam position as spatium value (Versions 0.9.6 - 1.3)
+
 //    1.15  save timesig inline; Lyrics "endTick" replaced by "ticks"
 //    1.16  spanners (hairpin, trill etc.) are now inline and have no ticks anymore
 //    1.17  new <Score> toplevel structure to support linked parts (excerpts)
@@ -47,6 +48,7 @@ static const int MSCVERSION = 207;
 //    1.24  default image size is spatium dependent
 //      -   symbol numbers in TextLine() replaced by symbol names
 //          TextStyle: frameWidth, paddingWidth are now in Spatium units (instead of mm)
+
 //    2.00  (Version 2.0)
 //    2.01  save SlurSegment position relative to staff
 //    2.02  save instrumentId, note slashes
@@ -54,13 +56,17 @@ static const int MSCVERSION = 207;
 //    2.04  added hideSystemBarLine flag to Staff
 //    2.05  breath segment changed to use tick of following chord rather than preceding chord
 //    2.06  Glissando moved from final chord to start note (Version 2.0.x)
-//    2.07  irregular, breakMMrest, more style options, system divider, bass string for tab (2.1)
+//
+//    2.07  irregular, breakMMrest, more style options, system divider, bass string for tab (3.0)
 
+//    3.00  (Version 3.0 alpha)
 
 class MStyle;
 class Sequencer;
 
-static const int VOICES = 4;
+enum class HairpinType : char;
+
+static constexpr int VOICES = 4;
 inline int staff2track(int staffIdx) { return staffIdx << 2; }
 inline int track2staff(int voice)    { return voice >> 2;    }
 inline int track2voice(int track)    { return track & 3;     }
@@ -68,13 +74,16 @@ inline int trackZeroVoice(int track) { return track & ~3;    }
 
 static const int MAX_TAGS = 32;
 
-static const qreal INCH = 25.4;
-static const qreal PPI  = 72.0;           // printer points per inch
-static const qreal SPATIUM20 = 5.0 / PPI; // size of Spatium for 20pt font in inch
-static const int MAX_STAVES = 4;
-#define MMSP(x)  Spatium((x) * .1)
+static constexpr qreal INCH      = 25.4;
+static constexpr qreal PPI       = 72.0;           // printer points per inch
+static constexpr qreal DPI_F     = 5;
+static constexpr qreal DPI       = 72.0 * DPI_F;
+static constexpr qreal SPATIUM20 = 5.0 * (DPI / 72.0);
+static constexpr qreal DPMM      = DPI / INCH;
 
-static const int  SHADOW_NOTE_LIGHT       = 120;
+static constexpr int MAX_STAVES  = 4;
+
+static const int  SHADOW_NOTE_LIGHT       = 135;
 
 static const char mimeSymbolFormat[]      = "application/musescore/symbol";
 static const char mimeSymbolListFormat[]  = "application/musescore/symbollist";
@@ -86,60 +95,76 @@ static const int  STRING_NONE             = -1;       // no ordinal for a physic
 static const int  FRET_NONE               = -1;       // no ordinal for a fret
 
 //---------------------------------------------------------
-//   ArticulationType
+//   Enumeration wrapper macro allowing exposure of
+//   enum class to QML without manual code reproduction
+//
+//   In addition to using this Macro, you need to do one/all of the following:
+//   - In mscore.cpp - QQmlEngine* MScore::qml()
+//       qmlRegisterUncreatableType<MSQE_name>("MuseScore", 1, 0, "name", tr("You can't create an enumeration"))
+//     Allows usage of name.VALUE from within a plugin as value
+//   - At the bottom of the file where you use this Macro
+//       Q_DECLARE_METATYPE(Ms::MSQE_name::E);
+//     Allows declaring Q_PROPERTY of the type Ms::MSQE_name::E
+//      Only useful if the next point is also done
+//   - In mscore.cpp - void MScore::init()
+//       qRegisterMetaType<MSQE_name::E>("name");
+//     Allows using Ms::MSQE_name::E as return type for the READ function
+//      and parameter type for the WRITE function on a Q_PROPERTY of that type
+//      on the condition that you also declare Q_ENUMS(Ms::MSQE_name::E)
+//      for that same Q_OBJECT
+//
+//   Q_INVOKABLES can't use the QML-wrapped enum type, nor the enum class type as
+//    parameters. Those should be from the correct storageType and static_casts should
+//    be applied when necessary.
 //---------------------------------------------------------
 
-enum class ArticulationType : char {
-      Fermata,
-      Shortfermata,
-      Longfermata,
-      Verylongfermata,
-      Sforzatoaccent,
-//      Espressivo,
-      Staccato,
-      Staccatissimo,
-      Tenuto,
-      Portato,
-      Marcato,
-      FadeIn,
-      FadeOut,
-      VolumeSwell,
-      WiggleSawtooth,
-      WiggleSawtoothWide,
-      WiggleVibratoLargeFaster,
-      WiggleVibratoLargeSlowest,
-      Ouvert,
-      Plusstop,
-      Upbow,
-      Downbow,
-      Reverseturn,
-      Turn,
-      Trill,
-      Prall,
-      Mordent,
-      PrallPrall,
-      PrallMordent,
-      UpPrall,
-      DownPrall,
-      UpMordent,
-      DownMordent,
-      PrallDown,
-      PrallUp,
-      LinePrall,
-      Schleifer,
-      Snappizzicato,
-//      Tapping,
-//      Slapping,
-//      Popping,
-      // Fingerings
-      ThumbPosition,
-      LuteFingThumb,
-      LuteFingFirst,
-      LuteFingSecond,
-      LuteFingThird,
-      ARTICULATIONS
+#define MS_QML_ENUM(name, storageType, ...)\
+      enum class name : storageType {\
+            __VA_ARGS__\
+      };\
+      class MSQE_##name {\
+            Q_GADGET\
+            Q_ENUMS(E)\
+      public:\
+            enum class E : storageType {\
+                  __VA_ARGS__\
+            };\
       };
 
+//---------------------------------------------------------
+//   Direction
+//---------------------------------------------------------
+
+class Direction  {
+      Q_GADGET
+      Q_ENUMS(E)
+      int val;
+
+   public:
+      enum E { AUTO, UP, DOWN };
+
+      Direction()                                {}
+      constexpr Direction(const int v) : val(v)  {}
+      Direction(const Direction& v) : val(v.val) {}
+      Direction(const QString&);
+
+      // automatic conversions
+      operator QVariant() const                { return QVariant::fromValue(*this); }
+//      explicit constexpr operator int() const  { return val; }
+      constexpr operator int() const  { return val; }
+
+      bool operator==(const Direction d) const { return val == d.val; }
+      bool operator!=(const Direction d) const { return val != d.val; }
+      bool operator==(const E d) const         { return val == d; }
+      bool operator!=(const E d) const         { return val != d; }
+
+      const char* toString() const;
+      static void fillComboBox(QComboBox*);
+      };
+
+constexpr Direction Direction_AUTO(0);
+constexpr Direction Direction_UP(1);
+constexpr Direction Direction_DOWN(2);
 
 //---------------------------------------------------------
 //   BracketType
@@ -212,18 +237,26 @@ enum class SelectType : char {
 //   NoteType
 //---------------------------------------------------------
 
-enum class NoteType : char {
-      NORMAL,
-      ACCIACCATURA,
-      APPOGGIATURA,       // grace notes
-      GRACE4,
-      GRACE16,
-      GRACE32,
-      GRACE8_AFTER,
-      GRACE16_AFTER,
-      GRACE32_AFTER,
-      INVALID
+enum class NoteType : unsigned char {
+      NORMAL        = 0,
+      ACCIACCATURA  = 0x1,
+      APPOGGIATURA  = 0x2,       // grace notes
+      GRACE4        = 0x4,
+      GRACE16       = 0x8,
+      GRACE32       = 0x10,
+      GRACE8_AFTER  = 0x20,
+      GRACE16_AFTER = 0x40,
+      GRACE32_AFTER = 0x80,
+      INVALID       = 0xFF
       };
+
+constexpr NoteType operator| (NoteType t1, NoteType t2) {
+      return static_cast<NoteType>(static_cast<int>(t1) | static_cast<int>(t2));
+      }
+constexpr bool operator& (NoteType t1, NoteType t2) {
+      return static_cast<int>(t1) & static_cast<int>(t2);
+      }
+
 
 //---------------------------------------------------------
 //    AccidentalVal
@@ -266,66 +299,79 @@ const int STAFF_GROUP_MAX = int(StaffGroup::TAB) + 1;      // out of enum to avo
 
 //---------------------------------------------------------
 //   Text Style Type
-//    Enumerate the list of build in text styles.
+//    Enumerate the list of built-in text styles.
 //    Must be in sync with list in setDefaultStyle().
 //---------------------------------------------------------
 
-enum class TextStyleType : char {
-      DEFAULT = 0,
-      TITLE,
-      SUBTITLE,
-      COMPOSER,
-      POET,
-      LYRIC1,
-      LYRIC2,
-      FINGERING,
-      LH_GUITAR_FINGERING,
-      RH_GUITAR_FINGERING,
-
-      STRING_NUMBER,
-      INSTRUMENT_LONG,
-      INSTRUMENT_SHORT,
-      INSTRUMENT_EXCERPT,
-      DYNAMICS,
-      TECHNIQUE,
-      TEMPO,
-      METRONOME,
-      MEASURE_NUMBER,
-      TRANSLATOR,
-
-      TUPLET,
-      SYSTEM,
-      STAFF,
-      HARMONY,
-      REHEARSAL_MARK,
-      REPEAT_LEFT,       // align to start of measure
-      REPEAT_RIGHT,      // align to end of measure
-      REPEAT,            // obsolete
-      VOLTA,
-      FRAME,
-
-      TEXTLINE,
-      GLISSANDO,
-      OTTAVA,
-      PEDAL,
-      HAIRPIN,
-      BENCH,
-      HEADER,
-      FOOTER,
-      INSTRUMENT_CHANGE,
-      FIGURED_BASS,
-
-      TEXT_STYLES
-      };
+MS_QML_ENUM(TextStyleType, signed char,\
+      DEFAULT = 0,\
+      TITLE,\
+      SUBTITLE,\
+      COMPOSER,\
+      POET,\
+      LYRIC1,\
+      LYRIC2,\
+      FINGERING,\
+      LH_GUITAR_FINGERING,\
+      RH_GUITAR_FINGERING,\
+      \
+      STRING_NUMBER,\
+      INSTRUMENT_LONG,\
+      INSTRUMENT_SHORT,\
+      INSTRUMENT_EXCERPT,\
+      DYNAMICS,\
+      EXPRESSION,\
+      TEMPO,\
+      METRONOME,\
+      MEASURE_NUMBER,\
+      TRANSLATOR,\
+      \
+      TUPLET,\
+      SYSTEM,\
+      STAFF,\
+      HARMONY,\
+      REHEARSAL_MARK,\
+      REPEAT_LEFT,       /* align to start of measure */\
+      REPEAT_RIGHT,      /* align to end of measure */\
+      VOLTA,\
+      FRAME,\
+      \
+      TEXTLINE,\
+      GLISSANDO,\
+      OTTAVA,\
+      PEDAL,\
+      HAIRPIN,\
+      BEND,\
+      HEADER,\
+      FOOTER,\
+      INSTRUMENT_CHANGE,\
+      FIGURED_BASS,\
+      \
+      TEXT_STYLES\
+      )
 
 //---------------------------------------------------------
 //   BarLineType
 //---------------------------------------------------------
 
-enum class BarLineType : char {
-      NORMAL, DOUBLE, START_REPEAT, END_REPEAT,
-      BROKEN, END, END_START_REPEAT, DOTTED
-      };
+MS_QML_ENUM(BarLineType, int,\
+      NORMAL           = 1,\
+      DOUBLE           = 2,\
+      START_REPEAT     = 4,\
+      END_REPEAT       = 8,\
+      BROKEN           = 0x10,\
+      END              = 0x20,\
+      END_START_REPEAT = 0x40,\
+      DOTTED           = 0x80\
+      )
+
+constexpr BarLineType operator| (BarLineType t1, BarLineType t2) {
+      return static_cast<BarLineType>(static_cast<int>(t1) | static_cast<int>(t2));
+      }
+constexpr bool operator& (BarLineType t1, BarLineType t2) {
+      return static_cast<int>(t1) & static_cast<int>(t2);
+      }
+
 
 // Icon() subtypes
 enum class IconType : signed char {
@@ -336,6 +382,21 @@ enum class IconType : signed char {
       FBEAM1, FBEAM2,
       VFRAME, HFRAME, TFRAME, FFRAME, MEASURE,
       BRACKETS
+      };
+
+//---------------------------------------------------------
+//   MPaintDevice
+//---------------------------------------------------------
+
+class MPaintDevice : public QPaintDevice {
+
+   protected:
+      virtual int metric(PaintDeviceMetric m) const;
+
+   public:
+      MPaintDevice() : QPaintDevice() {}
+      virtual QPaintEngine* paintEngine() const;
+      virtual ~MPaintDevice() {}
       };
 
 //---------------------------------------------------------
@@ -358,12 +419,13 @@ class MScore : public QObject {
       static QQmlEngine* _qml;
 #endif
 
+      static MPaintDevice* _paintDevice;
+
    public:
-      enum class Direction  : char { AUTO, UP, DOWN };
       enum class DirectionH : char { AUTO, LEFT, RIGHT };
       enum class OrnamentStyle : char { DEFAULT, BAROQUE};
       enum class GlissandoStyle : char { CHROMATIC, WHITE_KEYS, BLACK_KEYS, DIATONIC };
-      Q_ENUMS(Direction DirectionH OrnamentStyle GlissandoStyle)
+      Q_ENUMS(DirectionH OrnamentStyle GlissandoStyle)
 
       static void init();
 
@@ -400,18 +462,24 @@ class MScore : public QObject {
       static qreal nudgeStep50;
       static int defaultPlayDuration;
       static QString lastError;
-      static bool layoutDebug;
+
+// #ifndef NDEBUG
+      static bool noHorizontalStretch;
+      static bool noVerticalStretch;
+      static bool showSegmentShapes;
+      static bool showMeasureShapes;
+      static bool showBoundingRect;
+      static bool showCorruptedMeasures;
+      static bool useFallbackFont;
+// #endif
+      static bool debugMode;
+      static bool testMode;
 
       static int division;
       static int sampleRate;
       static int mtcType;
       static Sequencer* seq;
 
-      static qreal PDPI;
-      static qreal DPI;
-      static qreal DPMM;
-      static bool debugMode;
-      static bool testMode;
       static bool saveTemplateMode;
       static bool noGui;
 
@@ -419,10 +487,16 @@ class MScore : public QObject {
       static bool noImages;
 
       static bool pdfPrinting;
+      static double pixelRatio;
+
+      static qreal verticalPageGap;
+      static qreal horizontalPageGapEven;
+      static qreal horizontalPageGapOdd;
 
 #ifdef SCRIPT_INTERFACE
       static QQmlEngine* qml();
 #endif
+      static MPaintDevice* paintDevice();
       virtual void endCmd() { };
       };
 
@@ -430,7 +504,8 @@ class MScore : public QObject {
 //   center
 //---------------------------------------------------------
 
-inline static qreal center(qreal x1, qreal x2) {
+inline static qreal center(qreal x1, qreal x2)
+      {
       return (x1 + (x2 - x1) * .5);
       }
 
@@ -438,7 +513,8 @@ inline static qreal center(qreal x1, qreal x2) {
 //   limit
 //---------------------------------------------------------
 
-inline static int limit(int val, int min, int max) {
+inline static int limit(int val, int min, int max)
+      {
       if (val > max)
             return max;
       if (val < min)
@@ -449,11 +525,40 @@ inline static int limit(int val, int min, int max) {
 Q_DECLARE_FLAGS(Align, AlignmentFlags);
 Q_DECLARE_OPERATORS_FOR_FLAGS(Align);
 
+//---------------------------------------------------------
+//   qml access to containers
+//
+//   QmlListAccess provides a convenience interface for
+//   QQmlListProperty providing read-only access to plugins
+//   for std::vector, QVector and QList items
+//---------------------------------------------------------
+
+template <typename T> class QmlListAccess : public QQmlListProperty<T> {
+public:
+      QmlListAccess<T>(QObject* obj, std::vector<T*>& container)
+            : QQmlListProperty<T>(obj, &container, &stdVectorCount, &stdVectorAt) {};
+
+      QmlListAccess<T>(QObject* obj, QVector<T*>& container)
+            : QQmlListProperty<T>(obj, &container, &qVectorCount, &qVectorAt) {};
+
+      QmlListAccess<T>(QObject* obj, QList<T*>& container)
+            : QQmlListProperty<T>(obj, &container, &qListCount, &qListAt) {};
+
+      static int stdVectorCount(QQmlListProperty<T>* l)     { return static_cast<std::vector<T*>*>(l->data)->size(); }
+      static T* stdVectorAt(QQmlListProperty<T>* l, int i)  { return static_cast<std::vector<T*>*>(l->data)->at(i); }
+      static int qVectorCount(QQmlListProperty<T>* l)       { return static_cast<QVector<T*>*>(l->data)->size(); }
+      static T* qVectorAt(QQmlListProperty<T>* l, int i)    { return static_cast<QVector<T*>*>(l->data)->at(i); }
+      static int qListCount(QQmlListProperty<T>* l)         { return static_cast<QList<T*>*>(l->data)->size(); }
+      static T* qListAt(QQmlListProperty<T>* l, int i)      { return static_cast<QList<T*>*>(l->data)->at(i); }
+      };
+
 }     // namespace Ms
 
-Q_DECLARE_METATYPE(Ms::MScore::Direction);
+Q_DECLARE_METATYPE(Ms::Direction);
+//Q_DECLARE_METATYPE(Ms::MSQE_Direction::E);
+Q_DECLARE_METATYPE(Ms::Direction::E);
 Q_DECLARE_METATYPE(Ms::MScore::DirectionH);
 Q_DECLARE_METATYPE(Ms::TextStyleType);
+Q_DECLARE_METATYPE(Ms::BarLineType);
 
 #endif
-

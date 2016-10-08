@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -107,10 +107,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="2">
         <Chord>
@@ -121,7 +117,7 @@
           <Note>
             <Accidental>
               <role>1</role>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>66</pitch>
             <tpc>20</tpc>
@@ -129,10 +125,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="3">
         <Chord>
@@ -143,7 +135,7 @@
           <Note>
             <Accidental>
               <role>1</role>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>64</pitch>
             <tpc>18</tpc>
@@ -152,10 +144,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="4">
         <Chord>
@@ -166,7 +154,7 @@
           <Note>
             <Accidental>
               <role>1</role>
-              <subtype>natural</subtype>
+              <subtype>accidentalNatural</subtype>
               </Accidental>
             <pitch>65</pitch>
             <tpc>13</tpc>
@@ -174,10 +162,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="5">
         <Chord>
@@ -188,7 +172,7 @@
           <Note>
             <Accidental>
               <role>1</role>
-              <subtype>double sharp</subtype>
+              <subtype>accidentalDoubleSharp</subtype>
               </Accidental>
             <pitch>67</pitch>
             <tpc>15</tpc>
@@ -197,10 +181,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="6">
         <Chord>
@@ -211,7 +191,7 @@
           <Note>
             <Accidental>
               <role>1</role>
-              <subtype>double flat</subtype>
+              <subtype>accidentalDoubleFlat</subtype>
               </Accidental>
             <pitch>63</pitch>
             <tpc>11</tpc>
@@ -220,10 +200,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="7">
         <Chord>
@@ -235,7 +211,7 @@
             <Accidental>
               <bracket>1</bracket>
               <role>1</role>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>66</pitch>
             <tpc>20</tpc>
@@ -243,10 +219,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="8">
         <Chord>
@@ -258,7 +230,7 @@
             <Accidental>
               <bracket>1</bracket>
               <role>1</role>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>64</pitch>
             <tpc>18</tpc>
@@ -267,10 +239,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="9">
         <Chord>
@@ -282,7 +250,7 @@
             <Accidental>
               <bracket>1</bracket>
               <role>1</role>
-              <subtype>natural</subtype>
+              <subtype>accidentalNatural</subtype>
               </Accidental>
             <pitch>65</pitch>
             <tpc>13</tpc>
@@ -290,10 +258,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="10">
         <Chord>
@@ -305,7 +269,7 @@
             <Accidental>
               <bracket>1</bracket>
               <role>1</role>
-              <subtype>double sharp</subtype>
+              <subtype>accidentalDoubleSharp</subtype>
               </Accidental>
             <pitch>67</pitch>
             <tpc>15</tpc>
@@ -314,10 +278,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>normal</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       <Measure number="11">
         <Chord>
@@ -329,7 +289,7 @@
             <Accidental>
               <bracket>1</bracket>
               <role>1</role>
-              <subtype>double flat</subtype>
+              <subtype>accidentalDoubleFlat</subtype>
               </Accidental>
             <pitch>63</pitch>
             <tpc>11</tpc>
@@ -338,10 +298,6 @@
             <veloType>user</veloType>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     </Score>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -99,16 +99,12 @@
           <durationType>half</durationType>
           <Articulation>
             <direction>down</direction>
-            <subtype>fermata</subtype>
+            <subtype>fermataBelow</subtype>
             </Articulation>
           </Rest>
         <Rest>
           <durationType>half</durationType>
           </Rest>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     </Score>

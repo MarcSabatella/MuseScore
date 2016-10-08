@@ -37,7 +37,6 @@ struct PaperSize {
          : name(n), w(wi), h(hi) {}
       };
 
-extern const PaperSize* getPaperSize(const QString&);
 extern const PaperSize* getPaperSize(const qreal wi, const qreal hi);
 
 //---------------------------------------------------------
@@ -83,13 +82,14 @@ class PageFormat {
       PageFormat();
 
       const QSizeF& size() const    { return _size;          }    // size in inch
+      QSizeF& size()                { return _size;          }    // size in inch
       qreal width() const           { return _size.width();  }
       qreal height() const          { return _size.height(); }
       void setSize(const QSizeF& s) { _size = s;             }
       void copy(const PageFormat&);
 
       QString name() const;
-      void read(XmlReader&, Score* s = 0);
+      void read(XmlReader&);
       void write(Xml&) const;
       qreal evenLeftMargin() const        { return _evenLeftMargin;   }
       qreal oddLeftMargin() const         { return _oddLeftMargin;    }
@@ -140,10 +140,11 @@ class Page : public Element {
    public:
       Page(Score*);
       ~Page();
-      virtual Page* clone() const            { return new Page(*this); }
-      virtual Element::Type type() const     { return Element::Type::PAGE; }
-      const QList<System*>* systems() const  { return &_systems;   }
-      QList<System*>* systems()              { return &_systems;   }
+      virtual Page* clone() const           { return new Page(*this); }
+      virtual Element::Type type() const    { return Element::Type::PAGE; }
+      const QList<System*>& systems() const { return _systems;   }
+      QList<System*>& systems()             { return _systems;   }
+      System* system(int idx)               { return _systems[idx];   }
 
       virtual void layout();
       virtual void write(Xml&) const;
@@ -152,15 +153,15 @@ class Page : public Element {
       void appendSystem(System* s);
 
       int no() const                     { return _no;        }
-      void setNo(int n);
+      void setNo(int n)                  { _no = n;           }
       bool isOdd() const;
       qreal tm() const;            // margins in pixel
       qreal bm() const;
       qreal lm() const;
       qreal rm() const;
 
-      virtual void draw(QPainter*) const;
-      virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true);
+      virtual void draw(QPainter*) const override;
+      virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
 
       QList<Element*> items(const QRectF& r);
       QList<Element*> items(const QPointF& p);
@@ -170,8 +171,9 @@ class Page : public Element {
       Measure* searchMeasure(const QPointF& p) const;
       MeasureBase* pos2measure(const QPointF&, int* staffIdx, int* pitch,
          Segment**, QPointF* offset) const;
-      QList<const Element*> elements();         ///< list of visible elements
+      QList<Element*> elements();               ///< list of visible elements
       QRectF tbbox();                           // tight bounding box, excluding white space
+      int endTick() const;
       };
 
 extern const PaperSize paperSizes[];

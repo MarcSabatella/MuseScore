@@ -2,7 +2,7 @@
 //  MuseScore
 //  Music Composition & Notation
 //
-//  Copyright (C) 2014 Werner Schweer
+//  Copyright (C) 2014-2016 Werner Schweer
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2
@@ -14,9 +14,11 @@
 #define __STARTCENTER_H__
 
 #include "ui_startcenter.h"
+#include "abstractdialog.h"
 
 namespace Ms {
 
+#if 0
 //---------------------------------------------------------
 //   MyNetworkAccessManager
 //---------------------------------------------------------
@@ -38,7 +40,7 @@ class MyNetworkAccessManager: public QNetworkAccessManager
 //   MyWebView
 //---------------------------------------------------------
 
-class MyWebView: public QWebView
+class MyWebView: public QWebEngineView
       {
       Q_OBJECT
 
@@ -51,7 +53,7 @@ class MyWebView: public QWebView
 #ifndef QT_NO_OPENSSL
       void ignoreSSLErrors(QNetworkReply *reply, QList<QSslError> sslErrors);
 #endif
-     
+
    public:
       MyWebView(QWidget *parent = 0);
       ~MyWebView();
@@ -77,21 +79,24 @@ class CookieJar : public QNetworkCookieJar
     private:
       QString _file; // where to save cookies
       };
-
+#endif
 //---------------------------------------------------------
 //   Startcenter
 //---------------------------------------------------------
 
-class Startcenter : public QDialog, public Ui::Startcenter
+class Startcenter : public AbstractDialog, public Ui::Startcenter
       {
       Q_OBJECT
-      MyWebView* _webView;
+//TODO      MyWebView* _webView;
       virtual void closeEvent(QCloseEvent*);
 
    private slots:
       void loadScore(QString);
       void newScore();
       void openScoreClicked();
+
+   protected:
+      virtual void retranslate() { retranslateUi(this); }
 
    signals:
       void closed(bool);
@@ -100,10 +105,9 @@ class Startcenter : public QDialog, public Ui::Startcenter
       Startcenter();
       ~Startcenter();
       void updateRecentScores();
-      void writeSettings(QSettings&);
-      void readSettings(QSettings&);
+      void writeSettings();
+      void readSettings();
       };
-
 }
 #endif
 

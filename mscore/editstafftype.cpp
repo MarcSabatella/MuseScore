@@ -21,7 +21,7 @@
 
 namespace Ms {
 
-extern Score::FileError readScore(Score* score, QString name, bool ignoreVersionError);
+extern Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionError);
 
 const char* g_groupNames[STAFF_GROUP_MAX] = {
       QT_TRANSLATE_NOOP("staff group header name", "STANDARD STAFF"),
@@ -36,6 +36,7 @@ const char* g_groupNames[STAFF_GROUP_MAX] = {
 EditStaffType::EditStaffType(QWidget* parent, Staff* st)
    : QDialog(parent)
       {
+      setObjectName("EditStaffType");
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       setupUi(this);
 
@@ -71,9 +72,12 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
       durFontName->setCurrentIndex(0);
 
       // load a sample tabulature score in preview
-      Score* sc = new Score(MScore::defaultStyle());
+      MasterScore* sc = new MasterScore(MScore::defaultStyle());
       if (readScore(sc, QString(":/data/tab_sample.mscx"), false) == Score::FileError::FILE_NO_ERROR)
             preview->setScore(sc);
+      else {
+            Q_ASSERT_X(false, "EditStaffType::EditStaffType", "Error in opening sample file for preview");
+            }
 
       setValues();
 
@@ -120,6 +124,18 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
       connect(templateReset,        SIGNAL(clicked()),                  SLOT(resetToTemplateClicked()));
       connect(addToTemplates,       SIGNAL(clicked()),                  SLOT(addToTemplatesClicked()));
 //      connect(groupCombo,           SIGNAL(currentIndexChanged(int)),   SLOT(staffGroupChanged(int)));
+
+      MuseScore::restoreGeometry(this);
+      }
+
+//---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void EditStaffType::hideEvent(QHideEvent* ev)
+      {
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(ev);
       }
 
 //---------------------------------------------------------
@@ -485,12 +501,10 @@ void EditStaffType::tabStemThroughCompatibility(bool checked)
 void EditStaffType::updatePreview()
       {
       setFromDlg();
-      if (preview) {
-            preview->score()->staff(0)->setStaffType(&staffType);
-            preview->score()->doLayout();
-            preview->updateAll();
-            preview->update();
-            }
+      preview->score()->staff(0)->setStaffType(&staffType);
+      preview->score()->doLayout();
+      preview->updateAll();
+      preview->update();
       }
 
 //---------------------------------------------------------

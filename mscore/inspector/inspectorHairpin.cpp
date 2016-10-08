@@ -23,32 +23,34 @@ namespace Ms {
 //---------------------------------------------------------
 
 InspectorHairpin::InspectorHairpin(QWidget* parent)
-   : InspectorBase(parent)
+   : InspectorElementBase(parent)
       {
-      e.setupUi(addWidget());
       l.setupUi(addWidget());
       setupLineStyle(l.lineStyle);
       h.setupUi(addWidget());
 
-      iList = {
-            { P_ID::COLOR,               0, 0, e.color,             e.resetColor             },
-            { P_ID::VISIBLE,             0, 0, e.visible,           e.resetVisible           },
-            { P_ID::USER_OFF,            0, 0, e.offsetX,           e.resetX                 },
-            { P_ID::USER_OFF,            1, 0, e.offsetY,           e.resetY                 },
-            { P_ID::DIAGONAL,            0, 0, l.diagonal,          l.resetDiagonal          },
+      h.hairpinType->clear();
+      h.hairpinType->addItem(tr("Crescendo Hairpin"),   int(HairpinType::CRESC_HAIRPIN));
+      h.hairpinType->addItem(tr("Decrescendo Hairpin"), int(HairpinType::DECRESC_HAIRPIN) );
+      h.hairpinType->addItem(tr("Crescendo Line"),      int(HairpinType::CRESC_LINE));
+      h.hairpinType->addItem(tr("Decrescendo Line"),    int(HairpinType::DECRESC_LINE));
+
+      std::vector<InspectorItem> il = {
             { P_ID::LINE_VISIBLE,        0, 0, l.lineVisible,       l.resetLineVisible       },
+            { P_ID::DIAGONAL,            0, 0, l.diagonal,          l.resetDiagonal          },
             { P_ID::LINE_COLOR,          0, 0, l.lineColor,         l.resetLineColor         },
             { P_ID::LINE_WIDTH,          0, 0, l.lineWidth,         l.resetLineWidth         },
             { P_ID::LINE_STYLE,          0, 0, l.lineStyle,         l.resetLineStyle         },
-            { P_ID::HAIRPIN_TEXTLINE,    0, 0, h.useTextLine,       h.resetUseTextLine       },
+            { P_ID::DASH_LINE_LEN,       0, 0, l.dashLineLength,    l.resetDashLineLength    },
+            { P_ID::DASH_GAP_LEN,        0, 0, l.dashGapLength,     l.resetDashGapLength     },
             { P_ID::HAIRPIN_CIRCLEDTIP,  0, 0, h.hairpinCircledTip, h.resetHairpinCircledTip },
-            { P_ID::HAIRPIN_TYPE,        0, 0, h.hairpinType,       h.resetHairpinType       },
+            { P_ID::HAIRPIN_TYPE,        0, 0, h.hairpinType,       0                        },
             { P_ID::DYNAMIC_RANGE,       0, 0, h.dynRange,          h.resetDynRange          },
             { P_ID::VELO_CHANGE,         0, 0, h.veloChange,        h.resetVeloChange        },
             { P_ID::HAIRPIN_HEIGHT,      0, 0, h.hairpinHeight,     h.resetHairpinHeight     },
             { P_ID::HAIRPIN_CONT_HEIGHT, 0, 0, h.hairpinContHeight, h.resetHairpinContHeight }
             };
-      mapSignals();
+      mapSignals(il);
       }
 
 //---------------------------------------------------------
@@ -57,7 +59,8 @@ InspectorHairpin::InspectorHairpin(QWidget* parent)
 
 void InspectorHairpin::postInit()
       {
-      bool useTextLine = h.useTextLine->isChecked();
+      bool useTextLine = h.hairpinType->currentIndex() == int(HairpinType::CRESC_LINE)
+         || h.hairpinType->currentIndex() == int(HairpinType::DECRESC_LINE);
       l.lineVisible->setEnabled(useTextLine);
       h.hairpinCircledTip->setDisabled(useTextLine);
       h.hairpinHeight->setDisabled(useTextLine);

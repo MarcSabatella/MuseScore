@@ -37,49 +37,6 @@ struct Dyn {
       const char* text;  // utf8 text of dynamic
       };
 
-#if 0
-
-// variant with ligatures, using bravura-text
-
-static Dyn dynList[] = {
-      // dynamic:
-      {  -1,  true,  "other-dynamics", ""                              },
-      {   1,  false, "pppppp", "\ue520\ue520\ue520\ue520\ue520\ue520" },
-      {   5,  false, "ppppp",  "\ue520\ue520\ue520\ue520\ue520"       },
-      {  10,  false, "pppp",   "\ue520\ue520\ue520\ue520"             },
-      {  16,  false, "ppp",    "\ue520\ue520\ue520"                   },
-      {  33,  false, "pp",     "\ue520\ue520"                         },
-      {  49,  false, "p",      "\ue520"                               },
-      {  64,  false, "mp",     "\ue521\ue520"                         },
-      {  80,  false, "mf",     "\ue521\ue522"                         },
-      {  96,  false, "f",      "\ue522"                               },
-      { 112,  false, "ff",     "\ue522\ue522"                          },
-      { 126,  false, "fff",    "\ue522\ue522\ue522"                    },
-      { 127,  false, "ffff",   "\ue522\ue522\ue522\ue522"              },
-      { 127,  false, "fffff",  "\ue522\ue522\ue522\ue522\ue522"        },
-      { 127,  false, "ffffff", "\ue522\ue522\ue522\ue522\ue522\ue522"  },
-
-      // accents:
-      {  0,   true,  "fp",     "\ue522\ue520"                          },
-      {  0,   true,  "sf",     "\ue524\ue522"                          },
-      {  0,   true,  "sfz",    "\ue524\ue522\ue525"                    },
-      {  0,   true,  "sff",    "\ue524\ue522\ue522"                    },
-      {  0,   true,  "sffz",   "\ue524\ue522\ue522\ue525"              },
-      {  0,   true,  "sfp",    "\ue524\ue522\ue520"                    },
-      {  0,   true,  "sfpp",   "\ue524\ue522\ue520\ue520"              },
-      {  0,   true,  "rfz",    "\ue523\ue522\ue525"                    },
-      {  0,   true,  "rf",     "\ue523\ue522"                          },
-      {  0,   true,  "fz",     "\ue522\ue525"                          },
-      {  0,   true,  "m",      "\ue521"                                },
-      {  0,   true,  "r",      "\ue523"                                },
-      {  0,   true,  "s",      "\ue524"                                },
-      {  0,   true,  "z",      "\ue525"                                },
-      {  0,   true,  "n",      "\ue526"                                },
-      };
-#endif
-
-#if 1
-
 // variant with ligatures, works for both emmentaler and bravura:
 
 static Dyn dynList[] = {
@@ -117,46 +74,6 @@ static Dyn dynList[] = {
       {  0,   true,  "z",      "<sym>dynamicZ</sym>"},
       {  0,   true,  "n",      "<sym>dynamicNiente</sym>" }
       };
-#endif
-
-#if 0
-// variant with precomposed symbols, available only in bravura:
-static Dyn dynList[] = {
-      // dynamic:
-      {  -1,  true,  "other-dynamics", ""     },
-      {   1,  false, "pppppp", "<sym>dynamicPPPPPP</sym>" },
-      {   5,  false, "ppppp",  "<sym>dynamicPPPPP</sym>" },
-      {  10,  false, "pppp",   "<sym>dynamicPPPP</sym>" },
-      {  16,  false, "ppp",    "<sym>dynamicPPP</sym>" },
-      {  33,  false, "pp",     "<sym>dynamicPP</sym>" },
-      {  49,  false, "p",      "<sym>dynamicPiano</sym>" },
-      {  64,  false, "mp",     "<sym>dynamicMP</sym>" },
-      {  80,  false, "mf",     "<sym>dynamicMF</sym>" },
-      {  96,  false, "f",      "<sym>dynamicForte</sym>" },
-      { 112,  false, "ff",     "<sym>dynamicFF</sym>" },
-      { 126,  false, "fff",    "<sym>dynamicFFF</sym>" },
-      { 127,  false, "ffff",   "<sym>dynamicFFFF</sym>" },
-      { 127,  false, "fffff",  "<sym>dynamicFFFFF</sym>" },
-      { 127,  false, "ffffff", "<sym>dynamicFFFFFF</sym>" },
-
-      // accents:
-      {  0,   true,  "fp",     "<sym>dynamicFortePiano</sym>" },
-      {  0,   true,  "sf",     "<sym>dynamicSforzando1</sym>" },
-      {  0,   true,  "sfz",    "<sym>dynamicSforzato</sym>" },
-      {  0,   true,  "sff",    "<sym>dynamicSforzando</sym><sym>dynamicFF</sym>" },
-      {  0,   true,  "sffz",   "<sym>dynamicSforzatoFF</sym>" },
-      {  0,   true,  "sfp",    "<sym>dynamicSforzandoPiano</sym>" },
-      {  0,   true,  "sfpp",   "<sym>dynamicSforzandoPianissimo</sym>" },
-      {  0,   true,  "rfz",    "<sym>dynamicRinforzando2</sym>" },
-      {  0,   true,  "rf",     "<sym>dynamicRinforzando1</sym>" },
-      {  0,   true,  "fz",     "<sym>dynamicForzando</sym>" },
-      {  0,   true,  "m",      "<sym>dynamicMezzo</sym>" },
-      {  0,   true,  "r",      "<sym>dynamicRinforzando</sym>" },
-      {  0,   true,  "s",      "<sym>dynamicSforzando</sym>" },
-      {  0,   true,  "z",      "<sym>dynamicZ</sym>" },
-      {  0,   true,  "n",      "<sym>dynamicNiente</sym>" }
-      };
-#endif
 
 //---------------------------------------------------------
 //   Dynamic
@@ -178,15 +95,6 @@ Dynamic::Dynamic(const Dynamic& d)
       _dynamicType = d._dynamicType;
       _velocity    = d._velocity;
       _dynRange    = d._dynRange;
-      }
-
-//---------------------------------------------------------
-//   setVelocity
-//---------------------------------------------------------
-
-void Dynamic::setVelocity(int v)
-      {
-      _velocity = v;
       }
 
 //---------------------------------------------------------
@@ -241,37 +149,66 @@ void Dynamic::read(XmlReader& e)
 
 void Dynamic::layout()
       {
-      if (!readPos().isNull()) {
-            if (score()->mscVersion() < 118) {
-                  setReadPos(QPointF());
-                  // hack: 1.2 boundingBoxes are a bit wider which results
-                  // in symbols moved right
-                  setUserXoffset(userOff().x() - spatium() * .6);
-                  }
-            }
-      setPos(textStyle().offset(spatium()));
+      if (autoplace())
+            setUserOff(QPointF());
+
+      QPointF p(textStyle().offset(spatium()));
+      if (placeAbove())
+            p.ry() = staff()->height() - p.ry() + lineHeight();
+      setPos(p);
       Text::layout1();
 
       Segment* s = segment();
-      if (!s)
-            return;
-      for (int voice = 0; voice < VOICES; ++voice) {
-            int t = (track() & ~0x3) + voice;
-            Chord* c = static_cast<Chord*>(s->element(t));
-            if (!c)
-                  continue;
-            if (c->type() == Element::Type::CHORD) {
-                  qreal noteHeadWidth = score()->noteHeadWidth() * c->mag();
-                  if (c->stem() && !c->up())  // stem down
-                        rxpos() += noteHeadWidth * .25;  // center on stem + optical correction
+      if (s) {
+            int t = track() & ~0x3;
+            for (int voice = 0; voice < VOICES; ++voice) {
+                  Element* e = s->element(t + voice);
+                  if (!e)
+                        continue;
+                  if (e->isChord()) {
+                        Chord* c = toChord(e);
+                        qreal noteHeadWidth = score()->noteHeadWidth() * c->mag();
+                        if (c->stem() && !c->up())  // stem down
+                              rxpos() += noteHeadWidth * .25;  // center on stem + optical correction
+                        else
+                              rxpos() += noteHeadWidth * .5;   // center on notehead
+                        }
                   else
-                        rxpos() += noteHeadWidth * .5;   // center on note head
+                        rxpos() += e->width() * .5;
+                  break;
                   }
-            else
-                  rxpos() += c->width() * .5;
-            break;
             }
+      else
+            setPos(QPointF());      // for palette
       adjustReadPos();
+      }
+
+//-------------------------------------------------------------------
+//   doAutoplace
+//
+//    Move Dynamic up or down to avoid collisions with other elements.
+//-------------------------------------------------------------------
+
+void Dynamic::doAutoplace()
+      {
+      Segment* s = segment();
+      if (!(s && autoplace()))
+            return;
+
+      qreal minDistance = score()->styleP(StyleIdx::dynamicsMinDistance);
+      Shape s1          = s->staffShape(staffIdx()).translated(s->pos());
+      Shape s2          = shape().translated(s->pos());
+
+      if (placeAbove()) {
+            qreal d = s2.minVerticalDistance(s1);
+            if (d > -minDistance)
+                  rUserYoffset() = -d - minDistance;
+            }
+      else {
+            qreal d = s1.minVerticalDistance(s2);
+            if (d > -minDistance)
+                  rUserYoffset() = d + minDistance;
+            }
       }
 
 //---------------------------------------------------------
@@ -344,11 +281,10 @@ QRectF Dynamic::drag(EditData* ed)
       //
       Qt::KeyboardModifiers km = qApp->keyboardModifiers();
       if (km != (Qt::ShiftModifier | Qt::ControlModifier)) {
-            int si;
-            Segment* seg = 0;
-            if (_score->pos2measure(ed->pos, &si, 0, &seg, 0) == nullptr)
-                  return f;
-            if (seg && (seg != segment() || staffIdx() != si)) {
+            int si       = staffIdx();
+            Segment* seg = segment();
+            score()->dragPosition(ed->pos, &si, &seg);
+            if (seg != segment() || staffIdx() != si) {
                   QPointF pos1(canvasPos());
                   score()->undo(new ChangeParent(this, seg, si));
                   setUserOff(QPointF());
@@ -367,7 +303,7 @@ QRectF Dynamic::drag(EditData* ed)
 
 void Dynamic::undoSetDynRange(Range v)
       {
-      score()->undoChangeProperty(this, P_ID::DYNAMIC_RANGE, int(v));
+      undoChangeProperty(P_ID::DYNAMIC_RANGE, int(v));
       }
 
 //---------------------------------------------------------
@@ -376,7 +312,7 @@ void Dynamic::undoSetDynRange(Range v)
 
 QVariant Dynamic::getProperty(P_ID propertyId) const
       {
-      switch(propertyId) {
+      switch (propertyId) {
             case P_ID::DYNAMIC_RANGE:     return int(_dynRange);
             case P_ID::VELOCITY:          return velocity();
             case P_ID::SUBTYPE:           return int(_dynamicType);
@@ -406,7 +342,7 @@ bool Dynamic::setProperty(P_ID propertyId, const QVariant& v)
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      triggerLayout();
       return true;
       }
 
@@ -417,10 +353,14 @@ bool Dynamic::setProperty(P_ID propertyId, const QVariant& v)
 QVariant Dynamic::propertyDefault(P_ID id) const
       {
       switch(id) {
-            case P_ID::TEXT_STYLE_TYPE: return int(TextStyleType::DYNAMICS);
-            case P_ID::DYNAMIC_RANGE:   return int(Range::PART);
-            case P_ID::VELOCITY:        return -1;
-            default:                    return Text::propertyDefault(id);
+            case P_ID::TEXT_STYLE_TYPE:
+                  return int(TextStyleType::DYNAMICS);
+            case P_ID::DYNAMIC_RANGE:
+                  return int(Range::PART);
+            case P_ID::VELOCITY:
+                  return -1;
+            default:
+                  return Text::propertyDefault(id);
             }
       }
 
@@ -428,7 +368,7 @@ QVariant Dynamic::propertyDefault(P_ID id) const
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString Dynamic::accessibleInfo()
+QString Dynamic::accessibleInfo() const
       {
       return QString("%1: %2").arg(Element::accessibleInfo()).arg(this->dynamicTypeName());
       }

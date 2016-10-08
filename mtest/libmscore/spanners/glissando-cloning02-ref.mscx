@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -151,7 +151,7 @@
         <Rest>
           <lid>8</lid>
           <durationType>measure</durationType>
-          <duration z="2" n="4"/>
+          <duration>2/4</duration>
           </Rest>
         <BarLine>
           <subtype>end</subtype>
@@ -216,7 +216,7 @@
             </StaffType>
           <bracket type="-1" span="0"/>
           </Staff>
-        <trackName></trackName>
+        <trackName>Flute</trackName>
         <Instrument>
           <longName>Flute</longName>
           <shortName>Fl.</shortName>
@@ -307,7 +307,7 @@
           <Rest>
             <lid>8</lid>
             <durationType>measure</durationType>
-            <duration z="2" n="4"/>
+            <duration>2/4</duration>
             </Rest>
           <BarLine>
             <subtype>end</subtype>

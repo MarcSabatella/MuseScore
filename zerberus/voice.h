@@ -23,6 +23,7 @@ class Zerberus;
 
 enum class LoopMode : char;
 enum class OffMode : char;
+enum class Trigger : char;
 
 static const int INTERP_MAX = 256;
 static const int EG_SIZE    = 256;
@@ -36,20 +37,26 @@ struct Envelope {
       static float egLin[EG_SIZE];
 
       int steps, count;
+      bool constant = false;
+      float offset = 0.0;
+      float max = 1.0;
       float val;
       float* table;
 
-      Envelope(float* f) { table = f; }
+      void setTable(float* f) { table = f; }
       bool step() {
             if (count) {
                   --count;
-                  val = table[EG_SIZE * count/steps];
+                  if (!constant)
+                        val = table[EG_SIZE * count/steps]*(max-offset)+offset;
                   return false;
                   }
             else
                   return true;
             }
       void setTime(float ms, int sampleRate);
+      void setConstant(float v) { constant = true; val = v; }
+      void setVariable()        { constant = false; }
       };
 
 //-----------------------------------------------------------------------------
@@ -73,6 +80,7 @@ struct Phase {
       void operator+=(const Phase& p) { data += p.data;   }
       void set(int b)                 { data = b * 256;   }
       void set(double b)              { data = b * 256.0; }
+      void setIndex(int b)            { data = b * 256 + _fract; }
       int index() const               { return data >> 8; }
       unsigned fract() const          { return _fract;    }
 
@@ -86,6 +94,16 @@ enum class VoiceState : char {
       PLAYING,
       SUSTAINED,
       STOP
+      };
+
+enum V1Envelopes : int {
+      DELAY,
+      ATTACK,
+      HOLD,
+      DECAY,
+      SUSTAIN,
+      RELEASE,
+      COUNT
       };
 
 //---------------------------------------------------------
@@ -107,6 +125,10 @@ class Voice {
       LoopMode _loopMode;
       OffMode _offMode;
       int _offBy;
+      int _loopStart;
+      int _loopEnd;
+      bool _looping;
+      int _samplesSinceStart;
 
       float gain;
 
@@ -142,34 +164,43 @@ class Voice {
       float modenv_val;
       float modlfo_val;
 
-      Envelope attackEnv;
-      Envelope stopEnv;
+      int currentEnvelope;
+      Envelope envelopes[V1Envelopes::COUNT];
       static float interpCoeff[INTERP_MAX][4];
 
       void updateFilter(float fres);
+
+      Trigger trigger;
+
+      const Zone* z;
 
    public:
       Voice(Zerberus*);
       Voice* next() const         { return _next; }
       void setNext(Voice* v)      { _next = v; }
 
-      void start(Channel* channel, int key, int velo, const Zone*);
+      void start(Channel* channel, int key, int velo, const Zone*, double durSinceNoteOn);
+      void updateEnvelopes();
       void process(int frames, float*);
+      void updateLoop();
+      short getData(int pos);
 
       Channel* channel() const    { return _channel; }
       int key() const             { return _key;     }
       int velocity() const        { return _velocity; }
 
-      bool isPlaying() const      { return _state == VoiceState::PLAYING;   }
+      bool isPlaying() const      { return _state == VoiceState::PLAYING || _state == VoiceState::ATTACK;   }
       bool isSustained() const    { return _state == VoiceState::SUSTAINED; }
       bool isOff() const          { return _state == VoiceState::OFF; }
       bool isStopped() const      { return _state == VoiceState::STOP; }
-      void stop()                 { _state = VoiceState::STOP;      }
+      void stop()                 { envelopes[currentEnvelope].step(); envelopes[V1Envelopes::RELEASE].max = envelopes[currentEnvelope].val; currentEnvelope = V1Envelopes::RELEASE; _state = VoiceState::STOP;      }
       void stop(float time);
       void sustained()            { _state = VoiceState::SUSTAINED; }
       void off()                  { _state = VoiceState::OFF;       }
       const char* state() const;
       LoopMode loopMode() const   { return _loopMode; }
+      int getSamplesSinceStart()  { return _samplesSinceStart;    }
+      float getGain()             { return gain; }
 
       OffMode offMode() const     { return _offMode;  }
       int offBy() const           { return _offBy;    }

@@ -5,7 +5,7 @@
     <seq>Ctrl+Shift+P</seq>
     </SC>
   <SC>
-    <key>local-help</key>
+    <key>help</key>
     <seq>F1</seq>
     </SC>
   <SC>
@@ -53,12 +53,20 @@
     <seq>Ctrl+V</seq>
     </SC>
   <SC>
+    <key>swap</key>
+    <seq>Ctrl+Shift+X</seq>
+    </SC>
+  <SC>
     <key>instruments</key>
     <seq>I</seq>
     </SC>
   <SC>
     <key>note-input</key>
     <seq>N</seq>
+    </SC>
+  <SC>
+    <key>note-input-repitch</key>
+    <seq>Ctrl+Shift+I</seq>
     </SC>
   <SC>
     <key>interval1</key>
@@ -185,16 +193,24 @@
     <seq>0</seq>
     </SC>
   <SC>
+    <key>realtime-advance</key>
+    <seq>Enter</seq>
+    </SC>
+  <SC>
     <key>add-staccato</key>
     <seq>Shift+S</seq>
     </SC>
   <SC>
     <key>add-tenuto</key>
-    <seq>Ctrl+Alt+N</seq>
+    <seq>Shift+N</seq>
     </SC>
   <SC>
     <key>add-marcato</key>
-    <seq>Ctrl+Alt+O</seq>
+    <seq>Shift+O</seq>
+    </SC>
+  <SC>
+    <key>add-sforzato</key>
+    <seq>Shift+V</seq>
     </SC>
   <SC>
     <key>stretch+</key>
@@ -381,7 +397,7 @@
     <seq>Del</seq>
     </SC>
   <SC>
-    <key>delete-measures</key>
+    <key>time-delete</key>
     <seq>Ctrl+Del</seq>
     <seq>Ctrl+Backspace</seq>
     </SC>
@@ -528,7 +544,7 @@
     </SC>
   <SC>
     <key>tempo</key>
-    <seq>Alt+T</seq>
+    <seq>Alt+Shift+T</seq>
     </SC>
   <SC>
     <key>system-text</key>
@@ -537,6 +553,10 @@
   <SC>
     <key>staff-text</key>
     <seq>Ctrl+T</seq>
+    </SC>
+  <SC>
+    <key>expression-text</key>
+    <seq>Ctrl+E</seq>
     </SC>
   <SC>
     <key>chord-text</key>
@@ -596,7 +616,7 @@
     </SC>
   <SC>
     <key>edit-element</key>
-    <seq>Ctrl+E</seq>
+    <seq>Alt+Shift+E</seq>
     </SC>
   <SC>
     <key>reset</key>
@@ -673,10 +693,7 @@
   <SC>
     <key>fullscreen</key>
     <seq>Ctrl+U</seq>
-    </SC>
-  <SC>
-    <key>repitch</key>
-    <seq>Ctrl+Shift+I</seq>
+    <seq>Meta+Ctrl+F</seq>
     </SC>
   <SC>
     <key>toggle-piano</key>
@@ -965,5 +982,10 @@
     <key>startcenter</key>
     <seq>F4</seq>
     </SC>
+  <SC>
+    <key>viewmode</key>
+    <seq>Ctrl+Shift+V</seq>
+    </SC>
+
   </Shortcuts>
 

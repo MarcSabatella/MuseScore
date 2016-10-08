@@ -5,12 +5,16 @@ set OLD_DIR=%CD%
 echo TRANSLATIONS = \
 echo       %1/../../share/locale/instruments_af.ts  \
 echo       %1/../../share/locale/instruments_ar.ts \
+echo       %1/../../share/locale/instruments_ar_DZ.ts \
+echo       %1/../../share/locale/instruments_ar_EG.ts \
+echo       %1/../../share/locale/instruments_ar_SD.ts \
 echo       %1/../../share/locale/instruments_ast.ts \
 echo       %1/../../share/locale/instruments_be.ts \
 echo       %1/../../share/locale/instruments_bg.ts \
 echo       %1/../../share/locale/instruments_ca.ts \
 echo       %1/../../share/locale/instruments_ca@valencia.ts \
 echo       %1/../../share/locale/instruments_cs.ts \
+echo       %1/../../share/locale/instruments_cy.ts \
 echo       %1/../../share/locale/instruments_da.ts \
 echo       %1/../../share/locale/instruments_de.ts \
 echo       %1/../../share/locale/instruments_el.ts \
@@ -24,6 +28,7 @@ echo       %1/../../share/locale/instruments_fa.ts \
 echo       %1/../../share/locale/instruments_fi.ts \
 echo       %1/../../share/locale/instruments_fo.ts \
 echo       %1/../../share/locale/instruments_fr.ts \
+echo       %1/../../share/locale/instruments_ga.ts \
 echo       %1/../../share/locale/instruments_gl.ts \
 echo       %1/../../share/locale/instruments_he.ts \
 echo       %1/../../share/locale/instruments_hi_IN.ts \
@@ -48,6 +53,7 @@ echo       %1/../../share/locale/instruments_ru.ts \
 echo       %1/../../share/locale/instruments_sk.ts \
 echo       %1/../../share/locale/instruments_sl.ts \
 echo       %1/../../share/locale/instruments_sr.ts \
+echo       %1/../../share/locale/instruments_sr_RS.ts \
 echo       %1/../../share/locale/instruments_sv.ts \
 echo       %1/../../share/locale/instruments_th.ts \
 echo       %1/../../share/locale/instruments_tr.ts \

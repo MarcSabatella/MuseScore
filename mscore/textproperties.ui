@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>647</width>
-    <height>577</height>
+    <height>595</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,12 +78,6 @@
              <property name="text">
               <string>Font:</string>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
-             </property>
             </widget>
            </item>
            <item>
@@ -103,12 +97,6 @@
              </property>
              <property name="text">
               <string>Size:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -160,12 +148,6 @@
              </property>
              <property name="textFormat">
               <enum>Qt::PlainText</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -318,12 +300,6 @@
              <property name="text">
               <string>Color:</string>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
-             </property>
             </widget>
            </item>
            <item>
@@ -391,9 +367,6 @@
         <property name="title">
          <string>Offset</string>
         </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
         <layout class="QGridLayout" name="gridLayout_4">
          <property name="topMargin">
           <number>4</number>
@@ -413,12 +386,6 @@
              </property>
              <property name="text">
               <string extracomment="coordinate">Horizontal:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -464,12 +431,6 @@
              </property>
              <property name="text">
               <string extracomment="coordinate">Vertical:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -556,12 +517,6 @@
            <property name="text">
             <string>Horizontal:</string>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="indent">
-            <number>5</number>
-           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -582,7 +537,7 @@
             <string>Align left edge of text to reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -605,7 +560,7 @@
             <string>Center text on reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -628,7 +583,7 @@
             <string>Align top edge of text to reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -651,7 +606,7 @@
             <string>Align right edge of text to reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -667,9 +622,6 @@
            <property name="text">
             <string>Vertical:</string>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
           </widget>
          </item>
          <item row="0" column="8">
@@ -684,7 +636,7 @@
             <string>Align baseline of text to reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -707,7 +659,7 @@
             <string>Center text vertical to reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -730,7 +682,7 @@
             <string>Align bottom edge of text to reference point</string>
            </property>
            <property name="text">
-            <string notr="true">...</string>
+            <string notr="true"/>
            </property>
            <property name="icon">
             <iconset resource="musescore.qrc">
@@ -778,9 +730,6 @@
         <property name="title">
          <string>Frame</string>
         </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
         <property name="checkable">
          <bool>true</bool>
         </property>
@@ -826,6 +775,13 @@
              </property>
             </spacer>
            </item>
+           <item>
+            <widget class="QCheckBox" name="square">
+             <property name="text">
+              <string>Square</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -840,12 +796,6 @@
              </property>
              <property name="text">
               <string>Border thickness:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -879,12 +829,6 @@
              <property name="text">
               <string>Text margin:</string>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
-             </property>
             </widget>
            </item>
            <item row="0" column="3">
@@ -917,12 +861,6 @@
              <property name="text">
               <string>Border radius:</string>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
-             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -942,12 +880,6 @@
              </property>
              <property name="text">
               <string>Foreground color:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -981,12 +913,6 @@
              </property>
              <property name="text">
               <string>Background color:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <property name="indent">
-              <number>5</number>
              </property>
             </widget>
            </item>

@@ -25,9 +25,10 @@
 
 namespace Ms {
 
-class Score;
+class MasterScore;
 class Excerpt;
 class Part;
+class Staff;
 
 //---------------------------------------------------------
 //   ExcerptItem
@@ -45,12 +46,40 @@ class ExcerptItem : public QListWidgetItem {
 //   PartItem
 //---------------------------------------------------------
 
-class PartItem : public QListWidgetItem {
-      Part* _part;
+class PartItem : public QTreeWidgetItem {
+      Part*                   _part;
 
    public:
-      PartItem(Part*, QListWidget* parent = 0);
-      Part* part() const { return _part; }
+      PartItem(Part*, QTreeWidget* parent = 0);
+      Part* part() const                    { return _part;   }
+      };
+
+//---------------------------------------------------------
+//   PartiturPartsItem
+//---------------------------------------------------------
+
+class InstrumentItem : public QListWidgetItem {
+      PartItem* _partItem;
+
+   public:
+      InstrumentItem(PartItem*, QListWidget* parent = 0);
+      PartItem* partItem() const { return _partItem; }
+      };
+
+//---------------------------------------------------------
+//   StaffListItem
+//---------------------------------------------------------
+
+class StaffItem : public QTreeWidgetItem {
+      Staff* _staff { 0 };
+
+   public:
+      StaffItem();
+      StaffItem(PartItem* li);
+
+      Staff* staff() const        { return _staff;    }
+      void setStaff(Staff* s)     { _staff = s;       }
+      void setData(int column, int role, const QVariant& value) override;
       };
 
 //---------------------------------------------------------
@@ -59,7 +88,7 @@ class PartItem : public QListWidgetItem {
 
 class ExcerptsDialog : public QDialog, private Ui::ExcerptsDialog {
       Q_OBJECT
-      Score* score;
+      MasterScore* score;
 
       QString createName(const QString&);
 
@@ -69,14 +98,25 @@ class ExcerptsDialog : public QDialog, private Ui::ExcerptsDialog {
       void deleteClicked();
       void newClicked();
       void newAllClicked();
+      void moveUpClicked();
+      void moveDownClicked();
       void excerptChanged(QListWidgetItem* cur, QListWidgetItem* prev);
-      void partDoubleClicked(QListWidgetItem*);
-      void partClicked(QListWidgetItem*);
+      void partDoubleClicked(QTreeWidgetItem*, int);
+      void partClicked(QTreeWidgetItem*, int);
       void createExcerptClicked(QListWidgetItem*);
       void titleChanged(const QString&);
+      bool isInPartsList(Excerpt* e);
 
-   public:
-      ExcerptsDialog(Score*, QWidget* parent = 0);
+      QMultiMap<int, int> mapTracks();
+      void assignTracks(QMultiMap<int, int> );
+
+      void doubleClickedInstrument(QTreeWidgetItem*);
+      void addButtonClicked();
+      void removeButtonClicked();
+
+      public:
+            ExcerptsDialog(MasterScore*, QWidget* parent = 0);
+
       };
 
 

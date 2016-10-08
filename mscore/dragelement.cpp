@@ -57,7 +57,7 @@ void ScoreView::startDrag()
             foreach(Element* e, _score->selection().elements())
                   e->setStartDragPosition(e->userOff());
             }
-      _score->end();
+      _score->update();
       }
 
 //---------------------------------------------------------
@@ -92,9 +92,11 @@ void ScoreView::doDragElement(QMouseEvent* ev)
 
                   dragStaff->setUserDist(dist);
                   data.startMove += delta;
-                  _score->doLayoutSystems();
-                  _score->layoutSpanner();
-                  update();
+//TODO-ws                  _score->doLayoutSystems();
+//                  _score->layoutSpanner();
+                  _score->setLayoutAll();
+                  _score->update();
+//                  update();
                   loopUpdate(getAction("loop")->isChecked());
                   }
             return;
@@ -106,35 +108,23 @@ void ScoreView::doDragElement(QMouseEvent* ev)
 
       bool dragNotes = false;
       for (Element* e : _score->selection().elements()) {
-            if (e->type() == Element::Type::NOTE) {
+            if (e->isNote()) {
                   dragNotes = true;
                   break;
                   }
             }
-
-      QList<Element*> el;
       for (Element* e : _score->selection().elements()) {
-            if (dragNotes) {
-                  if (e->type() == Element::Type::STEM || e->type() == Element::Type::HOOK)
-                        continue;
-                  }
-            el.append(e);
-            }
-
-      for (Element* e : el) {
-            QRectF r = e->drag(&data);
-            _score->addRefresh(r);
-            }
-
-      if (_score->playNote()) {
-            Element* e = _score->selection().element();
-            if (e)
-                  mscore->play(e);
-            _score->setPlayNote(false);
+            if (dragNotes && (e->isStem() || e->isHook()))
+                  continue;
+            _score->addRefresh(e->drag(&data));
             }
 
       Element* e = _score->getSelectedElement();
       if (e) {
+            if (_score->playNote()) {
+                  mscore->play(e);
+                  _score->setPlayNote(false);
+                  }
             QLineF anchor = e->dragAnchor();
 
             if (!anchor.isNull())
@@ -151,18 +141,21 @@ void ScoreView::doDragElement(QMouseEvent* ev)
 
 void ScoreView::endDrag()
       {
-      if (dragElement->type() == Element::Type::MEASURE) {
+      if (dragElement->isMeasure()) {
             qreal userDist = dragStaff->userDist();
             dragStaff->setUserDist(staffUserDist);
             score()->undo(new ChangeStaffUserDist(dragStaff, userDist));
             }
       else {
-            foreach(Element* e, _score->selection().elements()) {
+            foreach (Element* e, _score->selection().elements()) {
                   e->endDrag();
-                  e->score()->undoPropertyChanged(e, P_ID::USER_OFF, e->startDragPosition());
+                  if (e->userOff() != e->startDragPosition()) {
+                        e->undoChangeProperty(P_ID::AUTOPLACE, false);
+                        e->score()->undoPropertyChanged(e, P_ID::USER_OFF, e->startDragPosition());
+                        }
                   }
             }
-      _score->setLayoutAll(true);
+      _score->setLayoutAll();
       dragElement = 0;
       setDropTarget(0); // this also resets dropAnchor
       _score->endCmd();

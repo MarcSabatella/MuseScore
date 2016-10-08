@@ -42,6 +42,7 @@ PluginCreator::PluginCreator(QWidget* parent)
       manualDock  = 0;
       helpBrowser = 0;
 
+      setObjectName("PluginCreator");
       setIconSize(QSize(preferences.iconWidth * guiScaling, preferences.iconHeight * guiScaling));
 
       setupUi(this);
@@ -74,10 +75,16 @@ PluginCreator::PluginCreator(QWidget* parent)
       editTools->setObjectName("EditOperations");
       actionUndo->setIcon(*icons[int(Icons::undo_ICON)]);
       actionUndo->setShortcut(QKeySequence(QKeySequence::Undo));
-      editTools->addAction(actionUndo);
       actionRedo->setIcon(*icons[int(Icons::redo_ICON)]);
       actionRedo->setShortcut(QKeySequence(QKeySequence::Redo));
-      editTools->addAction(actionRedo);
+      if (qApp->layoutDirection() == Qt::LayoutDirection::LeftToRight) {
+            editTools->addAction(actionUndo);
+            editTools->addAction(actionRedo);
+            }
+      else {
+            editTools->addAction(actionUndo);
+            editTools->addAction(actionRedo);
+            }
       actionUndo->setEnabled(false);
       actionRedo->setEnabled(false);
 
@@ -197,11 +204,12 @@ void PluginCreator::setTitle(const QString& s)
 void PluginCreator::writeSettings()
       {
       QSettings settings;
-      settings.beginGroup("PluginCreator");
-      settings.setValue("geometry", saveGeometry());
+      settings.beginGroup(objectName());
       settings.setValue("windowState", saveState());
       settings.setValue("splitter", splitter->saveState());
       settings.endGroup();
+
+      MuseScore::saveGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -212,12 +220,13 @@ void PluginCreator::readSettings()
       {
       if (!useFactorySettings) {
             QSettings settings;
-            settings.beginGroup("PluginCreator");
+            settings.beginGroup(objectName());
             splitter->restoreState(settings.value("splitter").toByteArray());
-            restoreGeometry(settings.value("geometry").toByteArray());
             restoreState(settings.value("windowState").toByteArray());
             settings.endGroup();
             }
+
+      MuseScore::restoreGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -247,7 +256,7 @@ void PluginCreator::closeEvent(QCloseEvent* ev)
 //   qmlMsgHandler
 //---------------------------------------------------------
 
-static void qmlMsgHandler(QtMsgType type, const char* msg)
+static void qmlMsgHandler(QtMsgType type, const QMessageLogContext &, const QString & msg)
       {
       QString s;
       switch(type) {
@@ -264,9 +273,6 @@ static void qmlMsgHandler(QtMsgType type, const char* msg)
                   s = QString("Fatal: %1\n").arg(msg);
                   break;
             default:
-
-// Qt5.2?   case QtTraceMsg:
-// Qt5.4   case QtInfoMsg:
                   s = QString("Info: %1\n").arg(msg);
                   break;
             }
@@ -295,7 +301,7 @@ void PluginCreator::runClicked()
             stop->setEnabled(false);
             return;
             }
-      qInstallMsgHandler(qmlMsgHandler);
+      qInstallMessageHandler(qmlMsgHandler);
       stop->setEnabled(true);
       run->setEnabled(false);
 
@@ -366,7 +372,7 @@ void PluginCreator::closePlugin()
             view->close();
       if (dock)
             dock->close();
-      qInstallMsgHandler(0);
+      qInstallMessageHandler(0);
       }
 
 //---------------------------------------------------------
@@ -415,7 +421,7 @@ void PluginCreator::load()
             }
       created = false;
       setState(PCState::CLEAN);
-      setTitle( fi.baseName() );
+      setTitle( fi.completeBaseName() );
       setToolTip(path);
       raise();
       }
@@ -444,7 +450,7 @@ void PluginCreator::savePlugin()
             textEdit->document()->setModified(false);
             created = false;
             setState(PCState::CLEAN);
-            setTitle( fi.baseName() );
+            setTitle( fi.completeBaseName() );
             setToolTip(path);
             }
       else {

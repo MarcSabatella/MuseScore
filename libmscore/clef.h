@@ -39,28 +39,38 @@ static const int NO_CLEF = -1000;
 enum class ClefType : signed char {
       INVALID = -1,
       G = 0,
-      G1,
-      G2,
-      G3,
-      F,
-      F8,
-      F15,
-      F_B,
-      F_C,
+      G15_MB,
+      G8_VB,
+      G8_VA,
+      G15_MA,
+      G8_VB_O,
+      G8_VB_P,
+      G_1,
       C1,
       C2,
       C3,
       C4,
-      TAB,
-      PERC,
       C5,
-      G4,
+      C_19C,
+      C3_F18C,
+      C4_F18C,
+      C3_F20C,
+      C4_F20C,
+      F,
+      F15_MB,
+      F8_VB,
       F_8VA,
       F_15MA,
+      F_B,
+      F_C,
+      F_F18C,
+      F_19C,
+      PERC,
       PERC2,
-      TAB2,
-      G5,
-      G3_O,
+      TAB,
+      TAB4,
+      TAB_SERIF,
+      TAB4_SERIF,
       MAX
       };
 
@@ -90,10 +100,11 @@ class ClefInfo {
 
       const char* _tag;        ///< comprehensive name for instruments.xml
       const char* _sign;       ///< Name for musicXml.
-      int _line;               ///< Line for musicXml.
+      int _line;               ///< Line for musicXml and for positioning on the staff
       int _octChng;            ///< Octave change for musicXml.
       int _pitchOffset;        ///< Pitch offset for line 0.
       signed char _lines[14];
+      SymId _symId;
       const char* _name;
       StaffGroup _staffGroup;
 
@@ -103,6 +114,7 @@ class ClefInfo {
       static int line(ClefType t)              { return clefTable[int(t)]._line;        }
       static int octChng(ClefType t)           { return clefTable[int(t)]._octChng;     }
       static int pitchOffset(ClefType t)       { return clefTable[int(t)]._pitchOffset; }
+      static SymId symId(ClefType t)           { return clefTable[int(t)]._symId;       }
       static const signed char* lines(ClefType t)     { return clefTable[int(t)]._lines;       }
       static const char* name(ClefType t)      { return clefTable[int(t)]._name;        }
       static StaffGroup staffGroup(ClefType t) { return clefTable[int(t)]._staffGroup;  }
@@ -122,7 +134,7 @@ class Clef : public Element {
       Q_PROPERTY(bool showCourtesy READ showCourtesy WRITE undoSetShowCourtesy)
       Q_PROPERTY(bool small READ small)
 
-      QList<Element*> elements;
+      SymId symId;
       bool _showCourtesy;
       bool _showPreviousClef;       // show clef type at position tick-1
                                     // used for first clef on staff immediatly followed
@@ -131,18 +143,12 @@ class Clef : public Element {
 
       ClefTypeList _clefTypes;
 
-      ClefType    curClefType;      // cached value of clef type (for re-laying out)
-      int         curLines;         // cached value of staff nm. of lines  ( " )
-      qreal       curLineDist;      // cached value of staff line distance ( " )
-      void        layout1();        // lays the element out, using cached values
-
    public:
       Clef(Score*);
       Clef(const Clef&);
-      ~Clef();
+      ~Clef() {}
       virtual Clef* clone() const        { return new Clef(*this); }
       virtual Element::Type type() const { return Element::Type::CLEF; }
-      virtual void setSelected(bool f);
       virtual qreal mag() const;
 
       Segment* segment() const           { return (Segment*)parent(); }
@@ -156,9 +162,6 @@ class Clef : public Element {
       virtual void write(Xml&) const;
 
       virtual bool isEditable() const                    { return false; }
-
-      virtual void addElement(Element* e, qreal x, qreal y);
-      virtual Space space() const      { return Space(0.0, bbox().x() * 2.0 + width()); }
 
       bool small() const               { return _small; }
       void setSmall(bool val);
@@ -182,7 +185,7 @@ class Clef : public Element {
       void setConcertClef(ClefType val);
       void setTransposingClef(ClefType val);
       void setClefType(const ClefTypeList& ctl) { _clefTypes = ctl; }
-      virtual void spatiumChanged(qreal oldValue, qreal newValue);
+      virtual void spatiumChanged(qreal oldValue, qreal newValue) override;
 
       QVariant getProperty(P_ID propertyId) const;
       bool setProperty(P_ID propertyId, const QVariant&);
@@ -190,7 +193,8 @@ class Clef : public Element {
 
       virtual Element* nextElement() override;
       virtual Element* prevElement() override;
-      QString accessibleInfo() override;
+      QString accessibleInfo() const override;
+      void clear();
       };
 
 }     // namespace Ms

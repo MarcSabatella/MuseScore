@@ -74,8 +74,9 @@ class Part : public QObject, public ScoreElement {
       Part(Score* = 0);
       void initFromInstrTemplate(const InstrumentTemplate*);
 
+      virtual const char* name() const override { return "Part"; }
+
       void read(XmlReader&);
-      void read114(XmlReader&);
       void write(Xml& xml) const;
 
       int nstaves() const                       { return _staves.size(); }
@@ -123,7 +124,7 @@ class Part : public QObject, public ScoreElement {
 
       int midiChannel() const;
       int midiPort() const;
-      void setMidiChannel(int) const;
+      void setMidiChannel(int ch, int port = -1, int tick = -1);  // tick != -1 for InstrumentChange
 
       void insertStaff(Staff*, int idx);
       void removeStaff(Staff*);

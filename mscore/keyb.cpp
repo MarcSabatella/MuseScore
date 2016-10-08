@@ -81,8 +81,10 @@ bool ScoreView::editKeyLyrics(QKeyEvent* ev)
       switch(key) {
             case Qt::Key_Space:
                   if (!(modifiers & CONTROL_MODIFIER)) {
-                        // TODO: shift+tab events are filtered by qt
-                        lyricsTab(modifiers & Qt::ShiftModifier, true, false);
+                        if (s == "_")
+                              lyricsUnderscore();
+                        else // TODO: shift+tab events are filtered by qt
+                              lyricsTab(modifiers & Qt::ShiftModifier, true, false);
                         }
                   else
                         return false;
@@ -224,7 +226,7 @@ void ScoreView::editKey(QKeyEvent* ev)
                   }
             if (editObject->isText() && (key == Qt::Key_Left || key == Qt::Key_Right)) {
                   ev->accept();
-                  _score->end();
+                  _score->update();
                   mscore->endCmd();
                   //return;
                   }
@@ -305,13 +307,13 @@ void MuseScore::updateInputState(Score* score)
             Staff* staff = score->staff(is.track() / VOICES);
             switch (staff->staffType()->group()) {
                   case StaffGroup::STANDARD:
-                        changeState(STATE_NOTE_ENTRY_PITCHED);
+                        changeState(STATE_NOTE_ENTRY_STAFF_PITCHED);
                         break;
                   case StaffGroup::TAB:
-                        changeState(STATE_NOTE_ENTRY_TAB);
+                        changeState(STATE_NOTE_ENTRY_STAFF_TAB);
                         break;
                   case StaffGroup::PERCUSSION:
-                        changeState(STATE_NOTE_ENTRY_DRUM);
+                        changeState(STATE_NOTE_ENTRY_STAFF_DRUM);
                         break;
                   }
             }
@@ -319,18 +321,30 @@ void MuseScore::updateInputState(Score* score)
       getAction("pad-rest")->setChecked(is.rest());
       getAction("pad-dot")->setChecked(is.duration().dots() == 1);
       getAction("pad-dotdot")->setChecked(is.duration().dots() == 2);
+      getAction("pad-dot3")->setChecked(is.duration().dots() == 3);
+      getAction("pad-dot4")->setChecked(is.duration().dots() == 4);
       if ((mscore->state() & STATE_NORMAL) | (mscore->state() & STATE_NOTE_ENTRY)) {
             getAction("pad-dot")->setEnabled(true);
             getAction("pad-dotdot")->setEnabled(true);
+            getAction("pad-dot3")->setEnabled(true);
+            getAction("pad-dot4")->setEnabled(true);
             }
       switch (is.duration().type()) {
             case TDuration::DurationType::V_128TH:
                   getAction("pad-dot")->setChecked(false);
                   getAction("pad-dot")->setEnabled(false);
+                  // fall through
             case TDuration::DurationType::V_64TH:
                   getAction("pad-dotdot")->setChecked(false);
                   getAction("pad-dotdot")->setEnabled(false);
-                  break;
+                  // fall through
+            case TDuration::DurationType::V_32ND:
+                  getAction("pad-dot3")->setChecked(false);
+                  getAction("pad-dot3")->setEnabled(false);
+                  // fall through
+            case TDuration::DurationType::V_16TH:
+                  getAction("pad-dot4")->setChecked(false);
+                  getAction("pad-dot4")->setEnabled(false);
             default:
                   break;
             }
@@ -366,7 +380,9 @@ void MuseScore::updateInputState(Score* score)
       getAction("no-beam")->setChecked(is.beamMode()    == Beam::Mode::NONE);
       getAction("beam32")->setChecked(is.beamMode()     == Beam::Mode::BEGIN32);
       getAction("auto-beam")->setChecked(is.beamMode()  == Beam::Mode::AUTO);
-      getAction("repitch")->setChecked(is.repitchMode());
+
+      if(is.noteEntryMode() && !is.rest())
+            updateShadowNote();
       }
 }
 

@@ -2,7 +2,7 @@
 //  MuseScore
 //  Music Composition & Notation
 //
-//  Copyright (C) 2002-2013 Werner Schweer
+//  Copyright (C) 2002-2016 Werner Schweer
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2
@@ -37,6 +37,7 @@ extern bool useFactorySettings;
 SynthControl::SynthControl(QWidget* parent)
    : QWidget(parent, Qt::Dialog)
       {
+      setObjectName("SynthControl");
       setupUi(this);
       _score = 0;
 
@@ -74,16 +75,7 @@ SynthControl::SynthControl(QWidget* parent)
                   connect(gui, SIGNAL(valueChanged()), SLOT(setDirty()));
                   }
             }
-      if (!useFactorySettings) {
-            QSettings settings;
-            settings.beginGroup("SynthControl");
-            resize(settings.value("size", QSize(746, 268)).toSize());
-            move(settings.value("pos", QPoint(10, 10)).toPoint());
-            tabWidget->setCurrentIndex(settings.value("tab", 0).toInt());
-            settings.endGroup();
-            }
-      else
-            tabWidget->setCurrentIndex(0);
+      readSettings();
       metronome->setDefaultAction(getAction("metronome"));
       mgain->setValue(seq->metronomeGain());
 
@@ -284,7 +276,7 @@ void SynthControl::saveButtonClicked()
       if (!_score)
             return;
       _score->startCmd();
-      _score->undo()->push(new ChangeSynthesizerState(_score, synti->state()));
+      _score->undo(new ChangeSynthesizerState(_score, synti->state()));
       _score->endCmd();
 
       loadButton->setEnabled(false);
@@ -401,11 +393,42 @@ void SynthControl::setDirty()
 void SynthControl::writeSettings()
       {
       QSettings settings;
-      settings.beginGroup("SynthControl");
-      settings.setValue("size", size());
-      settings.setValue("pos", pos());
+      settings.beginGroup(objectName());
       settings.setValue("tab", tabWidget->currentIndex());
       settings.endGroup();
+
+      MuseScore::saveGeometry(this);
       }
+
+//---------------------------------------------------------
+//   readSettings
+//---------------------------------------------------------
+
+void SynthControl::readSettings()
+      {
+      if (!useFactorySettings) {
+            QSettings settings;
+            settings.beginGroup(objectName());
+            tabWidget->setCurrentIndex(settings.value("tab", 0).toInt());
+            settings.endGroup();
+            }
+      else {
+            tabWidget->setCurrentIndex(0);
+            }
+
+      MuseScore::restoreGeometry(this);
+      }
+
+//---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void SynthControl::changeEvent(QEvent *event)
+      {
+      QWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            retranslate();
+      }
+
 }
 

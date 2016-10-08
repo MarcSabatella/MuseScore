@@ -2,7 +2,7 @@
 <StaffList version="2.00" tick="0" len="1920" staff="0" staves="1">
   <Staff id="0">
     <voice id="0">0</voice>
-    <tick>0</tick>
+    <move>0/1</move>
     <Chord>
       <track>0</track>
       <durationType>quarter</durationType>
@@ -22,7 +22,7 @@
         </Note>
       </Chord>
     <Breath>
-      <subtype>0</subtype>
+      <symbol>breathMarkComma</symbol>
       <track>0</track>
       </Breath>
     <Chord>
@@ -44,7 +44,7 @@
         </Note>
       </Chord>
     <Breath>
-      <subtype>0</subtype>
+      <symbol>breathMarkComma</symbol>
       <track>0</track>
       </Breath>
     </Staff>

@@ -20,17 +20,20 @@
 namespace Ms {
 
 //---------------------------------------------------------
-//   InspectorFret
+//   InspectorFretDiagram
 //---------------------------------------------------------
 
-class InspectorFret : public InspectorBase {
+class InspectorFretDiagram : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement  e;
-      Ui::InspectorFret   f;
+//      UiInspectorElement  e;
+      Ui::InspectorFretDiagram   f;
+
+   private slots:
+      void propertiesClicked();
 
    public:
-      InspectorFret(QWidget* parent);
+      InspectorFretDiagram(QWidget* parent);
       };
 
 

@@ -1,9 +1,9 @@
 //=============================================================================
 //  MuseScore
 //  Music Composition & Notation
-//  $Id: mscore.cpp 4220 2011-04-22 10:31:26Z wschweer $
+//  $Id: albummanager.cpp 4220 2011-04-22 10:31:26Z wschweer $
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -34,7 +34,7 @@ namespace Ms {
 //---------------------------------------------------------
 
 AlbumManager::AlbumManager(QWidget* parent)
-   : QDialog(parent)
+   : AbstractDialog(parent)
       {
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -66,7 +66,7 @@ AlbumManager::AlbumManager(QWidget* parent)
 void AlbumManager::addClicked()
       {
       QStringList files = mscore->getOpenScoreNames(
-         tr("MuseScore Files (*.mscz *.mscx)"),
+         tr("MuseScore Files") + " (*.mscz *.mscx)",
          tr("MuseScore: Add Score")
          );
       if (files.isEmpty())
@@ -92,7 +92,7 @@ void AlbumManager::addClicked()
 void AlbumManager::loadClicked()
       {
       QStringList files = mscore->getOpenScoreNames(
-         tr("MuseScore Album Files (*.album)"),
+         tr("MuseScore Album Files") + " (*.album)",
          tr("MuseScore: Load Album")
          );
       if (files.isEmpty())
@@ -123,7 +123,7 @@ void AlbumManager::createScoreClicked()
       if (album) {
             if (album->scores().isEmpty())
                    return;
-            QString filter = QWidget::tr("MuseScore File (*.mscz)");
+            QString filter = QWidget::tr("MuseScore File") + " (*.mscz)";
             QSettings settings;
             if (mscore->lastSaveDirectory.isEmpty())
                   mscore->lastSaveDirectory = settings.value("lastSaveDirectory", preferences.myScoresPath).toString();
@@ -139,7 +139,7 @@ void AlbumManager::createScoreClicked()
             );
             if (fn.isEmpty())
                   return;
-            if (!album->createScore(fn))
+            if (!album->createScore(fn, checkBoxAddPageBreak->isChecked(), checkBoxAddSectionBreak->isChecked()))
                   QMessageBox::critical(mscore, QWidget::tr("MuseScore: Save File"), tr("Error while creating score from album."));
             }
       }
@@ -300,7 +300,7 @@ void AlbumManager::writeAlbum()
             QString fn = mscore->getSaveScoreName(
                QWidget::tr("MuseScore: Save Album"),
                albumName,
-               QWidget::tr("MuseScore Files (*.album)")
+               QWidget::tr("MuseScore Files") + " (*.album)"
                );
             if (fn.isEmpty()) {
                   album->setDirty(false);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -94,6 +94,12 @@
           </Articulation>
         <Channel>
           <program value="33"/>
+          </Channel>
+        <Channel name="slap">
+          <program value="36"/>
+          </Channel>
+        <Channel name="pop">
+          <program value="37"/>
           </Channel>
         </Instrument>
       </Part>

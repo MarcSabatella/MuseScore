@@ -62,7 +62,7 @@ void Bend::layout()
             }
 
       _lw        = _spatium * 0.15;
-      Note* note = static_cast<Note*>(parent());
+      Note* note = toNote(parent());
       if (note == 0) {
             noteWidth = 0.0;
             notePos = QPointF();
@@ -73,9 +73,8 @@ void Bend::layout()
             }
       QRectF bb;
 
-      const TextStyle* st = &score()->textStyle(TextStyleType::BENCH);
-      QFont f = st->fontPx(_spatium);
-      QFontMetricsF fm(f);
+      const TextStyle* st = &score()->textStyle(TextStyleType::BEND);
+      QFontMetricsF fm(st->fontMetrics(_spatium));
 
       int n   = _points.size();
       qreal x = noteWidth;
@@ -166,8 +165,8 @@ void Bend::draw(QPainter* painter) const
       painter->setBrush(QBrush(curColor()));
 
       qreal _spatium = spatium();
-      const TextStyle* st = &score()->textStyle(TextStyleType::BENCH);
-      QFont f = st->fontPx(_spatium);
+      const TextStyle* st = &score()->textStyle(TextStyleType::BEND);
+      QFont f = st->font(_spatium * MScore::pixelRatio);
       painter->setFont(f);
 
       int n    = _points.size();
@@ -318,7 +317,7 @@ bool Bend::setProperty(P_ID propertyId, const QVariant& v)
             default:
                   return Element::setProperty(propertyId, v);
             }
-      score()->setLayoutAll(true);
+      triggerLayout();
       return true;
       }
 

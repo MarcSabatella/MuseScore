@@ -1,9 +1,9 @@
 //=============================================================================
 //  MuseScore
 //  Music Composition & Notation
-//  $Id:$
+//  $Id: inspector.h
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2
@@ -36,9 +36,14 @@
 #include "ui_inspector_accidental.h"
 #include "ui_inspector_tempotext.h"
 #include "ui_inspector_dynamic.h"
+#include "ui_inspector_lyric.h"
+#include "ui_inspector_stafftext.h"
 #include "ui_inspector_slur.h"
 #include "ui_inspector_empty.h"
 #include "ui_inspector_text.h"
+#include "ui_inspector_fret.h"
+#include "ui_inspector_tremolo.h"
+#include "ui_inspector_caesura.h"
 
 namespace Ms {
 
@@ -47,10 +52,10 @@ class Note;
 class Inspector;
 class Segment;
 class Chord;
-
+class Clef;
 
 //---------------------------------------------------------
-//   InspectorElement
+//   UiInspectorElement
 //---------------------------------------------------------
 
 class UiInspectorElement: public Ui::InspectorElement {
@@ -58,9 +63,31 @@ class UiInspectorElement: public Ui::InspectorElement {
       void setupUi(QWidget *InspectorElement);
       };
 
-class InspectorElement : public InspectorBase {
+//---------------------------------------------------------
+//   InspectorElementBase
+//---------------------------------------------------------
+
+class InspectorElementBase : public InspectorBase {
       Q_OBJECT
-      UiInspectorElement b;
+
+   protected:
+      UiInspectorElement e;
+
+   private slots:
+      void resetAutoplace();
+      void autoplaceChanged(bool);
+
+   public:
+      InspectorElementBase(QWidget* parent);
+      virtual void setElement() override;
+      };
+
+//---------------------------------------------------------
+//   InspectorElement
+//---------------------------------------------------------
+
+class InspectorElement : public InspectorElementBase {
+      Q_OBJECT
 
    public:
       InspectorElement(QWidget* parent);
@@ -118,9 +145,8 @@ class InspectorHBox : public InspectorBase {
 //   InspectorArticulation
 //---------------------------------------------------------
 
-class InspectorArticulation : public InspectorBase {
+class InspectorArticulation : public InspectorElementBase {
       Q_OBJECT
-      UiInspectorElement e;
       Ui::InspectorArticulation ar;
 
    public:
@@ -143,10 +169,9 @@ class InspectorSpacer : public InspectorBase {
 //   InspectorRest
 //---------------------------------------------------------
 
-class InspectorRest : public InspectorBase {
+class InspectorRest : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement   e;
       Ui::InspectorSegment s;
       Ui::InspectorRest    r;
 
@@ -164,12 +189,10 @@ class InspectorRest : public InspectorBase {
 //   InspectorClef
 //---------------------------------------------------------
 
-class Clef;
 
-class InspectorClef : public InspectorBase {
+class InspectorClef : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorSegment s;
       Ui::InspectorClef    c;
       Clef* otherClef;        // the courtesy clef for a main clef or viceversa
@@ -186,10 +209,9 @@ class InspectorClef : public InspectorBase {
 //   InspectorTimeSig
 //---------------------------------------------------------
 
-class InspectorTimeSig : public InspectorBase {
+class InspectorTimeSig : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorSegment s;
       Ui::InspectorTimeSig t;
 
@@ -202,10 +224,9 @@ class InspectorTimeSig : public InspectorBase {
 //   InspectorKeySig
 //---------------------------------------------------------
 
-class InspectorKeySig : public InspectorBase {
+class InspectorKeySig : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorSegment s;
       Ui::InspectorKeySig k;
 
@@ -218,10 +239,9 @@ class InspectorKeySig : public InspectorBase {
 //   InspectorTuplet
 //---------------------------------------------------------
 
-class InspectorTuplet : public InspectorBase {
+class InspectorTuplet : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorTuplet t;
 
    public:
@@ -232,10 +252,9 @@ class InspectorTuplet : public InspectorBase {
 //   InspectorAccidental
 //---------------------------------------------------------
 
-class InspectorAccidental : public InspectorBase {
+class InspectorAccidental : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorAccidental a;
 
    public:
@@ -246,24 +265,41 @@ class InspectorAccidental : public InspectorBase {
 //   InspectorBend
 //---------------------------------------------------------
 
-class InspectorBend : public InspectorBase {
+class InspectorBend : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorBend g;
+
+   private slots:
+      void propertiesClicked();
 
    public:
       InspectorBend(QWidget* parent);
       };
 
 //---------------------------------------------------------
+//   InspectorTremoloBar
+//---------------------------------------------------------
+
+class InspectorTremoloBar : public InspectorElementBase {
+      Q_OBJECT
+
+      Ui::InspectorTremoloBar g;
+
+   private slots:
+      void propertiesClicked();
+
+   public:
+      InspectorTremoloBar(QWidget* parent);
+      };
+
+//---------------------------------------------------------
 //   InspectorTempoText
 //---------------------------------------------------------
 
-class InspectorTempoText : public InspectorBase {
+class InspectorTempoText : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorText t;
       Ui::InspectorTempoText tt;
 
@@ -277,10 +313,10 @@ class InspectorTempoText : public InspectorBase {
 //   InspectorDynamic
 //---------------------------------------------------------
 
-class InspectorDynamic : public InspectorBase {
+class InspectorDynamic : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
+//      UiInspectorElement e;
       Ui::InspectorText t;
       Ui::InspectorDynamic d;
 
@@ -290,25 +326,59 @@ class InspectorDynamic : public InspectorBase {
       };
 
 //---------------------------------------------------------
+//   InspectorLyric
+//---------------------------------------------------------
+
+class InspectorLyric : public InspectorElementBase {
+      Q_OBJECT
+
+//      UiInspectorElement e;
+      Ui::InspectorText t;
+      Ui::InspectorLyric l;
+
+   private slots:
+      virtual void valueChanged(int idx) override;
+
+   public:
+      InspectorLyric(QWidget* parent);
+      virtual void setElement() override;
+      };
+
+//---------------------------------------------------------
+//   InspectorLyric
+//---------------------------------------------------------
+
+class InspectorStafftext : public InspectorElementBase {
+      Q_OBJECT
+
+//      UiInspectorElement e;
+      Ui::InspectorText t;
+      Ui::InspectorStafftext s;
+
+   public:
+      InspectorStafftext(QWidget* parent);
+      virtual void setElement() override;
+      };
+
+//---------------------------------------------------------
 //   InspectorBarLine
 //---------------------------------------------------------
 
-#define BARLINE_BUILTIN_SPANS 5
-
-class InspectorBarLine : public InspectorBase {
+class InspectorBarLine : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
+      Ui::InspectorSegment s;
       Ui::InspectorBarLine b;
-
-      static QString builtinSpanNames[BARLINE_BUILTIN_SPANS];
 
       void  blockSpanDataSignals(bool val);
 
    private slots:
-      void spanTypeChanged(int idx);
-      void resetSpanType();
       void manageSpanData();
+      void presetDefaultClicked();
+      void presetTick1Clicked();
+      void presetTick2Clicked();
+      void presetShort1Clicked();
+      void presetShort2Clicked();
 
    public:
       InspectorBarLine(QWidget* parent);
@@ -332,6 +402,10 @@ class Inspector : public QDockWidget {
    public slots:
       void reset();
 
+   protected:
+      virtual void changeEvent(QEvent *event);
+      void retranslate();
+
    public:
       Inspector(QWidget* parent = 0);
       void setElement(Element*);
@@ -345,14 +419,27 @@ class Inspector : public QDockWidget {
 //   InspectorSlur
 //---------------------------------------------------------
 
-class InspectorSlur : public InspectorBase {
+class InspectorSlur : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorSlur s;
 
    public:
       InspectorSlur(QWidget* parent);
+      };
+
+//---------------------------------------------------------
+//   InspectorCaesura
+//---------------------------------------------------------
+
+class InspectorCaesura : public InspectorElementBase {
+      Q_OBJECT
+
+//      UiInspectorElement e;
+      Ui::InspectorCaesura c;
+
+   public:
+      InspectorCaesura(QWidget* parent);
       };
 
 //---------------------------------------------------------
