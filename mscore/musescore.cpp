@@ -791,7 +791,6 @@ MuseScore::MuseScore()
 
       entryTools = addToolBar("");
       entryTools->setObjectName("entry-tools");
-      connect(entryTools, SIGNAL(visibilityChanged(bool)), SLOT(toolbarVisibilityChanged(bool)));
 
       populateNoteInputMenu();
 
@@ -1578,6 +1577,7 @@ void MuseScore::addRecentScore(const QString& scorePath)
             _recentScores.removeLast();
       }
 
+#if 0
 //---------------------------------------------------------
 //   updateTabNames
 //---------------------------------------------------------
@@ -1587,16 +1587,17 @@ void MuseScore::updateTabNames()
       for (int i = 0; i < tab1->count(); ++i) {
             ScoreView* view = tab1->view(i);
             if (view)
-                  tab1->setTabText(i, view->score()->fileInfo()->completeBaseName());
+                  tab1->setTabText(i, view->score()->masterScore()->fileInfo()->completeBaseName());
             }
       if (tab2) {
             for (int i = 0; i < tab2->count(); ++i) {
                   ScoreView* view = tab2->view(i);
                   if (view)
-                        tab2->setTabText(i, view->score()->fileInfo()->completeBaseName());
+                        tab2->setTabText(i, view->score()->masterScore()->fileInfo()->completeBaseName());
                   }
             }
       }
+#endif
 
 //---------------------------------------------------------
 //   loadScoreList
@@ -1763,11 +1764,7 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
             magChanged(midx);
             }
 
-      if (!cs->isMaster())
-            setWindowTitle(MUSESCORE_NAME_VERSION ": " + cs->masterScore()->fileInfo()->completeBaseName()
-               + "-" + cs->fileInfo()->completeBaseName());
-      else
-            setWindowTitle(MUSESCORE_NAME_VERSION ": " + cs->fileInfo()->completeBaseName());
+      setWindowTitle(MUSESCORE_NAME_VERSION ": " + cs->title());
 
       QAction* a = getAction("concert-pitch");
       a->setChecked(cs->styleB(StyleIdx::concertPitch));
@@ -2510,12 +2507,10 @@ static bool doConvert(Score* cs, QString fn)
                         for (Excerpt* e : excerpts) {
                               Score* nscore = new Score(e->oscore());
                               e->setPartScore(nscore);
-                              nscore->setExcerpt(e);
-                              nscore->masterScore()->setName(e->title()); // needed before AddExcerpt
                               nscore->style()->set(StyleIdx::createMultiMeasureRests, true);
+                              Excerpt::createExcerpt(e);
                               cs->startCmd();
-                              cs->undo(new AddExcerpt(nscore, e->tracks()));
-                              createExcerpt(e);
+                              cs->undo(new AddExcerpt(e));
                               cs->endCmd();
                               }
                         }
@@ -2537,11 +2532,11 @@ static bool doConvert(Score* cs, QString fn)
                               Score* nscore = new Score(e->oscore());
                               e->setPartScore(nscore);
                               nscore->setExcerpt(e);
-                              nscore->setName(e->title()); // needed before AddExcerpt
+                              // nscore->setName(e->title()); // needed before AddExcerpt
                               nscore->style()->set(StyleIdx::createMultiMeasureRests, true);
+                              Excerpt::createExcerpt(e);
                               cs->startCmd();
-                              cs->undo(new AddExcerpt(nscore, e->tracks()));
-                              createExcerpt(e);
+                              cs->undo(new AddExcerpt(e));
                               cs->endCmd();
                               }
                         }
@@ -4524,17 +4519,15 @@ void MuseScore::endCmd()
 
             // For multiple notes selected check if they all have same pitch and tuning
             bool samePitch = true;
-            int pitch = 0;
+            int pitch    = -1;
             float tuning = 0;
-            for (int i = 0; i < cs->selection().elements().size(); ++i) {
-                  const auto& element = cs->selection().elements()[i];
-                  if (element->type() != Element::Type::NOTE) {
+            for (Element* e : cs->selection().elements()) {
+                  if (!e->isNote()) {
                         samePitch = false;
                         break;
                         }
-
-                  const auto& note = static_cast<Note*>(element);
-                  if (i == 0) {
+                  Note* note = toNote(e);
+                  if (pitch == -1) {
                         pitch = note->ppitch();
                         tuning = note->tuning();
                         }
@@ -4543,7 +4536,7 @@ void MuseScore::endCmd()
                         break;
                         }
                   }
-            if (samePitch && !cs->selection().elements().empty())
+            if (samePitch && pitch >= 0)
                   e = cs->selection().elements()[0];
 
             NoteEntryMethod entryMethod = cs->noteEntryMethod();
@@ -5258,18 +5251,20 @@ QFileInfoList MuseScore::recentScores() const
       }
 
 //---------------------------------------------------------
-//   toolbarVisibilityChanged
-//    This disables the ability to hide the connected
-//    widget.
+//   createPopupMenu
 //---------------------------------------------------------
 
-void MuseScore::toolbarVisibilityChanged(bool val)
+QMenu* MuseScore::createPopupMenu()
       {
-      if (!val) {
-            QObject* s = sender();
-            QWidget* w = static_cast<QWidget*>(s);
-            w->setVisible(true);
+      QMenu* m = QMainWindow::createPopupMenu();
+      QList<QAction*> al = m->actions();
+      for (QAction* a : al) {
+            if (_textTools && a->text() == _textTools->windowTitle())
+                  m->removeAction(a);
+            else if (entryTools && a->text() == entryTools->windowTitle())
+                  m->removeAction(a);
             }
+      return m;
       }
 
 }
@@ -5599,13 +5594,15 @@ int main(int argc, char* av[])
             QString wd      = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).arg(QCoreApplication::applicationName());
             // set UI Color Palette
             QPalette p(QApplication::palette());
-            QString jsonPaletteFilename = "palette_light.json";
+            QString jsonPaletteFilename = "palette_light_fusion.json";
             if (preferences.isThemeDark())
-                  jsonPaletteFilename = "palette_dark.json";
+                  jsonPaletteFilename = preferences.isOxygen() ? "palette_dark_oxygen.json" : "palette_dark_fusion.json";
+            else
+                  jsonPaletteFilename = preferences.isOxygen() ? "palette_light_oxygen.json" : "palette_light_fusion.json";
             QFile jsonPalette(QString(":/themes/%1").arg(jsonPaletteFilename));
             // read from Documents TODO: remove this
-            if (QFile::exists(QString("%1/%2").arg(wd, jsonPaletteFilename)))
-                  jsonPalette.setFileName(QString("%1/%2").arg(wd, jsonPaletteFilename));
+            if (QFile::exists(QString("%1/%2").arg(wd, "ms_palette.json")))
+                  jsonPalette.setFileName(QString("%1/%2").arg(wd, "ms_palette.json"));
             if (jsonPalette.open(QFile::ReadOnly | QFile::Text)) {
                   QJsonDocument d = QJsonDocument::fromJson(jsonPalette.readAll());
                   QJsonObject o = d.object();
@@ -5620,11 +5617,15 @@ int main(int argc, char* av[])
 
             // set UI Style
             QString css;
-            QString styleFilename("style.css");
+            QString styleFilename("style_light_fusion.css");
+            if (preferences.isThemeDark())
+                  styleFilename = preferences.isOxygen() ? "style_dark_oxygen.css" : "style_dark_fusion.css";
+            else
+                  styleFilename = preferences.isOxygen() ? "style_light_oxygen.css" : "style_light_fusion.css";
             QFile fstyle(QString(":/themes/%1").arg(styleFilename));
             // read from Documents TODO: remove this
-            if (QFile::exists(QString("%1/%2").arg(wd, styleFilename)))
-                  fstyle.setFileName(QString("%1/%2").arg(wd, styleFilename));
+            if (QFile::exists(QString("%1/%2").arg(wd, "ms_style.css")))
+                  fstyle.setFileName(QString("%1/%2").arg(wd, "ms_style.css"));
             if (fstyle.open(QFile::ReadOnly | QFile::Text)) {
                   QTextStream in(&fstyle);
                   css = in.readAll();

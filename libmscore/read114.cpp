@@ -1149,7 +1149,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                   Element* el = Element::name2Element(tag, m->score());
                   el->setTrack(e.track());
                   el->read(e);
-                  
+
                   if (el->isMarker()) {
                         Marker* m = toMarker(el);
                         if (m->markerType() == Marker::Type::SEGNO || m->markerType() == Marker::Type::CODA  ||
@@ -1826,6 +1826,8 @@ Score::FileError MasterScore::read114(XmlReader& e)
 
                   // convert 1.2 text styles
                   s.setName(convertOldTextStyleNames(s.name()));
+                  if (s.family() == "MuseJazz")
+                        s.setFamily("MuseJazz Text");
 
                   if (s.name() == "Lyrics Odd Lines" || s.name() == "Lyrics Even Lines")
                         s.setAlign((s.align() & ~ Align(AlignmentFlags::VMASK)) | AlignmentFlags::BASELINE);
@@ -2143,9 +2145,8 @@ Score::FileError MasterScore::read114(XmlReader& e)
             if (!excerpt->parts().isEmpty()) {
                   Score* nscore = new Score(this);
                   excerpt->setPartScore(nscore);
-                  nscore->setName(excerpt->title());
                   nscore->style()->set(StyleIdx::createMultiMeasureRests, true);
-                  Ms::createExcerpt(excerpt);
+                  Excerpt::createExcerpt(excerpt);
                   }
             }
 

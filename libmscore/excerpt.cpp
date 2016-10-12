@@ -117,7 +117,7 @@ static void localSetScore(void* score, Element* element)
 //   createExcerpt
 //---------------------------------------------------------
 
-void createExcerpt(Excerpt* excerpt)
+void Excerpt::createExcerpt(Excerpt* excerpt)
       {
       MasterScore* oscore = excerpt->oscore();
       Score* score        = excerpt->partScore();
@@ -260,10 +260,10 @@ void createExcerpt(Excerpt* excerpt)
 //   deleteExcerpt
 //---------------------------------------------------------
 
-void deleteExcerpt(Excerpt* excerpt)
+void MasterScore::deleteExcerpt(Excerpt* excerpt)
       {
-      MasterScore* oscore = excerpt->oscore();
-      Score* partScore    = excerpt->partScore();
+      Q_ASSERT(excerpt->oscore() == this);
+      Score* partScore = excerpt->partScore();
 
       if (!partScore) {
             qDebug("deleteExcerpt: no partScore");
@@ -276,7 +276,7 @@ void deleteExcerpt(Excerpt* excerpt)
             // find staff in the main score
             if (s->linkedStaves()) {
                   for (Staff* s2 : s->linkedStaves()->staves()) {
-                        if ((s2->score() == oscore) && s2->primaryStaff()) {
+                        if ((s2->score() == this) && s2->primaryStaff()) {
                               staff = s2;
                               break;
                               }
@@ -305,9 +305,10 @@ void deleteExcerpt(Excerpt* excerpt)
                               }
                         }
                   // unlink the staff
-                  oscore->undo(new UnlinkStaff(staff, s));
+                  undo(new UnlinkStaff(staff, s));
                   }
             }
+      undo(new RemoveExcerpt(excerpt));
       }
 
 //---------------------------------------------------------
@@ -400,7 +401,7 @@ static void cloneTuplets(ChordRest* ocr, ChordRest* ncr, Tuplet* ot, TupletMap& 
 //   cloneStaves
 //---------------------------------------------------------
 
-void cloneStaves(Score* oscore, Score* score, const QList<int>& map, QMultiMap<int, int>& trackList)
+void Excerpt::cloneStaves(Score* oscore, Score* score, const QList<int>& map, QMultiMap<int, int>& trackList)
       {
       TieMap  tieMap;
 
@@ -768,7 +769,7 @@ void cloneStaves(Score* oscore, Score* score, const QList<int>& map, QMultiMap<i
 //    staves are in same score
 //---------------------------------------------------------
 
-void cloneStaff(Staff* srcStaff, Staff* dstStaff)
+void Excerpt::cloneStaff(Staff* srcStaff, Staff* dstStaff)
       {
       Score* score = srcStaff->score();
       TieMap tieMap;
@@ -946,7 +947,7 @@ void cloneStaff(Staff* srcStaff, Staff* dstStaff)
 //    staves are potentially in different scores
 //---------------------------------------------------------
 
-void cloneStaff2(Staff* srcStaff, Staff* dstStaff, int stick, int etick)
+void Excerpt::cloneStaff2(Staff* srcStaff, Staff* dstStaff, int stick, int etick)
       {
       Score* oscore = srcStaff->score();
       Score* score  = dstStaff->score();
@@ -1156,6 +1157,16 @@ QString Excerpt::createName(const QString& partName, QList<Excerpt*> excerptList
                   break;
             }
       return name;
+      }
+
+//---------------------------------------------------------
+//   setPartScore
+//---------------------------------------------------------
+
+void Excerpt::setPartScore(Score* s)
+      {
+      _partScore = s;
+      s->setExcerpt(this);
       }
 
 }

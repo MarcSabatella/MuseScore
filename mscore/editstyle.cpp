@@ -89,6 +89,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { StyleIdx::lyricsDashMaxDistance,   false, lyricsDashMaxDistance,   resetLyricsDashMaxDistance },
       { StyleIdx::lyricsDashForce,         false, lyricsDashForce,         resetLyricsDashForce },
       { StyleIdx::lyricsAlignVerseNumber,  false, lyricsAlignVerseNumber,  resetLyricsAlignVerseNumber },
+      { StyleIdx::lyricsLineThickness,     false, lyricsLineThickness,     resetLyricsLineThickness },
 
       { StyleIdx::systemFrameDistance,     false, systemFrameDistance,     0 },
       { StyleIdx::frameSystemDistance,     false, frameSystemDistance,     0 },
@@ -100,6 +101,8 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { StyleIdx::endBarDistance,          false, endBarDistance,          0 },
       { StyleIdx::doubleBarWidth,          false, doubleBarWidth,          0 },
       { StyleIdx::doubleBarDistance,       false, doubleBarDistance,       0 },
+      { StyleIdx::repeatBarlineDotSeparation, false, repeatBarlineDotSeparation, 0 },
+
       { StyleIdx::barGraceDistance,        false, barGraceDistance,        resetBarGraceDistance },
       { StyleIdx::useStandardNoteNames,    false, useStandardNoteNames,    0 },
       { StyleIdx::useGermanNoteNames,      false, useGermanNoteNames,      0 },
@@ -721,16 +724,18 @@ void EditStyle::setValues()
                   }
             ++idx;
             }
+      musicalTextFont->blockSignals(true);
       musicalTextFont->clear();
       // CAUTION: the second element, the itemdata, is a font family name!
       // It's also stored in score file as the musicalTextFont
       musicalTextFont->addItem("Bravura Text", "Bravura Text");
       musicalTextFont->addItem("Emmentaler Text", "MScore Text");
       musicalTextFont->addItem("Gonville Text", "Gootville Text");
-      musicalTextFont->addItem("MuseJazz", "MuseJazz");
+      musicalTextFont->addItem("MuseJazz Text", "MuseJazz Text");
       QString tfont(lstyle.value(StyleIdx::MusicalTextFont).toString());
       idx = musicalTextFont->findData(tfont);
       musicalTextFont->setCurrentIndex(idx);
+      musicalTextFont->blockSignals(false);
 
       toggleHeaderOddEven(lstyle.value(StyleIdx::headerOddEven).toBool());
 
@@ -909,8 +914,25 @@ void EditStyle::valueChanged(int i)
       {
       StyleIdx idx = (StyleIdx)i;
       QVariant val = getValue(idx);
+      bool setValue = false;
+      if (idx == StyleIdx::MusicalSymbolFont && optimizeStyleCheckbox->isChecked()) {
+              ScoreFont* scoreFont = ScoreFont::fontFactory(val.toString());
+              if (scoreFont) {
+                    for (auto i : scoreFont->engravingDefaults()) {
+                          cs->undo(new ChangeStyleVal(cs, i.first, i.second));
+                          }
+                    if (scoreFont->textEnclosureThickness()) {
+                           TextStyle ts = cs->textStyle(TextStyleType::REHEARSAL_MARK);
+                           ts.setFrameWidth(Spatium(scoreFont->textEnclosureThickness()));
+                           cs->undo(new ChangeTextStyle(cs, ts));
+                           }
+                    }
+              setValue = true;
+              }
       cs->undo(new ChangeStyleVal(cs, idx, val));
       cs->update();
+      if (setValue)
+            setValues();
 
       const StyleWidget& sw = styleWidget(idx);
       if (sw.reset)

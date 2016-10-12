@@ -1528,6 +1528,10 @@ void Score::undoAddCR(ChordRest* cr, Measure* measure, int tick)
 
                   Score* score = staff->score();
                   Measure* m   = (score == this) ? measure : score->tick2measure(tick);
+                  if (!m)  {
+                        qDebug("measure not found");
+                        break;
+                        }
                   Segment* seg = m->undoGetSegment(segmentType, tick);
 
                   Q_ASSERT(seg->segmentType() == segmentType);
@@ -3138,7 +3142,7 @@ void ChangeImage::flip()
 
 void AddExcerpt::undo()
       {
-      score->masterScore()->removeExcerpt(score);
+      excerpt->oscore()->removeExcerpt(excerpt);
       }
 
 //---------------------------------------------------------
@@ -3147,7 +3151,7 @@ void AddExcerpt::undo()
 
 void AddExcerpt::redo()
       {
-      score->masterScore()->addExcerpt(score, tracks);
+      excerpt->oscore()->addExcerpt(excerpt);
       }
 
 //---------------------------------------------------------
@@ -3156,7 +3160,7 @@ void AddExcerpt::redo()
 
 void RemoveExcerpt::undo()
       {
-      score->masterScore()->addExcerpt(score, tracks);
+      excerpt->oscore()->addExcerpt(excerpt);
       }
 
 //---------------------------------------------------------
@@ -3165,27 +3169,29 @@ void RemoveExcerpt::undo()
 
 void RemoveExcerpt::redo()
       {
-      score->masterScore()->removeExcerpt(score);
+      excerpt->oscore()->removeExcerpt(excerpt);
       }
 
 //---------------------------------------------------------
-//   SwapExcerpt::undo()
+//   SwapExcerpt::flip()
 //---------------------------------------------------------
 
-void SwapExcerpt::undo()
-      {
-      score->excerpts().swap(pos2, pos1);
-      score->setExcerptsChanged(true);
-      }
-
-//---------------------------------------------------------
-//   SwapExcerpt::redo()
-//---------------------------------------------------------
-
-void SwapExcerpt::redo()
+void SwapExcerpt::flip()
       {
       score->excerpts().swap(pos1, pos2);
       score->setExcerptsChanged(true);
+      }
+
+//---------------------------------------------------------
+//   ChangeExcerptTitle::flip()
+//---------------------------------------------------------
+
+void ChangeExcerptTitle::flip()
+      {
+      QString s = title;
+      title = excerpt->title();
+      excerpt->setTitle(s);
+      excerpt->oscore()->setExcerptsChanged(true);
       }
 
 //---------------------------------------------------------

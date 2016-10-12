@@ -276,7 +276,7 @@ void MuseScore::editInstrList()
 
                         Staff* linkedStaff = part->staves()->front();
                         if (sli->linked() && linkedStaff != staff) {
-                              cloneStaff(linkedStaff, staff);
+                              Excerpt::cloneStaff(linkedStaff, staff);
                               linked.append(staff);
                               }
                         }
@@ -342,7 +342,7 @@ void MuseScore::editInstrList()
                                     }
                               masterScore->undoInsertStaff(staff, rstaff, linkedStaff == 0);
                               if (linkedStaff)
-                                    cloneStaff(linkedStaff, staff);
+                                    Excerpt::cloneStaff(linkedStaff, staff);
                               else {
                                     if (firstStaff)
                                           masterScore->adjustKeySigs(staffIdx, staffIdx+1, tmpKeymap);
@@ -478,11 +478,11 @@ void MuseScore::editInstrList()
       if (masterScore->measures()->size() == 0)
             masterScore->insertMeasure(Element::Type::MEASURE, 0, false);
 
-      for (Excerpt* excpt : masterScore->excerpts()) {
-            QList<Staff*> sl = excpt->partScore()->staves();
-            QMultiMap<int, int> tr = excpt->tracks();
+      for (Excerpt* excerpt : masterScore->excerpts()) {
+            QList<Staff*> sl       = excerpt->partScore()->staves();
+            QMultiMap<int, int> tr = excerpt->tracks();
             if (sl.size() == 0)
-                  masterScore->undo(new RemoveExcerpt(excpt->partScore(), excpt->tracks()));
+                  masterScore->undo(new RemoveExcerpt(excerpt));
             else {
                   for (Staff* s : sl) {
                         LinkedStaves* sll = s->linkedStaves();

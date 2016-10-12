@@ -145,10 +145,10 @@ void TestChordSymbol::testNoSystem()
       score->excerpts().append(ex);
       ex->setTitle(parts.front()->longName());
       ex->setParts(parts);
-      ::createExcerpt(ex);
+      Excerpt::createExcerpt(ex);
       QVERIFY(nscore);
 
-      nscore->setName(parts.front()->partName());
+//      nscore->setTitle(parts.front()->partName());
       nscore->style()->set(StyleIdx::createMultiMeasureRests, true);
 
       //
@@ -164,10 +164,10 @@ void TestChordSymbol::testNoSystem()
       score->excerpts().append(ex);
       ex->setTitle(parts.front()->longName());
       ex->setParts(parts);
-      ::createExcerpt(ex);
+      Excerpt::createExcerpt(ex);
       QVERIFY(nscore);
 
-      nscore->setName(parts.front()->partName());
+//      nscore->setTitle(parts.front()->partName());
       nscore->style()->set(StyleIdx::createMultiMeasureRests, true);
 
       score->setExcerptsChanged(true);

@@ -34,9 +34,10 @@ namespace Ms {
 static const int FALLBACK_FONT = 0;       // Bravura
 
 QVector<ScoreFont> ScoreFont::_scoreFonts {
-      ScoreFont("Bravura",    "Bravura",     ":/fonts/bravura/",  "Bravura.otf"  ),
-      ScoreFont("Emmentaler", "MScore",      ":/fonts/mscore/",   "mscore.ttf"   ),
-      ScoreFont("Gonville",   "Gootville",   ":/fonts/gootville/", "Gootville.otf" )
+      ScoreFont("Bravura",    "Bravura",     ":/fonts/bravura/",   "Bravura.otf"  ),
+      ScoreFont("Emmentaler", "MScore",      ":/fonts/mscore/",    "mscore.ttf"   ),
+      ScoreFont("Gonville",   "Gootville",   ":/fonts/gootville/", "Gootville.otf" ),
+      ScoreFont("MuseJazz",   "MuseJazz",     ":/fonts/musejazz/", "MuseJazz.otf" ),
       };
 
 QJsonObject ScoreFont::_glyphnamesJson;
@@ -5636,7 +5637,6 @@ void ScoreFont::draw(SymId id, QPainter* painter, qreal mag, const QPointF& pos,
                   font->setStyleStrategy(QFont::NoFontMerging);
                   font->setHintingPreference(QFont::PreferVerticalHinting);
                   qreal size = 20.0 * MScore::pixelRatio;
-                  //font->setPixelSize(lrint(size));
                   font->setPointSize(size);
                   }
             qreal imag = 1.0 / mag;
@@ -5754,7 +5754,7 @@ void initScoreFonts()
       QFont::insertSubstitution("MScore Text",    "Bravura Text");
       QFont::insertSubstitution("Gootville Text", "Bravura Text");
       QFont::insertSubstitution("ScoreFont",      "Bravura Text");
-      QFont::insertSubstitution("MuseJazz",       "Bravura Text");
+      QFont::insertSubstitution("MuseJazz Text",   "Bravura Text");
       ScoreFont::fallbackFont();   // load fallback font
       }
 
@@ -5897,9 +5897,45 @@ void ScoreFont::load()
                         }
                   }
             }
+      oo = metadataJson.value("engravingDefaults").toObject();
+      static std::list<std::pair<QString, StyleIdx>> engravingDefaultsMapping = {
+            { "staffLineThickness",            StyleIdx::staffLineWidth },
+            { "stemThickness",                 StyleIdx::stemWidth },
+            { "beamThickness",                 StyleIdx::beamWidth },
+            { "beamSpacing",                   StyleIdx::beamDistance },
+            { "legerLineThickness",            StyleIdx::ledgerLineWidth },
+            { "legerLineExtension",            StyleIdx::ledgerLineLength },
+            { "slurEndpointThickness",         StyleIdx::SlurEndWidth },
+            { "slurMidpointThickness",         StyleIdx::SlurMidWidth },
+            { "thinBarlineThickness",          StyleIdx::barWidth },
+            { "thinBarlineThickness",          StyleIdx::doubleBarWidth },
+            { "thickBarlineThickness",         StyleIdx::endBarWidth },
+            { "dashedBarlineThickness",        StyleIdx::barWidth },
+            { "barlineSeparation",             StyleIdx::doubleBarDistance },
+            { "barlineSeparation",             StyleIdx::endBarDistance },
+            { "repeatBarlineDotSeparation",    StyleIdx::repeatBarlineDotSeparation },
+            { "bracketThickness",              StyleIdx::bracketWidth },
+            { "hairpinThickness",              StyleIdx::hairpinLineWidth },
+            { "octaveLineThickness",           StyleIdx::ottavaLineWidth },
+            { "pedalLineThickness",            StyleIdx::pedalLineWidth },
+            { "repeatEndingLineThickness",     StyleIdx::voltaLineWidth },
+            { "lyricLineThickness",            StyleIdx::lyricsLineThickness },
+            { "tupletBracketThickness",        StyleIdx::tupletBracketWidth }
+            };
+      for (auto i : oo.keys()) {
+            for (auto mapping : engravingDefaultsMapping) {
+                  if (i == mapping.first) {
+                        _engravingDefaults.push_back(std::make_pair(mapping.second, oo.value(i).toDouble()));
+                        break;
+                        }
+                  else if (i == "textEnclosureThickness") {
+                        _textEnclosureThickness = oo.value(i).toDouble();
+                        }
+                  }
+            }
+      _engravingDefaults.push_back(std::make_pair(StyleIdx::MusicalTextFont, QString("%1 Text").arg(_family)));
 
       // create missing composed glyphs
-
       struct Composed {
             SymId id;
             std::vector<SymId> rids;

@@ -144,14 +144,14 @@ void TestParts::createParts(MasterScore* score)
 
       Excerpt* ex = new Excerpt(score);
       ex->setPartScore(nscore);
-      nscore->setExcerpt(ex);
-      score->excerpts().append(ex);
-      ex->setTitle(parts.front()->longName());
       ex->setParts(parts);
-      ::createExcerpt(ex);
+      ex->setTitle(parts.front()->partName());
+      Excerpt::createExcerpt(ex);
+      score->excerpts().append(ex);
+//      ex->setTitle(parts.front()->longName());
       QVERIFY(nscore);
 
-      nscore->setName(parts.front()->partName());
+//      nscore->setName(parts.front()->partName());
 
       //
       // create second part
@@ -162,14 +162,14 @@ void TestParts::createParts(MasterScore* score)
 
       ex = new Excerpt(score);
       ex->setPartScore(nscore);
-      nscore->setExcerpt(ex);
-      score->excerpts().append(ex);
-      ex->setTitle(parts.front()->longName());
       ex->setParts(parts);
-      ::createExcerpt(ex);
+      ex->setTitle(parts.front()->partName());
+      Excerpt::createExcerpt(ex);
+      score->excerpts().append(ex);
+//      ex->setTitle(parts.front()->longName());
       QVERIFY(nscore);
 
-      nscore->setName(parts.front()->partName());
+//      nscore->setName(parts.front()->partName());
 
       score->setExcerptsChanged(true);
       }
@@ -201,10 +201,10 @@ void TestParts::voicesExcerpt()
       ex->setTitle(parts.front()->longName());
       ex->setParts(parts);
       ex->setTracks(trackList);
-      ::createExcerpt(ex);
+      Excerpt::createExcerpt(ex);
       QVERIFY(nscore);
 
-      nscore->setName(parts.front()->partName());
+//      nscore->setName(parts.front()->partName());
 
       //
       // create second part
@@ -223,10 +223,10 @@ void TestParts::voicesExcerpt()
       ex->setTitle(parts.front()->longName());
       ex->setParts(parts);
       ex->setTracks(trackList);
-      ::createExcerpt(ex);
+      Excerpt::createExcerpt(ex);
       QVERIFY(nscore);
 
-      nscore->setName(parts.front()->partName());
+//      nscore->setName(parts.front()->partName());
 
       score->setExcerptsChanged(true);
 

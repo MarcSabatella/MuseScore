@@ -428,7 +428,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void symbolMenu();
       void showKeyEditor();
       bool saveFile();
-      bool saveFile(Score* score);
+      bool saveFile(MasterScore* score);
       void fingeringMenu();
 
       int  pluginIdxFromPath(QString pluginPath);
@@ -510,7 +510,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void switchLayoutMode(int);
       void showMidiImportPanel();
       void changeWorkspace(QAction*);
-      void toolbarVisibilityChanged(bool);
+
+      virtual QMenu* createPopupMenu() override;
 
    public slots:
       virtual void cmd(QAction* a);
@@ -536,7 +537,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
    public:
       MuseScore();
       ~MuseScore();
-      bool checkDirty(Score*);
+      bool checkDirty(MasterScore*);
       PlayPanel* getPlayPanel() const { return playPanel; }
       Mixer* getMixer() const { return mixer; }
       QMenu* genCreateMenu(QWidget* parent = 0);
@@ -565,7 +566,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void showPluginCreator(QAction*);
       void showPluginManager();
 
-      void updateTabNames();
+//      void updateTabNames();
       QProgressBar* showProgressBar();
       void hideProgressBar();
       void addRecentScore(Score*);
