@@ -1791,7 +1791,7 @@ static void layoutPage(Page* page, qreal restHeight)
       for (int i = 0; i < nsystems - 1; ++i) {
             System* s1 = page->systems().at(i);
             System* s2 = page->systems().at(i+1);
-            if (s1->vbox() || s2->vbox())
+            if (s1->vbox() || s2->vbox() || s1->hasFixedDownDistance())
                   continue;
             ++gaps;
             }
@@ -1825,7 +1825,7 @@ static void layoutPage(Page* page, qreal restHeight)
       for (int i = 0; i < nsystems - 1; ++i) {
             System* s1 = page->systems().at(i);
             System* s2 = page->systems().at(i+1);
-            if (!(s1->vbox() || s2->vbox())) {
+            if (!(s1->vbox() || s2->vbox() || s1->hasFixedDownDistance())) {
                   qreal dist   = (s2->y() + yoff) - (s1->y() + s1->height());
                   qreal offset = stretch;
                   if (dist + stretch > maxDistance) {       // limit stretch
@@ -3666,7 +3666,7 @@ System* Score::collectSystem(LayoutContext& lc)
       Measure* lm  = system->lastMeasure();
       if (lm) {
             lc.firstSystem        = lm->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
-            lc.startWithLongNames = lc.firstSystem && lm->sectionBreak()->startWithLongNames();
+            lc.startWithLongNames = lc.firstSystem && lm->sectionBreakElement()->startWithLongNames();
             }
       lc.systemChanged      = lc.systemOldMeasure != (system->measures().empty() ? 0 : system->measures().back());
       return system;
@@ -3731,7 +3731,7 @@ bool Score::collectPage(LayoutContext& lc)
                   VBox* vbox = s3->vbox();
                   if (vbox)
                         dist += vbox->bottomGap();
-                  else
+                  else if (!s2->hasFixedDownDistance())
                         dist += qMax(s3->minBottom(), slb);
                   breakPage  = (y + dist) >= ey;
                   }
