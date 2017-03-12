@@ -2152,6 +2152,8 @@ qreal Score::cautionaryWidth(Measure* m, bool& hasCourtesy)
       ns           = nm->findSegment(Segment::Type::KeySig, tick);
 
       qreal wwMax  = 0.0;
+      qreal oblMax = 0.0;
+      qreal nblMax = 0.0;
       if (showCourtesy && ns) {
             qreal leftMargin = point(styleS(StyleIdx::keysigLeftMargin));
             for (int staffIdx = 0; staffIdx < _staves.size(); ++staffIdx) {
@@ -2160,6 +2162,20 @@ qreal Score::cautionaryWidth(Measure* m, bool& hasCourtesy)
                   KeySig* nks = static_cast<KeySig*>(ns->element(track));
 
                   if (nks && nks->showCourtesy() && !nks->generated()) {
+                        // account for generated double barline
+                        Segment* bls = m->findSegment(Segment::Type::EndBarLine, tick);
+                        if (bls && bls->element(track)) {
+                              BarLine* bl = static_cast<BarLine*>(bls->element(track));
+                              qreal mag = bl->mag();
+                              qreal oWidth = BarLine::layoutWidth(this, bl->barLineType(), mag);
+                              oblMax = qMax(oblMax, oWidth);
+                              // double bar not generated for repeat end
+                              if (bl->generated() && !(m->repeatFlags() & Repeat::END)) {
+                                    qreal nWidth = BarLine::layoutWidth(this, BarLineType::DOUBLE, mag);
+                                    nblMax = qMax(nblMax, nWidth);
+                                    }
+                              }
+
                         Segment* s  = m->findSegment(Segment::Type::KeySigAnnounce, tick);
 
                         if (s && s->element(track)) {
@@ -2174,7 +2190,8 @@ qreal Score::cautionaryWidth(Measure* m, bool& hasCourtesy)
                         }
                   }
             }
-      w += wwMax;
+      qreal blDiff = nblMax > oblMax ? nblMax - oblMax : 0.0;
+      w += wwMax + blDiff;
 
       return w;   //* 1.5
       }
@@ -2289,7 +2306,7 @@ bool Score::layoutSystem(qreal& minWidth, qreal systemWidth, bool isFirstSystem,
                   if (ww < minMeasureWidth)
                         ww = minMeasureWidth;
                   isFirstMeasure = false;
-                  //qDebug("measure %d: ww %f + minWidth %f = %f", m->no(), ww, minWidth, ww + minWidth);
+                  qDebug("measure %d: ww %f + minWidth %f = %f", m->no(), ww, minWidth, ww + minWidth);
                   }
 
             // collect at least one measure
