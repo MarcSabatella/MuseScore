@@ -449,14 +449,18 @@ bool Score::saveFile()
       QFile::setPermissions(name, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadUser
          | QFile::ReadGroup | QFile::ReadOther);
 
+      undo()->setClean();
       startCmd();
       info.refresh();         // update file info
       setLayoutAll(true);
-      endCmd();               // force relayout
-      undo()->undo();         // don't leave anything on undo stack
-      endUndoRedo();
+      endCmd(true);           // force relayout
+      if (!undo()->isClean()) {
+            // TODO: fix redo
+            // see https://musescore.org/en/node/97106
+            undo()->undo();
+            endUndoRedo();
+            }
 
-      undo()->setClean();
       setSaved(true);
       return true;
       }
