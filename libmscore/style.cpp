@@ -652,7 +652,7 @@ static const StyleType styleTypes[] {
       { Sid::stringNumberFrameRound,        "stringNumberFrameRound",        0 },
       { Sid::stringNumberFrameFgColor,      "stringNumberFrameFgColor",      QColor(0, 0, 0, 255) },
       { Sid::stringNumberFrameBgColor,      "stringNumberFrameBgColor",      QColor(255, 255, 255, 0) },
-      { Sid::stringNumberOffset,            "stringNumberOffset",            QPointF(0.0, -2.0) },
+      { Sid::stringNumberOffset,            "stringNumberOffset",            QPointF(0.0, -1.0) },
 
       { Sid::longInstrumentFontFace,        "longInstrumentFontFace",       "FreeSerif" },
       { Sid::longInstrumentFontSize,        "longInstrumentFontSize",       12.0 },

@@ -128,12 +128,14 @@ void Fingering::layout()
                               rypos() -= spatium() * 1.5;
                               }
                         else {
-                              QRectF r = bbox().translated(m->pos() + s->pos() + chord->pos() + n->pos() + pos());
+                              QPointF p = _avoidStaff ? pos() : ipos() + propertyDefault(Pid::OFFSET).toPointF();
+                              QRectF r = bbox().translated(m->pos() + s->pos() + chord->pos() + n->pos() + p);
                               SkylineLine sk(false);
                               sk.add(r.x(), r.bottom(), r.width());
                               qreal d = sk.minDistance(ss->skyline().north());
                               if (d > 0.0)
                                     rypos() -= d + height() * .25;
+
                               // force extra space above staff & chord (but not other fingerings)
                               qreal top;
                               if (chord->up() && chord->beam() && stem) {
@@ -156,12 +158,14 @@ void Fingering::layout()
                               rypos() += spatium() * 1.5;
                               }
                         else {
-                              QRectF r = bbox().translated(m->pos() + s->pos() + chord->pos() + n->pos() + pos());
+                              QPointF p = _avoidStaff ? pos() : ipos() + propertyDefault(Pid::OFFSET).toPointF();
+                              QRectF r = bbox().translated(m->pos() + s->pos() + chord->pos() + n->pos() + p);
                               SkylineLine sk(true);
                               sk.add(r.x(), r.top(), r.width());
                               qreal d = ss->skyline().south().minDistance(sk);
                               if (d > 0.0)
                                     rypos() += d + height() * .25;
+
                               // force extra space below staff & chord (but not other fingerings)
                               qreal bottom;
                               if (!chord->up() && chord->beam() && stem) {
@@ -203,6 +207,37 @@ void Fingering::draw(QPainter* painter) const
       }
 
 //---------------------------------------------------------
+//   read
+//---------------------------------------------------------
+
+void Fingering::read(XmlReader& e)
+      {
+      while (e.readNextStartElement()) {
+            const QStringRef& tag(e.name());
+            if (tag == "avoidStaff")
+                  _avoidStaff = e.readInt();
+            else if (TextBase::readProperties(e))
+                  ;
+            else
+                  e.unknown();
+            }
+      }
+
+//---------------------------------------------------------
+//   write
+//---------------------------------------------------------
+
+void Fingering::write(XmlWriter& xml) const
+      {
+      xml.stag(this);
+      if (!_avoidStaff)
+            xml.tag("avoidStaff", _avoidStaff);
+      TextBase::writeProperties(xml);
+      xml.etag();
+      }
+
+
+//---------------------------------------------------------
 //   accessibleInfo
 //---------------------------------------------------------
 
@@ -228,6 +263,17 @@ QVariant Fingering::propertyDefault(Pid id) const
             default:
                   return TextBase::propertyDefault(id);
             }
+      }
+
+//---------------------------------------------------------
+//   undoChangeProperty
+//---------------------------------------------------------
+
+void Fingering::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
+      {
+      if (id == Pid::OFFSET)
+            setAvoidStaff(ps == PropertyFlags::STYLED);
+      TextBase::undoChangeProperty(id, v, ps);
       }
 
 }

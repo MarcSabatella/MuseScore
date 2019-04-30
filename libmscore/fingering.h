@@ -23,6 +23,8 @@ namespace Ms {
 
 class Fingering final : public TextBase {
 
+      bool _avoidStaff        { true };
+
    public:
       Fingering(Score*, Tid tid, ElementFlags ef = ElementFlag::HAS_TAG);
       Fingering(Score* s, ElementFlags ef = ElementFlag::HAS_TAG);
@@ -33,11 +35,16 @@ class Fingering final : public TextBase {
       Note* note() const { return toNote(parent()); }
       ElementType layoutType();
       Placement calculatePlacement() const;
+      bool avoidStaff() const                   { return _avoidStaff; }
+      void setAvoidStaff(bool v)                { _avoidStaff = v; }
 
       virtual void draw(QPainter*) const override;
       virtual void layout() override;
+      virtual void read(XmlReader&) override;
+      virtual void write(XmlWriter& xml) const override;
 
       virtual QVariant propertyDefault(Pid id) const override;
+      virtual void undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps) override;
 
       virtual QString accessibleInfo() const override;
       };
