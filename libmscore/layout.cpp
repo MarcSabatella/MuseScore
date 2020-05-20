@@ -843,6 +843,10 @@ void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment
             Accidental* ac = note->accidental();
             if (ac && !note->fixed()) {
                   ac->layout();
+                  if (!ac->visible()) {
+                        ac->setPos(ac->bbox().x() - ac->width(), 0.0);
+                        continue;
+                        }
                   AcEl acel;
                   acel.note   = note;
                   int line    = note->line();
