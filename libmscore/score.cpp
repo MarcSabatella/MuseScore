@@ -43,7 +43,7 @@
 #include "pitchspelling.h"
 #include "line.h"
 #include "volta.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "ottava.h"
 #include "barline.h"
 #include "box.h"
@@ -3031,7 +3031,7 @@ void Score::padToggle(Pad n, const EditData& ed)
             if (!cr) {
                 continue;
             }
-            if (cr->isRepeatMeasure() || cr->isMMRest()) {
+            if (cr->isMeasureRepeat() || cr->isMMRest()) {
                 canAdjustLength = false;
                 break;
             }

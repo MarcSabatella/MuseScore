@@ -25,7 +25,7 @@
 #include "volta.h"
 #include "ottava.h"
 #include "trill.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "jump.h"
 #include "marker.h"
 #include "layoutbreak.h"

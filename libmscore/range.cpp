@@ -24,7 +24,7 @@
 #include "utils.h"
 #include "staff.h"
 #include "excerpt.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "tremolo.h"
 
 namespace Ms {
@@ -276,9 +276,9 @@ void TrackList::read(const Segment* fs, const Segment* es)
             }
             continue;
         }
-        if (e->isRepeatMeasure()) {
+        if (e->isMeasureRepeat()) {
             // TODO: copy previous measure contents?
-            RepeatMeasure* rm = toRepeatMeasure(e);
+            MeasureRepeat* rm = toMeasureRepeat(e);
             Rest r(*rm);
             append(&r);
             tick += r.ticks();
@@ -493,7 +493,7 @@ bool TrackList::write(Score* score, const Fraction& tick) const
             }
             bool firstpart = true;
             while (duration > Fraction(0,1)) {
-                if ((e->isRest() || e->isRepeatMeasure()) && (duration >= remains || e == back())
+                if ((e->isRest() || e->isMeasureRepeat()) && (duration >= remains || e == back())
                     && (remains == m->ticks())) {
                     //
                     // handle full measure rest

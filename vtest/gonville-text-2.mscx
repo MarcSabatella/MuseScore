@@ -106,9 +106,10 @@
           <label>segno</label>
           </Marker>
         <voice>
-          <RepeatMeasure>
+          <MeasureRepeat>
+            <subtype>1</subtype>
             <duration>4/4</duration>
-            </RepeatMeasure>
+            </MeasureRepeat>
           </voice>
         </Measure>
       <Measure>

@@ -39,7 +39,7 @@ class TieMap;
 class AccidentalState;
 class Spanner;
 class Part;
-class RepeatMeasure;
+class MeasureRepeat;
 
 class MStaff;
 
@@ -266,7 +266,7 @@ public:
     void barLinesSetSpan(Segment*);
     void setEndBarLineType(BarLineType val, int track, bool visible = true, QColor color = QColor());
 
-    RepeatMeasure* cmdInsertRepeatMeasure(int staffIdx);
+    MeasureRepeat* cmdInsertMeasureRepeat(int staffIdx, int numMeasures = 1);
 
     void scanElements(void* data, void (* func)(void*, Element*), bool all=true) override;
     void createVoice(int track);
@@ -279,7 +279,7 @@ public:
     bool hasVoice(int track) const;
     bool isEmpty(int staffIdx) const;
     bool isFullMeasureRest() const;
-    bool isRepeatMeasure(const Staff* staff) const;
+    bool isMeasureRepeat(const Staff* staff) const;
     bool visible(int staffIdx) const;
     bool stemless(int staffIdx) const;
     bool isFinalMeasureOfSection() const;

@@ -778,7 +778,7 @@ Element* Score::prevElement()
                 }
                 Element* el = startSeg->lastElementOfSegment(startSeg, staffId);
                 if (stEl->type() == ElementType::CHORD || stEl->type() == ElementType::REST
-                    || stEl->type() == ElementType::REPEAT_MEASURE || stEl->type() == ElementType::MMREST
+                    || stEl->type() == ElementType::MEASURE_REPEAT || stEl->type() == ElementType::MMREST
                     || stEl->type() == ElementType::NOTE) {
                     ChordRest* cr = startSeg->cr(stEl->track());
                     if (cr) {

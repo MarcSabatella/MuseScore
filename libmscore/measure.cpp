@@ -49,7 +49,7 @@
 #include "part.h"
 #include "pedal.h"
 #include "pitchspelling.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "rest.h"
 #include "mmrest.h"
 #include "score.h"
@@ -1329,7 +1329,7 @@ bool Measure::acceptDrop(EditData& data) const
         return true;
 
     case ElementType::BRACKET:
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
     case ElementType::MEASURE:
     case ElementType::SPACER:
     case ElementType::IMAGE:
@@ -1618,10 +1618,10 @@ Element* Measure::drop(EditData& data)
         break;
     }
 
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
     {
         delete e;
-        return cmdInsertRepeatMeasure(staffIdx);
+        return cmdInsertMeasureRepeat(staffIdx);
     }
     case ElementType::ICON:
         switch (toIcon(e)->iconType()) {
@@ -1662,32 +1662,39 @@ Element* Measure::drop(EditData& data)
 }
 
 //---------------------------------------------------------
-//   cmdInsertRepeatMeasure
+//   cmdInsertMeasureRepeat
 //---------------------------------------------------------
 
-RepeatMeasure* Measure::cmdInsertRepeatMeasure(int staffIdx)
+MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
 {
     //
     // see also cmdDeleteSelection()
     //
     score()->select(0, SelectType::SINGLE, 0);
-    for (Segment* s = first(); s; s = s->next()) {
-        if (s->segmentType() & SegmentType::ChordRest) {
-            int strack = staffIdx * VOICES;
-            int etrack = strack + VOICES;
-            for (int track = strack; track < etrack; ++track) {
-                Element* el = s->element(track);
-                if (el) {
-                    score()->undoRemoveElement(el);
+    Measure* m = this;
+    for (int i = 1; i <= numMeasures; ++i) {
+        for (Segment* s = m->first(); s; s = s->next()) {
+            if (s->segmentType() & SegmentType::ChordRest) {
+                int strack = staffIdx * VOICES;
+                int etrack = strack + VOICES;
+                for (int track = strack; track < etrack; ++track) {
+                    Element* el = s->element(track);
+                    if (el) {
+                        score()->undoRemoveElement(el);
+                    }
                 }
             }
+        }
+        if (i < numMeasures && m->nextMeasure()) {
+            m = m->nextMeasure();
         }
     }
     //
     // add repeat measure
     //
     Segment* seg = undoGetSegment(SegmentType::ChordRest, tick());
-    RepeatMeasure* rm = new RepeatMeasure(score());
+    MeasureRepeat* rm = new MeasureRepeat(score());
+    rm->setNumMeasures(numMeasures);
     rm->setTrack(staffIdx * VOICES);
     rm->setParent(seg);
     rm->setDurationType(TDuration::DurationType::V_MEASURE);
@@ -2202,10 +2209,14 @@ void Measure::readVoice(XmlReader& e, int staffIdx, bool irregular)
             segment->add(breath);
         } else if (tag == "Spanner") {
             Spanner::readSpanner(e, this, e.track());
-        } else if (tag == "RepeatMeasure") {
-            RepeatMeasure* rm = new RepeatMeasure(score());
+        } else if (tag == "MeasureRepeat" || tag == "RepeatMeasure") {
+            //              4.x                         3.x
+            MeasureRepeat* rm = new MeasureRepeat(score());
             rm->setTrack(e.track());
             rm->read(e);
+            if (!rm->numMeasures()) {
+                rm->setNumMeasures(1); // 3.x doesn't have any other possibilities
+            }
             segment = getSegment(SegmentType::ChordRest, e.tick());
             segment->add(rm);
             e.incTick(ticks());
@@ -2833,10 +2844,10 @@ bool Measure::isFullMeasureRest() const
 }
 
 //---------------------------------------------------------
-//   isRepeatMeasure
+//   isMeasureRepeat
 //---------------------------------------------------------
 
-bool Measure::isRepeatMeasure(const Staff* staff) const
+bool Measure::isMeasureRepeat(const Staff* staff) const
 {
     int staffIdx = staff->idx();
     int strack   = staffIdx * VOICES;
@@ -2849,7 +2860,7 @@ bool Measure::isRepeatMeasure(const Staff* staff) const
 
     for (int track = strack; track < etrack; ++track) {
         Element* e = s->element(track);
-        if (e && e->isRepeatMeasure()) {
+        if (e && e->isMeasureRepeat()) {
             return true;
         }
     }
@@ -3472,7 +3483,7 @@ void Measure::stretchMeasure(qreal targetWidth)
             }
             ElementType t = e->type();
             int staffIdx    = e->staffIdx();
-            if (t == ElementType::REPEAT_MEASURE || (t == ElementType::MMREST)
+            if (t == ElementType::MEASURE_REPEAT || (t == ElementType::MMREST)
                 || (t == ElementType::REST && toRest(e)->isFullMeasureRest())) {
                 //
                 // element has to be centered in free space
@@ -3503,9 +3514,9 @@ void Measure::stretchMeasure(qreal targetWidth)
                     mmrest->layout();
                     e->setPos(x1 - s.x() + d, e->staff()->height() * .5);             // center vertically in measure
                     s.createShape(staffIdx);
-                } else {       // if (rest->isFullMeasureRest()) {
+                } else {
                     //
-                    // center full measure rest
+                    // center full measure rest or one-measure repeat
                     //
                     e->rxpos() = (x2 - x1 - e->width()) * .5 + x1 - s.x() - e->bbox().x();
                     s.createShape(staffIdx);            // DEBUG

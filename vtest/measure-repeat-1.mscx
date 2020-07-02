@@ -313,17 +313,17 @@ p, li { white-space: pre-wrap; }
           <sigD>4</sigD>
           <showCourtesySig>1</showCourtesySig>
           </TimeSig>
-        <RepeatMeasure>
+        <MeasureRepeat>
           <duration z="4" n="4"/>
-          </RepeatMeasure>
+          </MeasureRepeat>
         </Measure>
       <Measure number="2">
         <KeySig>
           <accidental>7</accidental>
           </KeySig>
-        <RepeatMeasure>
+        <MeasureRepeat>
           <duration z="4" n="4"/>
-          </RepeatMeasure>
+          </MeasureRepeat>
         <BarLine>
           <subtype>end</subtype>
           <span>1</span>
@@ -341,17 +341,17 @@ p, li { white-space: pre-wrap; }
           <sigD>4</sigD>
           <showCourtesySig>1</showCourtesySig>
           </TimeSig>
-        <RepeatMeasure>
+        <MeasureRepeat>
           <duration z="4" n="4"/>
-          </RepeatMeasure>
+          </MeasureRepeat>
         </Measure>
       <Measure number="2">
         <KeySig>
           <accidental>7</accidental>
           </KeySig>
-        <RepeatMeasure>
+        <MeasureRepeat>
           <duration z="4" n="4"/>
-          </RepeatMeasure>
+          </MeasureRepeat>
         <BarLine>
           <subtype>end</subtype>
           <span>1</span>

@@ -83,7 +83,7 @@ class Hairpin;
 class HairpinSegment;
 class Bend;
 class TremoloBar;
-class RepeatMeasure;
+class MeasureRepeat;
 class Tuplet;
 class NoteDot;
 class Dynamic;
@@ -347,7 +347,7 @@ public:
     CONVERT(HairpinSegment,HAIRPIN_SEGMENT)
     CONVERT(Bend,          BEND)
     CONVERT(TremoloBar,    TREMOLOBAR)
-    CONVERT(RepeatMeasure, REPEAT_MEASURE)
+    CONVERT(MeasureRepeat, MEASURE_REPEAT)
     CONVERT(Tuplet,        TUPLET)
     CONVERT(NoteDot,       NOTEDOT)
     CONVERT(Dynamic,       DYNAMIC)
@@ -397,7 +397,7 @@ public:
 #undef CONVERT
 
     virtual bool isElement() const { return false; }   // overridden in element.h
-    bool isChordRest() const { return isRest() || isChord() || isRepeatMeasure() || isMMRest(); }
+    bool isChordRest() const { return isRest() || isChord() || isMeasureRepeat() || isMMRest(); }
     bool isDurationElement() const { return isChordRest() || isTuplet(); }
     bool isSlurTieSegment() const { return isSlurSegment() || isTieSegment(); }
     bool isSLineSegment() const;
@@ -479,21 +479,21 @@ public:
 static inline ChordRest* toChordRest(ScoreElement* e)
 {
     Q_ASSERT(e == 0 || e->type() == ElementType::CHORD || e->type() == ElementType::REST
-             || e->type() == ElementType::MMREST || e->type() == ElementType::REPEAT_MEASURE);
+             || e->type() == ElementType::MMREST || e->type() == ElementType::MEASURE_REPEAT);
     return (ChordRest*)e;
 }
 
 static inline const ChordRest* toChordRest(const ScoreElement* e)
 {
     Q_ASSERT(e == 0 || e->type() == ElementType::CHORD || e->type() == ElementType::REST
-             || e->type() == ElementType::MMREST || e->type() == ElementType::REPEAT_MEASURE);
+             || e->type() == ElementType::MMREST || e->type() == ElementType::MEASURE_REPEAT);
     return (const ChordRest*)e;
 }
 
 static inline DurationElement* toDurationElement(ScoreElement* e)
 {
     Q_ASSERT(e == 0 || e->type() == ElementType::CHORD || e->type() == ElementType::REST
-             || e->type() == ElementType::MMREST || e->type() == ElementType::REPEAT_MEASURE
+             || e->type() == ElementType::MMREST || e->type() == ElementType::MEASURE_REPEAT
              || e->type() == ElementType::TUPLET);
     return (DurationElement*)e;
 }
@@ -501,20 +501,20 @@ static inline DurationElement* toDurationElement(ScoreElement* e)
 static inline const DurationElement* toDurationElement(const ScoreElement* e)
 {
     Q_ASSERT(e == 0 || e->type() == ElementType::CHORD || e->type() == ElementType::REST
-             || e->type() == ElementType::MMREST || e->type() == ElementType::REPEAT_MEASURE
+             || e->type() == ElementType::MMREST || e->type() == ElementType::MEASURE_REPEAT
              || e->type() == ElementType::TUPLET);
     return (const DurationElement*)e;
 }
 
 static inline Rest* toRest(ScoreElement* e)
 {
-    Q_ASSERT(!e || e->isRest() || e->isMMRest() || e->isRepeatMeasure());
+    Q_ASSERT(!e || e->isRest() || e->isMMRest() || e->isMeasureRepeat());
     return (Rest*)e;
 }
 
 static inline const Rest* toRest(const ScoreElement* e)
 {
-    Q_ASSERT(!e || e->isRest() || e->isMMRest() || e->isRepeatMeasure());
+    Q_ASSERT(!e || e->isRest() || e->isMMRest() || e->isMeasureRepeat());
     return (const Rest*)e;
 }
 
@@ -653,7 +653,7 @@ CONVERT(Hairpin)
 CONVERT(HairpinSegment)
 CONVERT(Bend)
 CONVERT(TremoloBar)
-CONVERT(RepeatMeasure)
+CONVERT(MeasureRepeat)
 CONVERT(MMRest)
 CONVERT(Tuplet)
 CONVERT(NoteDot)

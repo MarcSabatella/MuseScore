@@ -34,7 +34,7 @@
 #include "ottava.h"
 #include "page.h"
 #include "part.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "score.h"
 #include "segment.h"
 #include "sig.h"

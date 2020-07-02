@@ -29,7 +29,7 @@
 #include "utils.h"
 #include "xml.h"
 #include "image.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "chord.h"
 #include "tremolo.h"
 #include "slur.h"
@@ -222,7 +222,7 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff, Fraction scale)
                         oldTuplet->sortElements();
                     }
                     e.readNext();
-                } else if (tag == "Chord" || tag == "Rest" || tag == "RepeatMeasure") {
+                } else if (tag == "Chord" || tag == "Rest" || tag == "MeasureRepeat") {
                     ChordRest* cr = toChordRest(Element::name2Element(tag, this));
                     cr->setTrack(e.track());
                     cr->read(e);
@@ -595,8 +595,8 @@ void Score::pasteChordRest(ChordRest* cr, const Fraction& t, const Interval& src
 
     // find out if the chordrest was only partially contained in the copied range
     bool partialCopy = false;
-    if (cr->isRepeatMeasure()) {
-        partialCopy = toRepeatMeasure(cr)->actualTicks() != measure->ticks();
+    if (cr->isMeasureRepeat()) {
+        partialCopy = toMeasureRepeat(cr)->actualTicks() != measure->ticks();
     } else if (!isGrace && !cr->tuplet()) {
         partialCopy = cr->durationTypeTicks() != cr->actualTicks();
     }
@@ -672,8 +672,8 @@ void Score::pasteChordRest(ChordRest* cr, const Fraction& t, const Interval& src
                 tick += r2->actualTicks();
                 firstpart = false;
             }
-        } else if (cr->isRepeatMeasure()) {
-            RepeatMeasure* rm = toRepeatMeasure(cr);
+        } else if (cr->isMeasureRepeat()) {
+            MeasureRepeat* rm = toMeasureRepeat(cr);
             std::vector<TDuration> list = toDurationList(rm->actualTicks(), true);
             for (auto dur : list) {
                 Rest* r = new Rest(this, dur);

@@ -990,7 +990,7 @@ QByteArray Selection::symbolListMimeData() const
                           case ElementType::MMREST:
                           case ElementType::BREATH:
                           case ElementType::GLISSANDO:
-                          case ElementType::REPEAT_MEASURE:
+                          case ElementType::MEASURE_REPEAT:
                           case ElementType::IMAGE:
                           case ElementType::TIE:
                           case ElementType::CHORDLINE:

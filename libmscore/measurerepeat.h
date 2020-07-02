@@ -21,26 +21,38 @@ class Score;
 class Segment;
 
 //---------------------------------------------------------
-//   @@ RepeatMeasure
+//   @@ MeasureRepeat
 //---------------------------------------------------------
 
-class RepeatMeasure final : public Rest
+class MeasureRepeat final : public Rest
 {
-    QPainterPath path;
-
 public:
-    RepeatMeasure(Score*);
-    RepeatMeasure& operator=(const RepeatMeasure&) = delete;
+    MeasureRepeat(Score*);
+    MeasureRepeat& operator=(const MeasureRepeat&) = delete;
 
-    RepeatMeasure* clone() const override { return new RepeatMeasure(*this); }
-    Element* linkedClone() override { return Element::linkedClone(); }
-    ElementType type() const override { return ElementType::REPEAT_MEASURE; }
+    MeasureRepeat* clone() const override   { return new MeasureRepeat(*this); }
+    Element* linkedClone() override         { return Element::linkedClone(); }
+    ElementType type() const override       { return ElementType::MEASURE_REPEAT; }
+
+    void setNumMeasures(int n)              { m_numMeasures = n; }
+    int numMeasures() const                 { return m_numMeasures; }
+    void setSymId(SymId id)                 { m_symId = id; }
+    SymId symId() const                     { return m_symId; }
+
     void draw(QPainter*) const override;
     void layout() override;
     Fraction ticks() const override;
-    Fraction actualTicks() const { return Rest::ticks(); }
+    Fraction actualTicks() const            { return Rest::ticks(); }
+
+    void read(XmlReader&) override;
+    void write(XmlWriter& xml) const override;
 
     QString accessibleInfo() const override;
+
+private:
+    int m_numMeasures;
+    SymId m_symId;
+
 };
 }     // namespace Ms
 #endif

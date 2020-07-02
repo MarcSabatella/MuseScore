@@ -22,7 +22,7 @@
 #include "measure.h"
 #include "barline.h"
 #include "part.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "staff.h"
 #include "line.h"
 #include "hairpin.h"
@@ -524,7 +524,7 @@ void Segment::add(Element* el)
     }
 
     switch (el->type()) {
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
         _elist[track] = el;
         setEmpty(false);
         break;
@@ -688,7 +688,7 @@ void Segment::remove(Element* el)
     break;
 
     case ElementType::MMREST:
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
         _elist[track] = 0;
         break;
 
@@ -775,7 +775,7 @@ SegmentType Segment::segmentType(ElementType type)
     case ElementType::CHORD:
     case ElementType::REST:
     case ElementType::MMREST:
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
     case ElementType::JUMP:
     case ElementType::MARKER:
         return SegmentType::ChordRest;
@@ -1867,7 +1867,7 @@ Element* Segment::prevElement(int activeStaff)
             return nullptr;
         }
         if (el->type() == ElementType::CHORD || el->type() == ElementType::REST
-            || el->type() == ElementType::MMREST || el->type() == ElementType::REPEAT_MEASURE) {
+            || el->type() == ElementType::MMREST || el->type() == ElementType::MEASURE_REPEAT) {
             ChordRest* cr = this->cr(el->track());
             if (cr) {
                 Element* elCr = cr->lastElementBeforeSegment();
@@ -1910,7 +1910,7 @@ Element* Segment::prevElement(int activeStaff)
         Element* prev = seg->prevElementOfSegment(seg, el, activeStaff);
         if (prev) {
             if (prev->type() == ElementType::CHORD || prev->type() == ElementType::REST
-                || prev->type() == ElementType::MMREST || prev->type() == ElementType::REPEAT_MEASURE) {
+                || prev->type() == ElementType::MMREST || prev->type() == ElementType::MEASURE_REPEAT) {
                 ChordRest* cr = seg->cr(prev->track());
                 if (cr) {
                     Element* elCr = cr->lastElementBeforeSegment();
@@ -1973,7 +1973,7 @@ Element* Segment::prevElement(int activeStaff)
             }
         }
         if (prev->type() == ElementType::CHORD || prev->type() == ElementType::NOTE || prev->type() == ElementType::REST
-            || prev->type() == ElementType::MMREST || prev->type() == ElementType::REPEAT_MEASURE) {
+            || prev->type() == ElementType::MMREST || prev->type() == ElementType::MEASURE_REPEAT) {
             ChordRest* cr = prevSeg->cr(prev->track());
             if (cr) {
                 Element* elCr = cr->lastElementBeforeSegment();

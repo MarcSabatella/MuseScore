@@ -1531,7 +1531,7 @@ void ScoreView::paint(const QRect& r, QPainter& p)
                         }
                         ChordRest* cr = static_cast<ChordRest*>(fs->element(i * VOICES));
                         if (cr
-                            && (cr->type() == ElementType::REPEAT_MEASURE
+                            && (cr->type() == ElementType::MEASURE_REPEAT
                                 || cr->durationType() == TDuration::DurationType::V_MEASURE)) {
                             x2 = s->measure()->abbox().right() - _spatium * 0.5;
                             break;
@@ -4369,7 +4369,7 @@ void ScoreView::changeVoice(int voice)
 
     if (is->noteEntryMode()) {
         is->setTrack(track);
-        if (is->segment()) {     // can be null for eg repeatMeasure
+        if (is->segment()) {     // can be null for eg MeasureRepeat
             is->setSegment(is->segment()->measure()->first(SegmentType::ChordRest));
             moveCursor();
             score()->setUpdateAll();

@@ -167,7 +167,7 @@ bool Rest::acceptDrop(EditData& data) const
         || (type == ElementType::TREMOLOBAR)
         || (type == ElementType::IMAGE)
         || (type == ElementType::SYMBOL)
-        || (type == ElementType::REPEAT_MEASURE && durationType().type() == TDuration::DurationType::V_MEASURE)
+        || (type == ElementType::MEASURE_REPEAT && durationType().type() == TDuration::DurationType::V_MEASURE)
         ) {
         return true;
     }
@@ -213,10 +213,10 @@ Element* Rest::drop(EditData& data)
         delete e;
     }
     break;
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
         delete e;
         if (durationType().type() == TDuration::DurationType::V_MEASURE) {
-            measure()->cmdInsertRepeatMeasure(staffIdx());
+            measure()->cmdInsertMeasureRepeat(staffIdx());
         }
         break;
 
@@ -643,7 +643,7 @@ void Rest::reset()
 
 qreal Rest::mag() const
 {
-    qreal m = staff()->staffMag(this);
+    qreal m = staff() ? staff()->staffMag(this) : 1.0;
     if (small()) {
         m *= score()->styleD(Sid::smallNoteMag);
     }

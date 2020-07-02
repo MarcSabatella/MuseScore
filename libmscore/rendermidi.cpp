@@ -31,7 +31,7 @@
 #include "slur.h"
 #include "tie.h"
 #include "stafftext.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "articulation.h"
 #include "arpeggio.h"
 #include "durationtype.h"
@@ -990,7 +990,7 @@ void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, const 
     Measure* lastMeasure = start->prevMeasure();
 
     for (Measure* m = start; m != end; m = m->nextMeasure()) {
-        if (lastMeasure && m->isRepeatMeasure(sctx.staff)) {
+        if (lastMeasure && m->isMeasureRepeat(sctx.staff)) {
             int offset = (m->tick() - lastMeasure->tick()).ticks();
             collectMeasureEvents(events, lastMeasure, sctx, tickOffset + offset);
         } else {
@@ -2436,7 +2436,7 @@ bool MidiRenderer::canBreakChunk(const Measure* last)
     // chunk at repeat measure.
     if (const Measure* next = last->nextMeasure()) {
         for (const Staff* staff : score->staves()) {
-            if (next->isRepeatMeasure(staff)) {
+            if (next->isMeasureRepeat(staff)) {
                 return false;
             }
         }

@@ -45,7 +45,7 @@
 #include "iname.h"
 #include "range.h"
 #include "hook.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "textframe.h"
 #include "accidental.h"
 #include "ottava.h"
@@ -81,7 +81,7 @@ ChordRest* Score::getSelectedChordRest() const
     if (el) {
         if (el->isNote()) {
             return toNote(el)->chord();
-        } else if (el->isRest() || el->isMMRest() || el->isRepeatMeasure()) {
+        } else if (el->isRest() || el->isMMRest() || el->isMeasureRepeat()) {
             return toRest(el);
         } else if (el->isChord()) {
             return toChord(el);
@@ -154,7 +154,7 @@ Fraction Score::pos()
         case ElementType::NOTE:
             el = el->parent();
         // fall through
-        case ElementType::REPEAT_MEASURE:
+        case ElementType::MEASURE_REPEAT:
         case ElementType::REST:
         case ElementType::MMREST:
         case ElementType::CHORD:
@@ -264,8 +264,8 @@ Chord* Score::addChord(const Fraction& tick, TDuration d, Chord* oc, bool genTie
 ChordRest* Score::addClone(ChordRest* cr, const Fraction& tick, const TDuration& d)
 {
     ChordRest* newcr;
-    // change a RepeatMeasure() into an Rest()
-    if (cr->isRepeatMeasure()) {
+    // change a MeasureRepeat() into an Rest()
+    if (cr->isMeasureRepeat()) {
         newcr = new Rest(*toRest(cr));
     } else {
         newcr = toChordRest(cr->clone());
@@ -1799,9 +1799,9 @@ void Score::deleteItem(Element* el)
     }
     break;
 
-    case ElementType::REPEAT_MEASURE:
+    case ElementType::MEASURE_REPEAT:
     {
-        RepeatMeasure* rm = toRepeatMeasure(el);
+        MeasureRepeat* rm = toMeasureRepeat(el);
         removeChordRest(rm, false);
         Rest* rest = new Rest(this);
         rest->setDurationType(TDuration::DurationType::V_MEASURE);

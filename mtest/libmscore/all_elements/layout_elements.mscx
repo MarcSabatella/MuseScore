@@ -575,10 +575,11 @@
         </Measure>
       <Measure>
         <voice>
-          <RepeatMeasure>
+          <MeasureRepeat>
+            <subtype>1</subtype>
             <durationType>measure</durationType>
             <duration>12/8</duration>
-            </RepeatMeasure>
+            </MeasureRepeat>
           </voice>
         </Measure>
       </Staff>

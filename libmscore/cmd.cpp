@@ -60,7 +60,7 @@
 #include "tempo.h"
 #include "undo.h"
 #include "timesig.h"
-#include "repeat.h"
+#include "measurerepeat.h"
 #include "tempotext.h"
 #include "noteevent.h"
 #include "breath.h"
@@ -1312,7 +1312,7 @@ void Score::changeCRlen(ChordRest* cr, const TDuration& d)
 
 void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
 {
-    if (cr->isRepeatMeasure()) {
+    if (cr->isMeasureRepeat()) {
         // it is not clear what should this
         // operation mean for measure repeats.
         return;
