@@ -3587,15 +3587,19 @@ System* Score::collectSystem(LayoutContext& lc)
         bool doBreak = (system->measures().size() > 1) && ((minWidth + ww) > systemWidth);
         if (doBreak) {
             if (lc.prevMeasure->noBreak() && system->measures().size() > 2) {
-                // remove last two measures
-                // TODO: check more measures for noBreak()
+                // remove however many measures are grouped with nobreak
                 system->removeLastMeasure();
-                system->removeLastMeasure();
-                lc.curMeasure->setSystem(oldSystem);
-                lc.prevMeasure->setSystem(oldSystem);
-                lc.nextMeasure = lc.curMeasure;
-                lc.curMeasure  = lc.prevMeasure;
-                lc.prevMeasure = lc.curMeasure->prevMeasure();
+                while (lc.prevMeasure && lc.prevMeasure->noBreak() && system->measures().size() > 1) {
+                    minWidth -= system->lastMeasure()->width();
+                    system->removeLastMeasure();
+                    lc.curMeasure->setSystem(oldSystem);
+                    lc.prevMeasure->setSystem(oldSystem);
+                    lc.tick -= lc.curMeasure->ticks();
+                    --lc.measureNo;
+                    lc.nextMeasure = lc.curMeasure;
+                    lc.curMeasure  = lc.prevMeasure;
+                    lc.prevMeasure = lc.curMeasure->prevMeasure();
+                }
                 break;
             } else if (!lc.prevMeasure->noBreak()) {
                 // remove last measure
