@@ -187,7 +187,7 @@ ScoreElement* Measure::treeChild(int idx) const
 {
     Q_ASSERT(0 <= idx && idx <= treeChildCount());
     // TODO: check for MMRest
-    Segment* seg = _segments.first();
+    Segment* seg = m_segments.first();
     while (seg) {
         if (idx == 0) {
             return seg;
@@ -197,9 +197,9 @@ ScoreElement* Measure::treeChild(int idx) const
     }
     int nstaves = score()->nstaves();
     for (int staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
-        if (_mstaves[staffIdx]->lines()) {
+        if (m_mstaves[staffIdx]->lines()) {
             if (idx == 0) {
-                return _mstaves[staffIdx]->lines();
+                return m_mstaves[staffIdx]->lines();
             }
             idx--;
         }
@@ -241,10 +241,10 @@ ScoreElement* Measure::treeChild(int idx) const
 int Measure::treeChildCount() const
 {
     int numChildren = 0;
-    numChildren += _segments.size();
+    numChildren += m_segments.size();
     int nstaves = score()->nstaves();
     for (int staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
-        if (_mstaves[staffIdx]->lines()) {
+        if (m_mstaves[staffIdx]->lines()) {
             numChildren++;
         }
         if (vspacerUp(staffIdx)) {
