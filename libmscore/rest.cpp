@@ -22,6 +22,7 @@
 #include "chord.h"
 #include "note.h"
 #include "measure.h"
+#include "measurerepeat.h"
 #include "undo.h"
 #include "staff.h"
 #include "harmony.h"
@@ -213,13 +214,14 @@ Element* Rest::drop(EditData& data)
         delete e;
     }
     break;
-    case ElementType::MEASURE_REPEAT:
+    case ElementType::MEASURE_REPEAT: {
+        int numMeasures = toMeasureRepeat(e)->numMeasures();
         delete e;
         if (durationType().type() == TDuration::DurationType::V_MEASURE) {
-            measure()->cmdInsertMeasureRepeat(staffIdx());
+            measure()->cmdInsertMeasureRepeat(staffIdx(), numMeasures);
         }
         break;
-
+    }
     case ElementType::SYMBOL:
     case ElementType::IMAGE:
         e->setParent(this);

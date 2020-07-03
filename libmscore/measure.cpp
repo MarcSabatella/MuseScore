@@ -1620,8 +1620,9 @@ Element* Measure::drop(EditData& data)
 
     case ElementType::MEASURE_REPEAT:
     {
+        int numMeasures = toMeasureRepeat(e)->numMeasures();
         delete e;
-        return cmdInsertMeasureRepeat(staffIdx);
+        return cmdInsertMeasureRepeat(staffIdx, numMeasures);
     }
     case ElementType::ICON:
         switch (toIcon(e)->iconType()) {
@@ -1668,27 +1669,24 @@ Element* Measure::drop(EditData& data)
 MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
 {
     //
-    // see also cmdDeleteSelection()
+    // group measures and clear current contents
     //
-    score()->select(0, SelectType::SINGLE, 0);
+    score()->deselectAll();
     Measure* m = this;
+    bool alreadyGrouped = true;
     for (int i = 1; i <= numMeasures; ++i) {
-        for (Segment* s = m->first(); s; s = s->next()) {
-            if (s->segmentType() & SegmentType::ChordRest) {
-                int strack = staffIdx * VOICES;
-                int etrack = strack + VOICES;
-                for (int track = strack; track < etrack; ++track) {
-                    Element* el = s->element(track);
-                    if (el) {
-                        score()->undoRemoveElement(el);
-                    }
-                }
-            }
+        score()->select(m, SelectType::RANGE, staffIdx);
+        if (!m->noBreak()) {
+            alreadyGrouped = false;
         }
-        if (i < numMeasures && m->nextMeasure()) {
-            m = m->nextMeasure();
-        }
+        m = m->nextMeasure();
     }
+    if (numMeasures > 1 && !alreadyGrouped) {
+        score()->cmdToggleLayoutBreak(LayoutBreak::Type::NOBREAK);
+    }
+    
+    score()->cmdDeleteSelection(); // TODO: also remove the whole measure rests somehow
+    
     //
     // add repeat measure
     //
