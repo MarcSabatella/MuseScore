@@ -39,6 +39,8 @@ public:
     void setSymId(SymId id)                 { m_symId = id; }
     SymId symId() const                     { return m_symId; }
 
+    Measure* measureRepeatFirst() const     { return measure()->measureRepeatFirst(staffIdx()); }
+
     void draw(QPainter*) const override;
     void layout() override;
     Fraction ticks() const override;
@@ -47,7 +49,12 @@ public:
     void read(XmlReader&) override;
     void write(XmlWriter& xml) const override;
 
+    QRectF numberRect() const override;
+    Shape shape() const override;
+
     QString accessibleInfo() const override;
+
+    bool placeMultiple() const override     { return numMeasures() == 1; }
 
 private:
     int m_numMeasures;

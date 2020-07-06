@@ -98,6 +98,7 @@ public:
 
 protected:
     Sid getPropertyStyle(Pid pid) const override;
+    virtual QRectF numberRect() const { return QRectF(); } // TODO: add style to show number over 1-measure rests
     bool shouldNotBeDrawn() const;
 
 private:

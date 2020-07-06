@@ -1801,15 +1801,23 @@ void Score::deleteItem(Element* el)
 
     case ElementType::MEASURE_REPEAT:
     {
-        MeasureRepeat* rm = toMeasureRepeat(el);
-        removeChordRest(rm, false);
+        MeasureRepeat* mr = toMeasureRepeat(el);
+        removeChordRest(mr, false);
         Rest* rest = new Rest(this);
         rest->setDurationType(TDuration::DurationType::V_MEASURE);
-        rest->setTicks(rm->measure()->stretchedLen(rm->staff()));
-        rest->setTrack(rm->track());
-        rest->setParent(rm->parent());
-        Segment* segment = rm->segment();
+        rest->setTicks(mr->measure()->stretchedLen(mr->staff()));
+        rest->setTrack(mr->track());
+        rest->setParent(mr->parent());
+        Segment* segment = mr->segment();
         undoAddCR(rest, segment->measure(), segment->tick());
+        // tell measures they're not part of measure repeat anymore
+        Measure * m = mr->measure()->measureRepeatFirst(mr->staffIdx());
+        for (int i = 0; i < mr->numMeasures(); ++i) {
+            m->setMeasureRepeatCount(0, mr->staffIdx());
+            m->setBreakMultiMeasureRest(false);
+            m->undoSetNoBreak(false);
+            m = m->nextMeasure();
+        }
     }
     // fall through
     case ElementType::MMREST:
@@ -2480,6 +2488,10 @@ ChordRest* Score::deleteRange(Segment* s1, Segment* s2, int track1, int track2, 
                         continue;
                     }
                 }
+                if (e->isMeasureRepeat()) {
+                    deleteItem(e);
+                    continue;
+                }
                 if (tuplet != cr1->tuplet()) {
                     Tuplet* t = cr1->tuplet();
                     if (t && (((t->tick() + t->actualTicks()) <= tick2) || fullMeasure)) {
@@ -2586,6 +2598,8 @@ void Score::cmdDeleteSelection()
                     tick = toNote(e)->chord()->tick();
                 } else if (e->isRest()) {
                     tick = toRest(e)->tick();
+                } else if (e->isMeasureRepeat()) { // may be attached in different measure than it appears
+                    tick = toMeasureRepeat(e)->measureRepeatFirst()->first()->tick();
                 } else if (e->isSpannerSegment()) {
                     tick = toSpannerSegment(e)->spanner()->tick();
                 } else if (e->parent()

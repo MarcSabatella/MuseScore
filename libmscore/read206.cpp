@@ -3091,6 +3091,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
             rm->setTrack(e.track());
             readRest(rm, e);
             rm->setNumMeasures(1);
+            m->setMeasureRepeatCount(1, staffIdx);
             segment = m->getSegment(SegmentType::ChordRest, e.tick());
             segment->add(rm);
             lastTick = e.tick();

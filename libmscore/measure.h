@@ -93,11 +93,14 @@ public:
     void setCorrupted(bool val)         { m_corrupted = val; }
 #endif
 
+    int measureRepeatCount() const      { return m_measureRepeatCount; }
+    void setMeasureRepeatCount(int n)   { m_measureRepeatCount = n; }
+
 private:
-    MeasureNumber* m_noText { 0 };      ///< Measure number text object
-    StaffLines* m_lines     { 0 };
-    Spacer* m_vspacerUp     { 0 };
-    Spacer* m_vspacerDown   { 0 };
+    MeasureNumber* m_noText { nullptr };      ///< Measure number text object
+    StaffLines* m_lines     { nullptr };
+    Spacer* m_vspacerUp     { nullptr };
+    Spacer* m_vspacerDown   { nullptr };
     bool m_hasVoices        { false };  ///< indicates that MStaff contains more than one voice,
                                         ///< this changes some layout rules
     bool m_visible          { true };
@@ -105,6 +108,7 @@ private:
 #ifndef NDEBUG
     bool m_corrupted        { false };
 #endif
+    int m_measureRepeatCount { 0 };
 };
 
 //---------------------------------------------------------
@@ -147,7 +151,7 @@ public:
     void change(Element* o, Element* n) override;
     void spatiumChanged(qreal oldValue, qreal newValue) override;
 
-    System* system() const                              { return (System*)parent(); }
+    System* system() const                              { return toSystem(parent()); }
     bool hasVoices(int staffIdx, Fraction stick, Fraction len) const;
     bool hasVoices(int staffIdx) const                  { return m_mstaves[staffIdx]->hasVoices(); }
     void setHasVoices(int staffIdx, bool v)             { return m_mstaves[staffIdx]->setHasVoices(v); }
@@ -281,10 +285,14 @@ public:
     Measure* mmRest() const                 { return m_mmRest; }
     const Measure* mmRest1() const;
     void setMMRest(Measure* m)              { m_mmRest = m; }
-    int mmRestCount() const                 { return m_mmRestCount; }   // number of measures _mmRest spans
+    int mmRestCount() const                 { return m_mmRestCount; }       // number of measures m_mmRest spans
     void setMMRestCount(int n)              { m_mmRestCount = n; }
     Measure* mmRestFirst() const;
     Measure* mmRestLast() const;
+
+    int measureRepeatCount(int staffIdx) const      { return m_mstaves[staffIdx]->measureRepeatCount(); }
+    void setMeasureRepeatCount(int n, int staffIdx) { m_mstaves[staffIdx]->setMeasureRepeatCount(n); }
+    Measure* measureRepeatFirst(int staffIdx) const;    // used to find beginning of group
 
     Element* nextElementStaff(int staff);
     Element* prevElementStaff(int staff);
@@ -325,14 +333,17 @@ private:
 
     Fraction m_timesig;
 
-    int m_mmRestCount;          // > 0 if this is a multi measure rest
-                                // 0 if this is the start of a mm rest (_mmRest != 0)
-                                // < 0 if this measure is covered by a mm rest
+    int m_mmRestCount;          // > 0 if this is a multimeasure rest
+                                // 0 if this is the start of am mmrest (m_mmRest != 0)
+                                // < 0 if this measure is covered by an mmrest
 
     int m_playbackCount;        // temp. value used in RepeatList
                                 // counts how many times this measure was already played
 
-    int m_repeatCount;          ///< end repeat marker und repeat count
+    int m_repeatCount;          ///< end repeat marker and repeat count
+
+//    int m_measureRepeatCount;   // 0 if this is not a measure repeat
+                                // > 0 if this measure is a measure repeat, or is within group
 
     MeasureNumberMode m_noMode;
     bool m_breakMultiMeasureRest;

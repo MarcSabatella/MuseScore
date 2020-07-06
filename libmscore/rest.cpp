@@ -1032,7 +1032,8 @@ bool Rest::shouldNotBeDrawn() const
     const StaffType* st = staff() ? staff()->staffTypeForElement(this) : nullptr;
     if (generated()
         || (st && st->isTabStaff() && (!st->showRests() || st->genDurations())
-            && (!measure() || !measure()->isMMRest()))) {
+            && (!measure() || !measure()->isMMRest()))
+            || measure()->measureRepeatCount(staffIdx())) {    // measures covered by MeasureRepeat show no rests
         return true;
     }
     return false;

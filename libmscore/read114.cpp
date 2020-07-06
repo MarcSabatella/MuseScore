@@ -1881,6 +1881,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
             rm->setTrack(e.track());
             readRest(m, rm, e);
             rm->setNumMeasures(1);
+            m->setMeasureRepeatCount(1, staffIdx);
             segment = m->getSegment(SegmentType::ChordRest, e.tick());
             segment->add(rm);
             if (rm->actualTicks().isZero()) {     // might happen with 1.3 scores

@@ -11,12 +11,14 @@
 //=============================================================================
 
 #include "measurerepeat.h"
+#include "barline.h"
 #include "sym.h"
 #include "score.h"
 #include "system.h"
 #include "measure.h"
 #include "mscore.h"
 #include "staff.h"
+#include "utils.h"
 
 namespace Ms {
 //---------------------------------------------------------
@@ -36,6 +38,13 @@ void MeasureRepeat::draw(QPainter* painter) const
 {
     painter->setPen(curColor());
     drawSymbol(m_symId, painter);
+
+    if (m_numMeasures > 1 && track() != -1) { // in score rather than palette
+        std::vector<SymId>&& numberSym = toTimeSigString(QString("%1").arg(m_numMeasures));
+        qreal x = (symBbox(m_symId).width() - symBbox(numberSym).width()) * .5;
+        qreal y = -1.5 * spatium() - staff()->height() * .5;
+        drawSymbols(numberSym, painter, QPointF(x, y));
+    }
 }
 
 //---------------------------------------------------------
@@ -67,7 +76,40 @@ void MeasureRepeat::layout()
         setPos(0, 2.0 * spatium() + 0.5 * styleP(Sid::staffLineWidth)); // xpos handled by Measure::stretchMeasure()
     }
     setbbox(symBbox(m_symId));
+    addbbox(numberRect());
+    setAutoplace(false); // TODO: re-enable without distorting measure width
 }
+
+//---------------------------------------------------------
+//   numberRect
+///   returns the measure repeat number's bounding rectangle
+//---------------------------------------------------------
+
+QRectF MeasureRepeat::numberRect() const
+{
+    if (m_numMeasures < 2 || track() == -1) { // don't display in palette
+        return QRectF();
+    }
+    std::vector<SymId>&& numberSym = toTimeSigString(QString("%1").arg(m_numMeasures));
+    QRectF r = symBbox(numberSym);
+    qreal x = (symBbox(m_symId).width() - symBbox(numberSym).width()) * .5;
+    qreal y = -1.5 * spatium() - staff()->height() * .5;
+    r.translate(QPointF(x, y));
+    return r;
+}
+
+//---------------------------------------------------------
+//   shape
+//---------------------------------------------------------
+
+Shape MeasureRepeat::shape() const
+{
+    Shape shape;
+    shape.add(numberRect());
+    shape.add(symBbox(m_symId));
+    return shape;
+}
+
 
 //---------------------------------------------------------
 //   write
