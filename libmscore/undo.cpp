@@ -2392,6 +2392,17 @@ void ChangeMMRest::flip(EditData*)
 }
 
 //---------------------------------------------------------
+//   ChangeMeasureRepeatCount
+//---------------------------------------------------------
+
+void ChangeMeasureRepeatCount::flip(EditData*)
+{
+    int oldCount = m->measureRepeatCount(staffIdx);
+    m->setMeasureRepeatCount(count, staffIdx);
+    count = oldCount;
+}
+
+//---------------------------------------------------------
 //   InsertTime
 //---------------------------------------------------------
 

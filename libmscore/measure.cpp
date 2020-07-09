@@ -1671,20 +1671,16 @@ MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
     //
     // group measures and clear current contents
     //
+    Selection origSel = score()->selection();
     score()->deselectAll();
-    m = this;
-    bool alreadyGrouped = true;
     int i = 1;
     for (auto m : measures) {
         score()->select(m, SelectType::RANGE, staffIdx);
-        m->setMeasureRepeatCount(i++, staffIdx);
-        m->setBreakMultiMeasureRest(true);
-        if (!m->noBreak()) {
-            alreadyGrouped = false;
+        score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
+        m->undoChangeProperty(Pid::BREAK_MMR, true);
+        if (m != measures.back()) {
+            m->undoSetNoBreak(true);
         }
-    }
-    if (numMeasures > 1 && !alreadyGrouped) {
-        score()->cmdToggleLayoutBreak(LayoutBreak::Type::NOBREAK);
     }
     score()->cmdDeleteSelection();
     
@@ -1718,6 +1714,7 @@ MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
             score()->undoRemoveElement(e);
         }
     }
+    score()->setSelection(origSel);
     return mr;
 }
 

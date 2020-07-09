@@ -1813,8 +1813,8 @@ void Score::deleteItem(Element* el)
         // tell measures they're not part of measure repeat anymore
         Measure * m = mr->measure()->measureRepeatFirst(mr->staffIdx());
         for (int i = 0; i < mr->numMeasures(); ++i) {
-            m->setMeasureRepeatCount(0, mr->staffIdx());
-            m->setBreakMultiMeasureRest(false);
+            score()->undo(new ChangeMeasureRepeatCount(m, 0, mr->staffIdx()));
+            m->undoChangeProperty(Pid::BREAK_MMR, false);
             m->undoSetNoBreak(false);
             m = m->nextMeasure();
         }
