@@ -3660,9 +3660,13 @@ System* Score::collectSystem(LayoutContext& lc)
                     nmb = nm->mmRest();
                 }
             }
-            curWidth = nmb->width();
-            curHeader = nmb->header();
-            curTrailer = nmb->trailer();
+            if (!lc.curMeasure->noBreak()) {
+                curWidth = nmb->width();
+                curHeader = nmb->header();
+                curTrailer = nmb->trailer();
+            } else {
+                // TODO: measure widths within nobreak group are distorted after edit on previous system
+            }
         }
 
         getNextMeasure(lc);
