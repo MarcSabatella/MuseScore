@@ -54,7 +54,7 @@ public:
 
     QString accessibleInfo() const override;
 
-    bool placeMultiple() const override     { return numMeasures() == 1; }
+    bool placeMultiple() const override     { return numMeasures() == 1; } // prevent overlapping additions with range selection
 
 private:
     int m_numMeasures;

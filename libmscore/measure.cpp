@@ -1655,12 +1655,12 @@ Element* Measure::drop(EditData& data)
 MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
 {
     //
-    // check that sufficient measures exist, with equal durations, and no measure repeat already present
+    // check that sufficient measures exist, with equal durations
     //
     std::vector<Measure*> measures;
     Measure* m = this;
     for (int i = 1; i <= numMeasures; ++i) {
-        if (!m || m->ticks() != ticks() || m->measureRepeatCount(staffIdx)) {
+        if (!m || m->ticks() != ticks()) {
             MScore::setError(INSUFFICIENT_MEASURES);
             return nullptr;
         }
@@ -1669,10 +1669,53 @@ MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
     }
 
     //
+    // warn user if anything will have to be deleted to make room for measure repeat
+    //
+    bool empty = true;
+    bool measureRepeatPresent = false;
+    for (auto m : measures) {
+        if (m->measureRepeatCount(staffIdx)) {
+            empty = false;
+            measureRepeatPresent = true;
+            break;
+        }
+        for (auto seg = m->first(); seg; seg = seg->next()) {
+            if (seg->segmentType() & SegmentType::ChordRest) {
+                int strack = staffIdx * VOICES;
+                int etrack = strack + VOICES;
+                for (int track = strack; track < etrack; ++track) {
+                    Element* e = seg->element(track);
+                    if (e && !e->generated() && !e->isRest()) {
+                        empty = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!empty) {
+        auto b = QMessageBox::warning(0, QObject::tr("Current contents of measures will be replaced"),
+                                      // QMessageBox titles aren't being shown, so include in message
+                                      QObject::tr("Current contents of measures will be replaced.")
+                                        + QObject::tr("\nContinue with inserting measure repeat?"),
+                                      QMessageBox::Cancel | QMessageBox::Ok,
+                                      QMessageBox::Ok);
+        if (b == QMessageBox::Cancel) {
+            return nullptr;
+        }
+    }
+
+    //
     // group measures and clear current contents
     //
     Selection origSel = score()->selection();
     score()->deselectAll();
+
+    if (measureRepeatPresent) {
+        score()->deleteItem(measureRepeatElement(staffIdx));
+    }
+
     int i = 1;
     for (auto m : measures) {
         score()->select(m, SelectType::RANGE, staffIdx);
@@ -2862,10 +2905,10 @@ bool Measure::isFullMeasureRest() const
 }
 
 //---------------------------------------------------------
-//   isMeasureRepeat
+//   containsMeasureRepeat
 //---------------------------------------------------------
 
-bool Measure::isMeasureRepeat(const Staff* staff) const
+MeasureRepeat* Measure::containsMeasureRepeat(const Staff* staff) const
 {
     int staffIdx = staff->idx();
     int strack   = staffIdx * VOICES;
@@ -2873,16 +2916,16 @@ bool Measure::isMeasureRepeat(const Staff* staff) const
     Segment* s   = first(SegmentType::ChordRest);
 
     if (s == 0) {
-        return false;
+        return nullptr;
     }
 
     for (int track = strack; track < etrack; ++track) {
         Element* e = s->element(track);
         if (e && e->isMeasureRepeat()) {
-            return true;
+            return toMeasureRepeat(e);
         }
     }
-    return false;
+    return nullptr;
 }
 
 //---------------------------------------------------------
@@ -3334,6 +3377,27 @@ Measure* Measure::measureRepeatFirst(int staffIdx) const
         m = m->prevMeasure();
     }
     return m;
+}
+
+//---------------------------------------------------------
+//   measureRepeatElement
+//    access MeasureRepeat element from anywhere in related group
+//---------------------------------------------------------
+
+MeasureRepeat* Measure::measureRepeatElement(int staffIdx) const
+{
+    Measure* m = measureRepeatFirst(staffIdx);
+    if (!m) {
+        return nullptr;
+    }
+    MeasureRepeat* mr;
+    for (;;) {
+        mr = m->containsMeasureRepeat(score()->staff(staffIdx));
+        if (mr) {
+            return mr;
+        }
+        m = m->nextMeasure();
+    }
 }
 
 //-------------------------------------------------------------------

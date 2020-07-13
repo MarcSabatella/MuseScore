@@ -26,6 +26,7 @@
 #include "range.h"
 #include "excerpt.h"
 #include "accidental.h"
+#include "measurerepeat.h"
 
 namespace Ms {
 //---------------------------------------------------------
@@ -341,6 +342,21 @@ void Score::putNote(const Position& p, bool replace)
     NoteVal nval = noteValForPosition(p, _is.accidentalType(), error);
     if (error) {
         return;
+    }
+
+    // warn and delete MeasureRepeat if necessary
+    Measure* m = _is.segment()->measure();
+    int staffIdx = track2staff(_is.track());
+    if (m->measureRepeatCount(staffIdx)) {
+        auto b = QMessageBox::warning(0, QObject::tr("Note input will remove measure repeat"),
+                                      QObject::tr("There is a measure repeat here.")
+                                        + QObject::tr("\nContinue with adding note and delete measure repeat?"),
+                                      QMessageBox::Cancel | QMessageBox::Ok,
+                                      QMessageBox::Ok);
+        if (b == QMessageBox::Cancel) {
+            return;
+        }
+        Score::deleteItem(m->measureRepeatElement(staffIdx));
     }
 
     const StringData* stringData = 0;

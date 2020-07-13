@@ -258,7 +258,7 @@ public:
     bool hasVoice(int track) const;
     bool isEmpty(int staffIdx) const;
     bool isFullMeasureRest() const;
-    bool isMeasureRepeat(const Staff* staff) const;
+    MeasureRepeat* containsMeasureRepeat(const Staff* staff) const;
     bool visible(int staffIdx) const;
     bool stemless(int staffIdx) const;
     bool isFinalMeasureOfSection() const;
@@ -292,7 +292,8 @@ public:
 
     int measureRepeatCount(int staffIdx) const      { return m_mstaves[staffIdx]->measureRepeatCount(); }
     void setMeasureRepeatCount(int n, int staffIdx) { m_mstaves[staffIdx]->setMeasureRepeatCount(n); }
-    Measure* measureRepeatFirst(int staffIdx) const;    // used to find beginning of group
+    Measure* measureRepeatFirst(int staffIdx) const;            // used to find beginning of group
+    MeasureRepeat* measureRepeatElement(int staffIdx) const;    // get measure repeat element from anywhere within group
 
     Element* nextElementStaff(int staff);
     Element* prevElementStaff(int staff);
