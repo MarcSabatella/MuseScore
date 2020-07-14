@@ -175,6 +175,7 @@ enum class Sid {
     noteBarDistance,
 
     measureSpacing,
+    fourMeasureRepeatShowExtenders,
     staffLineWidth,
     ledgerLineWidth,
     ledgerLineLength,

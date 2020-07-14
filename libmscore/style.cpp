@@ -184,6 +184,7 @@ static const StyleType styleTypes[] {
     { Sid::barAccidentalDistance,   "barAccidentalDistance",   Spatium(.3) },
     { Sid::noteBarDistance,         "noteBarDistance",         Spatium(1.0) },
     { Sid::measureSpacing,          "measureSpacing",          QVariant(1.2) },
+    { Sid::fourMeasureRepeatShowExtenders, "fourMeasureRepeatShowExtenders", QVariant(false) },
     { Sid::staffLineWidth,          "staffLineWidth",          Spatium(0.08) },       // 0.09375
     { Sid::ledgerLineWidth,         "ledgerLineWidth",         Spatium(0.16) },       // 0.1875
     { Sid::ledgerLineLength,        "ledgerLineLength",        Spatium(.6) },         // notehead width + this value

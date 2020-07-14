@@ -44,6 +44,24 @@ void MeasureRepeat::draw(QPainter* painter) const
         qreal x = (symBbox(m_symId).width() - symBbox(numberSym).width()) * .5;
         qreal y = -1.5 * spatium() - staff()->height() * .5;
         drawSymbols(numberSym, painter, QPointF(x, y));
+        if (score()->styleB(Sid::fourMeasureRepeatShowExtenders) && m_numMeasures == 4) {
+            // TODO: add style settings specific to measure repeats
+            // for now, using thickness and margin same as mmrests
+            qreal hBarThickness = score()->styleP(Sid::mmRestHBarThickness);
+            if (hBarThickness) { // don't draw at all if 0, QPainter interprets 0 pen width differently
+                QPen pen(painter->pen());
+                pen.setCapStyle(Qt::FlatCap);
+                pen.setWidthF(hBarThickness);
+                painter->setPen(pen);
+
+                qreal twoMeasuresWidth = 2 * measure()->width();
+                qreal margin = score()->styleP(Sid::multiMeasureRestMargin);
+                qreal xOffset = symBbox(m_symId).width() * .5;
+                qreal gapDistance = (symBbox(m_symId).width() + spatium()) * .5;
+                painter->drawLine(QLineF(-twoMeasuresWidth + xOffset + margin, 0.0, xOffset - gapDistance, 0.0));
+                painter->drawLine(QLineF(xOffset + gapDistance, 0.0, twoMeasuresWidth + xOffset - margin, 0.0));
+            }
+        }
     }
 }
 
