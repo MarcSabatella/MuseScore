@@ -1286,7 +1286,8 @@ static bool checkEnd(Element* e, const Fraction& endTick)
 //---------------------------------------------------------
 //   canCopy
 //    return false if range selection intersects a tuplet
-//    or a tremolo, or a local time signature
+//    or a tremolo, or a local time signature, or only part
+//    of a measure repeat group
 //---------------------------------------------------------
 
 bool Selection::canCopy() const
@@ -1333,6 +1334,14 @@ bool Selection::canCopy() const
             if (_score->staff(staffIdx)->isLocalTimeSignature(m->tick())) {
                 return false;
             }
+        }
+
+        // check for measure repeat group
+        if ((_startSegment->measure()->measureRepeatCount(staffIdx) > 1)
+            || (_score->tick2measure(endTick)->measureRepeatCount(staffIdx)
+                && _endSegment->measure()->measureRepeatCount(staffIdx))) {
+            // selection starts or ends partway through group (_endSegment is after end of selection)
+            return false;
         }
     }
     return true;

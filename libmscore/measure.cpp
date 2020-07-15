@@ -155,6 +155,7 @@ void MStaff::setTrack(int track)
 //---------------------------------------------------------
 //   makeMeasureRepeatGroup
 ///   clear measures, apply noBreak, set measureRepeatCount
+///   returns false if these measures don't work or user aborted
 //---------------------------------------------------------
 
 bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx) {
@@ -182,7 +183,7 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
         if (m->measureRepeatCount(staffIdx)) {
             empty = false;
             measureRepeatPresent = true;
-            break;
+            continue;
         }
         for (auto seg = m->first(); seg; seg = seg->next()) {
             if (seg->segmentType() & SegmentType::ChordRest) {
