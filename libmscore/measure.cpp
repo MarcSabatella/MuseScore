@@ -185,6 +185,8 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
             measureRepeatPresent = true;
             continue;
         }
+        regroupNotesAndRests(m->tick(), m->endTick(), staff2track(staffIdx)); // rests won't be deleted, so combine
+                                                                              // into full measure rests first
         for (auto seg = m->first(); seg; seg = seg->next()) {
             if (seg->segmentType() & SegmentType::ChordRest) {
                 int strack = staffIdx * VOICES;
