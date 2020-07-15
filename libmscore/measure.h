@@ -166,8 +166,8 @@ public:
     bool corrupted(int staffIdx) const                  { return m_mstaves[staffIdx]->corrupted(); }
     void setCorrupted(int staffIdx, bool val)           { m_mstaves[staffIdx]->setCorrupted(val); }
 #endif
-    void setNoText(int staffIdx, MeasureNumber* t)      { m_mstaves[staffIdx]->setNoText(t); }
     MeasureNumber* noText(int staffIdx) const           { return m_mstaves[staffIdx]->noText(); }
+    void setNoText(int staffIdx, MeasureNumber* t)      { m_mstaves[staffIdx]->setNoText(t); }
 
     void createStaves(int);
 

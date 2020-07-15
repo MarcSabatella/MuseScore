@@ -1716,8 +1716,8 @@ MeasureBase* Score::measure(int idx) const
 
 //---------------------------------------------------------
 //   crMeasure
-//    Returns a measure containing chords an rests
-//    by its index skipping other MeasureBase descendants
+//    Returns a measure containing chords and/or rests
+//    by its index, skipping other MeasureBase descendants
 //---------------------------------------------------------
 
 Measure* Score::crMeasure(int idx) const

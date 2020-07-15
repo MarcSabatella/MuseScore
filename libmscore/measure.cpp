@@ -153,6 +153,86 @@ void MStaff::setTrack(int track)
 }
 
 //---------------------------------------------------------
+//   makeMeasureRepeatGroup
+///   clear measures, apply noBreak, set measureRepeatCount
+//---------------------------------------------------------
+
+bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx) {
+    //
+    // check that sufficient measures exist, with equal durations
+    //
+    std::vector<Measure*> measures;
+    Measure* m = first;
+    for (int i = 1; i <= numMeasures; ++i) {
+        if (!m || m->ticks() != first->ticks()) {
+            MScore::setError(INSUFFICIENT_MEASURES);
+            return false;
+        }
+        measures.push_back(m);
+        m = m->nextMeasure();
+    }
+
+    //
+    // warn user if anything will have to be deleted to make room for measure repeat
+    //
+    bool empty = true;
+    bool measureRepeatPresent = false;
+    std::vector<Element*> elementsToBeDeleted;
+    for (auto m : measures) {
+        if (m->measureRepeatCount(staffIdx)) {
+            empty = false;
+            measureRepeatPresent = true;
+            break;
+        }
+        for (auto seg = m->first(); seg; seg = seg->next()) {
+            if (seg->segmentType() & SegmentType::ChordRest) {
+                int strack = staffIdx * VOICES;
+                int etrack = strack + VOICES;
+                for (int track = strack; track < etrack; ++track) {
+                    Element* e = seg->element(track);
+                    if (e && !e->generated() && !e->isRest()) {
+                        empty = false;
+                        elementsToBeDeleted.push_back(e);
+                    }
+                }
+            }
+        }
+    }
+
+    if (!empty) {
+        auto b = QMessageBox::warning(0, QObject::tr("Current contents of measures will be replaced"),
+                                      // QMessageBox titles aren't being shown, so include in message
+                                      QObject::tr("Current contents of measures will be replaced.")
+                                      + QObject::tr("\nContinue with inserting measure repeat?"),
+                                      QMessageBox::Cancel | QMessageBox::Ok,
+                                      QMessageBox::Ok);
+        if (b == QMessageBox::Cancel) {
+            return false;
+        }
+    }
+
+    //
+    // group measures and clear current contents
+    //
+    if (measureRepeatPresent) {
+        score()->deleteItem(first->measureRepeatElement(staffIdx));
+    }
+
+    int i = 1;
+    for (auto m : measures) {
+        score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
+        m->undoChangeProperty(Pid::BREAK_MMR, true);
+        if (m != measures.back()) {
+            m->undoSetNoBreak(true);
+        }
+    }
+    for (auto e : elementsToBeDeleted) {
+        score()->undoRemoveElement(e);
+    }
+    return true;
+}
+
+//---------------------------------------------------------
 //   Measure
 //---------------------------------------------------------
 
@@ -1655,78 +1735,12 @@ Element* Measure::drop(EditData& data)
 MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
 {
     //
-    // check that sufficient measures exist, with equal durations
+    // make measures into group
     //
-    std::vector<Measure*> measures;
-    Measure* m = this;
-    for (int i = 1; i <= numMeasures; ++i) {
-        if (!m || m->ticks() != ticks()) {
-            MScore::setError(INSUFFICIENT_MEASURES);
-            return nullptr;
-        }
-        measures.push_back(m);
-        m = m->nextMeasure();
+    if (!score()->makeMeasureRepeatGroup(this, numMeasures, staffIdx)) {
+        return nullptr;
     }
 
-    //
-    // warn user if anything will have to be deleted to make room for measure repeat
-    //
-    bool empty = true;
-    bool measureRepeatPresent = false;
-    for (auto m : measures) {
-        if (m->measureRepeatCount(staffIdx)) {
-            empty = false;
-            measureRepeatPresent = true;
-            break;
-        }
-        for (auto seg = m->first(); seg; seg = seg->next()) {
-            if (seg->segmentType() & SegmentType::ChordRest) {
-                int strack = staffIdx * VOICES;
-                int etrack = strack + VOICES;
-                for (int track = strack; track < etrack; ++track) {
-                    Element* e = seg->element(track);
-                    if (e && !e->generated() && !e->isRest()) {
-                        empty = false;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    if (!empty) {
-        auto b = QMessageBox::warning(0, QObject::tr("Current contents of measures will be replaced"),
-                                      // QMessageBox titles aren't being shown, so include in message
-                                      QObject::tr("Current contents of measures will be replaced.")
-                                        + QObject::tr("\nContinue with inserting measure repeat?"),
-                                      QMessageBox::Cancel | QMessageBox::Ok,
-                                      QMessageBox::Ok);
-        if (b == QMessageBox::Cancel) {
-            return nullptr;
-        }
-    }
-
-    //
-    // group measures and clear current contents
-    //
-    Selection origSel = score()->selection();
-    score()->deselectAll();
-
-    if (measureRepeatPresent) {
-        score()->deleteItem(measureRepeatElement(staffIdx));
-    }
-
-    int i = 1;
-    for (auto m : measures) {
-        score()->select(m, SelectType::RANGE, staffIdx);
-        score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
-        m->undoChangeProperty(Pid::BREAK_MMR, true);
-        if (m != measures.back()) {
-            m->undoSetNoBreak(true);
-        }
-    }
-    score()->cmdDeleteSelection();
-    
     //
     // add repeat measure
     //
@@ -1757,7 +1771,6 @@ MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
             score()->undoRemoveElement(e);
         }
     }
-    score()->setSelection(origSel);
     return mr;
 }
 

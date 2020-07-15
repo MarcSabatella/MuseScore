@@ -35,6 +35,7 @@
 #include "slur.h"
 #include "articulation.h"
 #include "sig.h"
+#include "undo.h"
 
 namespace Ms {
 //---------------------------------------------------------
@@ -593,6 +594,15 @@ void Score::pasteChordRest(ChordRest* cr, const Fraction& t, const Interval& src
     Fraction measureEnd = measure->endTick();
     bool isGrace = cr->isChord() && toChord(cr)->noteType() != NoteType::NORMAL;
 
+    // adjust measures for measure repeat
+    if (cr->isMeasureRepeat()) {
+        MeasureRepeat* mr = toMeasureRepeat(cr);
+        Measure* m = (mr->numMeasures() == 4 ? measure->prevMeasure() : measure);
+        if (!makeMeasureRepeatGroup(m, mr->numMeasures(), mr->staffIdx())) {
+            return;
+        }
+    }
+
     // find out if the chordrest was only partially contained in the copied range
     bool partialCopy = false;
     if (cr->isMeasureRepeat()) {
@@ -673,8 +683,8 @@ void Score::pasteChordRest(ChordRest* cr, const Fraction& t, const Interval& src
                 firstpart = false;
             }
         } else if (cr->isMeasureRepeat()) {
-            MeasureRepeat* rm = toMeasureRepeat(cr);
-            std::vector<TDuration> list = toDurationList(rm->actualTicks(), true);
+            MeasureRepeat* mr = toMeasureRepeat(cr);
+            std::vector<TDuration> list = toDurationList(mr->actualTicks(), true);
             for (auto dur : list) {
                 Rest* r = new Rest(this, dur);
                 r->setTrack(cr->track());

@@ -1030,8 +1030,9 @@ public:
     bool getPosition(Position* pos, const QPointF&, int voice) const;
 
     void cmdDeleteTuplet(Tuplet*, bool replaceWithRest);
-
-//      void moveBracket(int staffIdx, int srcCol, int dstCol);
+#if 0
+    void moveBracket(int staffIdx, int srcCol, int dstCol);
+#endif
     Measure* getCreateMeasure(const Fraction& tick);
 
     void adjustBracketsDel(int sidx, int eidx);
@@ -1130,6 +1131,7 @@ public:
     void cmdSplitMeasure(ChordRest*);
     void splitMeasure(Segment*);
     void cmdJoinMeasure(Measure*, Measure*);
+    bool makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx);
     int pageNumberOffset() const { return _pageNumberOffset; }
     void setPageNumberOffset(int v) { _pageNumberOffset = v; }
 
