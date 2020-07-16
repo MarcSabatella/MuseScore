@@ -1811,7 +1811,7 @@ void Score::deleteItem(Element* el)
         Segment* segment = mr->segment();
         undoAddCR(rest, segment->measure(), segment->tick());
         // tell measures they're not part of measure repeat group anymore
-        Measure * m = mr->measure()->measureRepeatFirst(mr->staffIdx());
+        Measure * m = mr->measureRepeatFirst();
         for (int i = 1; i <= mr->numMeasures(); ++i) {
             score()->undo(new ChangeMeasureRepeatCount(m, 0, mr->staffIdx()));
             m->undoChangeProperty(Pid::BREAK_MMR, false);
