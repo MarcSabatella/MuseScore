@@ -1841,7 +1841,7 @@ bool ScoreView::checkCopyOrCut()
 {
     if (!_score->selection().canCopy()) {
         QMessageBox::information(0, "MuseScore",
-                                 tr("Please select the complete tuplet/tremolo/measure repeat and retry the command"),
+                                 tr("Please select the complete tuplet, tremolo, or measure repeat group and retry the command"),
                                  QMessageBox::Ok, QMessageBox::NoButton);
         return false;
     }

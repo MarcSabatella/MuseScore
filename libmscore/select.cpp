@@ -1337,10 +1337,14 @@ bool Selection::canCopy() const
         }
 
         // check for measure repeat group
-        if ((_startSegment->measure()->measureRepeatCount(staffIdx) > 1)
-            || (_score->tick2measure(endTick)->measureRepeatCount(staffIdx)
-                && _endSegment->measure()->measureRepeatCount(staffIdx))) {
-            // selection starts or ends partway through group (_endSegment is after end of selection)
+        Measure* firstM = firstChordRest()->measure();
+        Measure* lastM = lastChordRest()->measure();
+        int measureRepeatCountFirst = firstM->measureRepeatCount(staffIdx);
+        int measureRepeatCountLast = lastM->measureRepeatCount(staffIdx);
+        int measureRepeatCountAfterLast = lastM->nextMeasure() ? lastM->nextMeasure()->measureRepeatCount(staffIdx) : 0;
+        if (measureRepeatCountFirst > 1
+            || (measureRepeatCountLast && measureRepeatCountLast == measureRepeatCountAfterLast - 1)) {
+            // selection starts or ends partway through group
             return false;
         }
     }
