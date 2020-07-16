@@ -177,12 +177,12 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
     // warn user if anything will have to be deleted to make room for measure repeat
     //
     bool empty = true;
-    bool measureRepeatPresent = false;
+    MeasureRepeat* oldMr = nullptr;
     std::vector<Element*> elementsToBeDeleted;
     for (auto m : measures) {
         if (m->measureRepeatCount(staffIdx)) {
             empty = false;
-            measureRepeatPresent = true;
+            oldMr = m->measureRepeatElement(staffIdx);
             continue;
         }
         regroupNotesAndRests(m->tick(), m->endTick(), staff2track(staffIdx)); // rests won't be deleted, so combine
@@ -217,8 +217,10 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
     //
     // group measures and clear current contents
     //
-    if (measureRepeatPresent) {
-        score()->deleteItem(first->measureRepeatElement(staffIdx));
+
+    // delete existing MeasureRepeat first, to reset any measures involved with it
+    if (oldMr) {
+        score()->deleteItem(oldMr);
     }
 
     int i = 1;
