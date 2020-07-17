@@ -234,6 +234,10 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff, Fraction scale)
                         MScore::setError(DEST_LOCAL_TIME_SIGNATURE);
                         return false;
                     }
+                    if (tick2measure(tick)->measureRepeatCount(dstStaffIdx)) {
+                        MeasureRepeat* mr = tick2measure(tick)->measureRepeatElement(dstStaffIdx);
+                        score()->deleteItem(mr);    // resets any measures related to mr
+                    }
                     if (startingBeam) {
                         startingBeam->add(cr);             // also calls cr->setBeam(startingBeam)
                         startingBeam = nullptr;

@@ -56,6 +56,7 @@
 #include "libmscore/lasso.h"
 #include "libmscore/lyrics.h"
 #include "libmscore/measure.h"
+#include "libmscore/measurerepeat.h"
 #include "libmscore/mmrest.h"
 #include "libmscore/navigate.h"
 #include "libmscore/notedot.h"
@@ -4888,6 +4889,9 @@ void ScoreView::cmdRepeatSelection()
 {
     const Selection& selection = _score->selection();
 
+    //
+    // repeat note currently under cursor during note input
+    //
     if (noteEntryMode() && selection.isSingle()) {
         Element* el = _score->selection().element();
         if (el && el->type() == ElementType::NOTE) {
@@ -4905,6 +4909,10 @@ void ScoreView::cmdRepeatSelection()
         }
         return;
     }
+
+    //
+    // repeat range selection in normal mode
+    //
     if (!selection.isRange()) {
         qDebug("wrong selection type");
         return;
@@ -4941,6 +4949,10 @@ void ScoreView::cmdRepeatSelection()
         if (e) {
             ChordRest* cr = toChordRest(e);
             _score->startCmd();
+            if (cr->measure()->measureRepeatCount(dStaff)) {
+                MeasureRepeat* mr = cr->measure()->measureRepeatElement(dStaff);
+                _score->deleteItem(mr); // resets any measures related to mr
+            }
             _score->pasteStaff(xml, cr->segment(), cr->staffIdx());
             _score->endCmd();
         } else {

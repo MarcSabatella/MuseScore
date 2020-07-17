@@ -166,6 +166,11 @@ Note* Score::addPitch(NoteVal& nval, bool addFlag, InputState* externalInputStat
     if (!is.cr()) {
         return 0;
     }
+    Measure* measure = is.segment()->measure();
+    if (measure->measureRepeatCount(track2staff(track))) {
+        MeasureRepeat* mr = measure->measureRepeatElement(track2staff(track));
+        deleteItem(mr); // resets any measures related to mr
+    }
     Fraction duration;
     if (is.usingNoteEntryMethod(NoteEntryMethod::REPITCH)) {
         duration = is.cr()->ticks();

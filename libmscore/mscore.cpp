@@ -158,6 +158,7 @@ std::vector<MScoreError> MScore::errorList {
     { DEST_TREMOLO,                    "p5", QT_TRANSLATE_NOOP("error", "Cannot paste in tremolo") },
     { NO_MIME,                         "p6", QT_TRANSLATE_NOOP("error", "Nothing to paste") },
     { DEST_NO_CR,                      "p7", QT_TRANSLATE_NOOP("error", "Destination is not a chord or rest") },
+    { DEST_MEASURE_REPEAT,             "p8", QT_TRANSLATE_NOOP("error", "Cannot paste into measure repeat") },
     { CANNOT_CHANGE_LOCAL_TIMESIG,     "l1", QT_TRANSLATE_NOOP("error",
                                                                "Cannot change local time signature:\nMeasure is not empty") },
 };
