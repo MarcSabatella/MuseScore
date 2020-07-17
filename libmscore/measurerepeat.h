@@ -39,7 +39,7 @@ public:
     void setSymId(SymId id)                 { m_symId = id; }
     SymId symId() const                     { return m_symId; }
 
-    Measure* measureRepeatFirst() const     { return measure()->measureRepeatFirst(staffIdx()); }
+    Measure* firstMeasureOfGroup() const     { return measure()->firstOfMeasureRepeatGroup(staffIdx()); }
 
     void draw(QPainter*) const override;
     void layout() override;

@@ -292,7 +292,7 @@ public:
 
     int measureRepeatCount(int staffIdx) const      { return m_mstaves[staffIdx]->measureRepeatCount(); }
     void setMeasureRepeatCount(int n, int staffIdx) { m_mstaves[staffIdx]->setMeasureRepeatCount(n); }
-    Measure* measureRepeatFirst(int staffIdx) const;            // used to find beginning of group
+    Measure* firstOfMeasureRepeatGroup(int staffIdx) const;     // used to find beginning of group
     MeasureRepeat* measureRepeatElement(int staffIdx) const;    // get measure repeat element from anywhere within group
 
     Element* nextElementStaff(int staff);

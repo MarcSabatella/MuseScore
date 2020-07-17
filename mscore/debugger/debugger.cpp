@@ -1374,8 +1374,6 @@ void MeasureRepeatView::setElement(Element* e)
     }
 
     mrb.subtype->setValue(int(mr->numMeasures()));
-    
-  //  mrb.firstMeasureNo->setValue(mr->measureRepeatFirst()->no());
 }
 
 //---------------------------------------------------------
@@ -1385,7 +1383,7 @@ void MeasureRepeatView::setElement(Element* e)
 void MeasureRepeatView::firstOfGroupClicked()
 {
     MeasureRepeat* mr = toMeasureRepeat(element());
-    emit elementChanged(mr->measureRepeatFirst());
+    emit elementChanged(mr->firstMeasureOfGroup());
 }
 
 //---------------------------------------------------------

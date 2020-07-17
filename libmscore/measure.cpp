@@ -3380,12 +3380,12 @@ const Measure* Measure::mmRest1() const
 }
 
 //---------------------------------------------------------
-//   measureRepeatFirst
+//   firstMeasureOfGroup
 //    for measures within group containing MeasureRepeat,
 //    return the measure (possibly this) at start of group
 //---------------------------------------------------------
 
-Measure* Measure::measureRepeatFirst(int staffIdx) const
+Measure* Measure::firstOfMeasureRepeatGroup(int staffIdx) const
 {
     if (!measureRepeatCount(staffIdx)) {
         return nullptr;
@@ -3404,7 +3404,7 @@ Measure* Measure::measureRepeatFirst(int staffIdx) const
 
 MeasureRepeat* Measure::measureRepeatElement(int staffIdx) const
 {
-    Measure* m = measureRepeatFirst(staffIdx);
+    Measure* m = firstOfMeasureRepeatGroup(staffIdx);
     if (!m) {
         return nullptr;
     }
