@@ -2302,7 +2302,12 @@ static bool breakMultiMeasureRest(Measure* m)
     }
 
     // break for MeasureRepeat group
-    // TODO
+    for (int staffIdx = 0; staffIdx < m->score()->nstaves(); ++staffIdx) {
+        if (m->measureRepeatCount(staffIdx) || (m->prevMeasure() && m->prevMeasure()->measureRepeatCount(staffIdx))) {
+            return true;
+        }
+    }
+
     for (Segment* s = m->first(); s; s = s->next()) {
         for (Element* e : s->annotations()) {
             if (!e->visible()) {

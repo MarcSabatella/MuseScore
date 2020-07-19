@@ -1336,15 +1336,9 @@ bool Selection::canCopy() const
             }
         }
 
-        // check for measure repeat group
-        Measure* firstM = firstChordRest()->measure();
-        Measure* lastM = lastChordRest()->measure();
-        int measureRepeatCountFirst = firstM->measureRepeatCount(staffIdx);
-        int measureRepeatCountLast = lastM->measureRepeatCount(staffIdx);
-        int measureRepeatCountAfterLast = lastM->nextMeasure() ? lastM->nextMeasure()->measureRepeatCount(staffIdx) : 0;
-        if (measureRepeatCountFirst > 1
-            || (measureRepeatCountLast && measureRepeatCountLast == measureRepeatCountAfterLast - 1)) {
-            // selection starts or ends partway through group
+        // check if selection starts or ends partway through measure repeat group
+        if (firstChordRest()->measure()->isMeasureRepeatGroupWithPrevM(staffIdx)
+            || lastChordRest()->measure()->isMeasureRepeatGroupWithNextM(staffIdx)) {
             return false;
         }
     }

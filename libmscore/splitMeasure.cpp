@@ -49,8 +49,8 @@ void Score::splitMeasure(Segment* segment)
         return;
     }
     Measure* measure = segment->measure();
-    for (auto staff : staves()) {
-        if (measure->measureRepeatCount(staff->idx())) {
+    for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
+        if (measure->measureRepeatCount(staffIdx)) {
             MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
             return;
         }

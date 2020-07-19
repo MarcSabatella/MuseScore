@@ -2436,7 +2436,7 @@ bool MidiRenderer::canBreakChunk(const Measure* last)
     // chunk at repeat measure.
     if (const Measure* next = last->nextMeasure()) {
         for (const Staff* staff : score->staves()) {
-            if (next->containsMeasureRepeat(staff->idx()    )) {
+            if (next->containsMeasureRepeat(staff->idx())) {
                 return false;
             }
         }

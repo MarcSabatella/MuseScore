@@ -217,7 +217,6 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
             deleteItem(m->measureRepeatElement(staffIdx)); // reset measures related to an earlier MeasureRepeat
         }
         score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
-        m->undoChangeProperty(Pid::BREAK_MMR, true);
         if (m != measures.back()) {
             m->undoSetNoBreak(true);
         }
@@ -3358,6 +3357,32 @@ const Measure* Measure::mmRest1() const
         return const_cast<Measure*>(m->m_mmRest);
     }
     return 0;
+}
+
+//---------------------------------------------------------
+//   isMeasureRepeatGroupWithNextM
+//    true if this and next measure are part of same MeasureRepeat group
+//---------------------------------------------------------
+
+bool Measure::isMeasureRepeatGroupWithNextM(int staffIdx) const
+{
+    if (!measureRepeatCount(staffIdx) || !nextMeasure() || !nextMeasure()->measureRepeatCount(staffIdx)) {
+        return false;
+    }
+    if (measureRepeatCount(staffIdx) == nextMeasure()->measureRepeatCount(staffIdx) - 1) {
+        return true;
+    }
+    return false;
+}
+
+//---------------------------------------------------------
+//   isMeasureRepeatGroupWithPrevM
+//    true if this and prev measure are part of same MeasureRepeat group
+//---------------------------------------------------------
+
+bool Measure::isMeasureRepeatGroupWithPrevM(int staffIdx) const
+{
+    return (measureRepeatCount(staffIdx) > 1);
 }
 
 //---------------------------------------------------------

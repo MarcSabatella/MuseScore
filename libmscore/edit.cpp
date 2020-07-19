@@ -1810,12 +1810,11 @@ void Score::deleteItem(Element* el)
         rest->setParent(mr->parent());
         Segment* segment = mr->segment();
         undoAddCR(rest, segment->measure(), segment->tick());
+
         // tell measures they're not part of measure repeat group anymore
         Measure * m = mr->firstMeasureOfGroup();
         for (int i = 1; i <= mr->numMeasures(); ++i) {
             score()->undo(new ChangeMeasureRepeatCount(m, 0, mr->staffIdx()));
-            m->undoChangeProperty(Pid::BREAK_MMR, false);
-
             // don't remove grouping if within measure repeat group on another staff
             bool otherStavesStillNeedGroup = false;
             for (auto s : staves()) {
@@ -3110,11 +3109,8 @@ void Score::insertMeasure(ElementType type, MeasureBase* measure, bool createEmp
                 measure = measure ? measure->next() : firstMeasure();
                 deselectAll();
             }
-            for (auto staff : staves()) {
-                int staffIdx = staff->idx();
-                if (toMeasure(measure)->measureRepeatCount(staffIdx)
-                    && (measure->prevMeasure()
-                        && measure->prevMeasure()->measureRepeatCount(staffIdx) == toMeasure(measure)->measureRepeatCount(staffIdx) - 1)) {
+            for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
+                if (toMeasure(measure)->isMeasureRepeatGroupWithPrevM(staffIdx)) {
                     MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
                     return;
                 }
