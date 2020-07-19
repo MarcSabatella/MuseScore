@@ -2301,6 +2301,8 @@ static bool breakMultiMeasureRest(Measure* m)
         }
     }
 
+    // break for MeasureRepeat group
+    // TODO
     for (Segment* s = m->first(); s; s = s->next()) {
         for (Element* e : s->annotations()) {
             if (!e->visible()) {

@@ -245,8 +245,6 @@ public:
     void barLinesSetSpan(Segment*);
     void setEndBarLineType(BarLineType val, int track, bool visible = true, QColor color = QColor());
 
-    MeasureRepeat* cmdInsertMeasureRepeat(int staffIdx, int numMeasures = 1);
-
     void scanElements(void* data, void (* func)(void*, Element*), bool all=true) override;
     void createVoice(int track);
     void adjustToLen(Fraction, bool appendRestsIfNecessary = true);
@@ -258,7 +256,6 @@ public:
     bool hasVoice(int track) const;
     bool isEmpty(int staffIdx) const;
     bool isFullMeasureRest() const;
-    MeasureRepeat* containsMeasureRepeat(const Staff* staff) const;
     bool visible(int staffIdx) const;
     bool stemless(int staffIdx) const;
     bool isFinalMeasureOfSection() const;
@@ -292,8 +289,12 @@ public:
 
     int measureRepeatCount(int staffIdx) const      { return m_mstaves[staffIdx]->measureRepeatCount(); }
     void setMeasureRepeatCount(int n, int staffIdx) { m_mstaves[staffIdx]->setMeasureRepeatCount(n); }
+    bool isMeasureRepeatGroupWithNextM();
+    bool isMeasureRepeatGroupWithPrevM();
     Measure* firstOfMeasureRepeatGroup(int staffIdx) const;     // used to find beginning of group
     MeasureRepeat* measureRepeatElement(int staffIdx) const;    // get measure repeat element from anywhere within group
+    MeasureRepeat* containsMeasureRepeat(int staffIdx) const;
+    void cmdAddMeasureRepeat(int staffIdx, int numMeasures = 1);
 
     Element* nextElementStaff(int staff);
     Element* prevElementStaff(int staff);

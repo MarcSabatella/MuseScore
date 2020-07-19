@@ -3104,10 +3104,21 @@ void Score::insertMeasure(ElementType type, MeasureBase* measure, bool createEmp
 {
     Fraction tick;
     if (measure) {
-        if (measure->isMeasure() && toMeasure(measure)->isMMRest()) {
-            measure = toMeasure(measure)->prev();
-            measure = measure ? measure->next() : firstMeasure();
-            deselectAll();
+        if (measure->isMeasure()) {
+            if (toMeasure(measure)->isMMRest()) {
+                measure = toMeasure(measure)->prev();
+                measure = measure ? measure->next() : firstMeasure();
+                deselectAll();
+            }
+            for (auto staff : staves()) {
+                int staffIdx = staff->idx();
+                if (toMeasure(measure)->measureRepeatCount(staffIdx)
+                    && (measure->prevMeasure()
+                        && measure->prevMeasure()->measureRepeatCount(staffIdx) == toMeasure(measure)->measureRepeatCount(staffIdx) - 1)) {
+                    MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
+                    return;
+                }
+            }
         }
         tick = measure->tick();
     } else {

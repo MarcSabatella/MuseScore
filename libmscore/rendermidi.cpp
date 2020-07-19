@@ -990,7 +990,7 @@ void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, const 
     Measure* lastMeasure = start->prevMeasure();
 
     for (Measure* m = start; m != end; m = m->nextMeasure()) {
-        if (lastMeasure && m->containsMeasureRepeat(sctx.staff)) {
+        if (lastMeasure && m->containsMeasureRepeat(sctx.staff->idx())) {
             int offset = (m->tick() - lastMeasure->tick()).ticks();
             collectMeasureEvents(events, lastMeasure, sctx, tickOffset + offset);
         } else {
@@ -2436,7 +2436,7 @@ bool MidiRenderer::canBreakChunk(const Measure* last)
     // chunk at repeat measure.
     if (const Measure* next = last->nextMeasure()) {
         for (const Staff* staff : score->staves()) {
-            if (next->containsMeasureRepeat(staff)) {
+            if (next->containsMeasureRepeat(staff->idx()    )) {
                 return false;
             }
         }

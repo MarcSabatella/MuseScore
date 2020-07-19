@@ -150,6 +150,7 @@ std::vector<MScoreError> MScore::errorList {
                                                                "Cannot split measure here:\n" "Cannot split tuplet") },
     { INSUFFICIENT_MEASURES,           "m3", QT_TRANSLATE_NOOP("error",
                                                                "Measure repeat cannot be added here:\nInsufficient or unequal measures") },
+    { CANNOT_SPLIT_MEASURE_REPEAT,     "m4", QT_TRANSLATE_NOOP("error", "Cannot split measure repeat") },
 
     { NO_DEST,                         "p1", QT_TRANSLATE_NOOP("error", "No destination to paste") },
     { DEST_TUPLET,                     "p2", QT_TRANSLATE_NOOP("error", "Cannot paste into tuplet") },

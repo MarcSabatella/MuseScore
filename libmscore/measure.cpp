@@ -177,16 +177,7 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
     // warn user if anything will have to be deleted to make room for measure repeat
     //
     bool empty = true;
-    MeasureRepeat* oldMr = nullptr;
-    std::vector<Element*> elementsToBeDeleted;
     for (auto m : measures) {
-        if (m->measureRepeatCount(staffIdx)) {
-            empty = false;
-            oldMr = m->measureRepeatElement(staffIdx);
-            continue;
-        }
-        regroupNotesAndRests(m->tick(), m->endTick(), staff2track(staffIdx)); // rests won't be deleted, so combine
-                                                                              // into full measure rests first
         for (auto seg = m->first(); seg; seg = seg->next()) {
             if (seg->segmentType() & SegmentType::ChordRest) {
                 int strack = staffIdx * VOICES;
@@ -195,7 +186,7 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
                     Element* e = seg->element(track);
                     if (e && !e->generated() && !e->isRest()) {
                         empty = false;
-                        elementsToBeDeleted.push_back(e);
+                        break;
                     }
                 }
             }
@@ -218,22 +209,20 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
     // group measures and clear current contents
     //
 
-    // delete existing MeasureRepeat first, to reset any measures involved with it
-    if (oldMr) {
-        score()->deleteItem(oldMr);
-    }
-
+    deselectAll();
     int i = 1;
     for (auto m : measures) {
+        select(m, SelectType::RANGE, staffIdx);
+        if (m->measureRepeatCount(staffIdx)) {
+            deleteItem(m->measureRepeatElement(staffIdx)); // reset measures related to an earlier MeasureRepeat
+        }
         score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
         m->undoChangeProperty(Pid::BREAK_MMR, true);
         if (m != measures.back()) {
             m->undoSetNoBreak(true);
         }
     }
-    for (auto e : elementsToBeDeleted) {
-        score()->undoRemoveElement(e);
-    }
+    cmdDeleteSelection();
     return true;
 }
 
@@ -1692,7 +1681,7 @@ Element* Measure::drop(EditData& data)
     {
         int numMeasures = toMeasureRepeat(e)->numMeasures();
         delete e;
-        cmdInsertMeasureRepeat(staffIdx, numMeasures);
+        cmdAddMeasureRepeat(staffIdx, numMeasures);
         break;
     }
     case ElementType::ICON:
@@ -1734,16 +1723,16 @@ Element* Measure::drop(EditData& data)
 }
 
 //---------------------------------------------------------
-//   cmdInsertMeasureRepeat
+//   cmdAddMeasureRepeat
 //---------------------------------------------------------
 
-MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
+void Measure::cmdAddMeasureRepeat(int staffIdx, int numMeasures)
 {
     //
     // make measures into group
     //
     if (!score()->makeMeasureRepeatGroup(this, numMeasures, staffIdx)) {
-        return nullptr;
+        return;
     }
 
     //
@@ -1770,13 +1759,6 @@ MeasureRepeat* Measure::cmdInsertMeasureRepeat(int staffIdx, int numMeasures)
         score()->undoAddCR(mr, this, tick());
         break;
     }
-
-    for (Element* e : el()) {
-        if (e->isSlur() && e->staffIdx() == staffIdx) {
-            score()->undoRemoveElement(e);
-        }
-    }
-    return mr;
 }
 
 //---------------------------------------------------------
@@ -2926,9 +2908,8 @@ bool Measure::isFullMeasureRest() const
 //   containsMeasureRepeat
 //---------------------------------------------------------
 
-MeasureRepeat* Measure::containsMeasureRepeat(const Staff* staff) const
+MeasureRepeat* Measure::containsMeasureRepeat(int staffIdx) const
 {
-    int staffIdx = staff->idx();
     int strack   = staffIdx * VOICES;
     int etrack   = (staffIdx + 1) * VOICES;
     Segment* s   = first(SegmentType::ChordRest);
@@ -3410,7 +3391,7 @@ MeasureRepeat* Measure::measureRepeatElement(int staffIdx) const
     }
     MeasureRepeat* mr;
     for (;;) {
-        mr = m->containsMeasureRepeat(score()->staff(staffIdx));
+        mr = m->containsMeasureRepeat(staffIdx);
         if (mr) {
             return mr;
         }
