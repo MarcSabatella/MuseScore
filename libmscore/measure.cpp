@@ -155,7 +155,7 @@ void MStaff::setTrack(int track)
 //---------------------------------------------------------
 //   makeMeasureRepeatGroup
 ///   clear measures, apply noBreak, set measureRepeatCount
-///   returns false if these measures don't work or user aborted
+///   returns false if these measures won't work or user aborted
 //---------------------------------------------------------
 
 bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx) {
@@ -174,7 +174,7 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
     }
 
     //
-    // warn user if anything will have to be deleted to make room for measure repeat
+    // warn user if things will have to be deleted to make room for measure repeat
     //
     bool empty = true;
     for (auto m : measures) {
@@ -221,7 +221,9 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
             m->undoSetNoBreak(true);
         }
     }
-    cmdDeleteSelection();
+    if (!empty) {
+        cmdDeleteSelection();
+    }
     return true;
 }
 

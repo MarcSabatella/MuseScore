@@ -294,7 +294,7 @@ public:
     Measure* firstOfMeasureRepeatGroup(int staffIdx) const;     // used to find beginning of group
     MeasureRepeat* measureRepeatElement(int staffIdx) const;    // get measure repeat element from anywhere within group
     MeasureRepeat* containsMeasureRepeat(int staffIdx) const;
-    void cmdAddMeasureRepeat(int staffIdx, int numMeasures = 1);
+    void cmdAddMeasureRepeat(int staffIdx, int numMeasures);
 
     Element* nextElementStaff(int staff);
     Element* prevElementStaff(int staff);

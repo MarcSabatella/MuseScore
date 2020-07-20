@@ -2199,7 +2199,7 @@ void Score::deleteItem(Element* el)
 //   deleteMeasures
 //---------------------------------------------------------
 
-void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie)
+void Score::deleteMeasures(MeasureBase* mbStart, MeasureBase* mbEnd)
 {
 // qDebug("deleteMeasures %p %p", is, ie);
 
@@ -2208,19 +2208,19 @@ void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie)
         return;
     }
 
-    MeasureBase* is = selection().startSegment()->measure();
-    if (is->isMeasure() && toMeasure(is)->isMMRest()) {
-        is = toMeasure(is)->mmRestFirst();
+    MeasureBase* mbStart = selection().startSegment()->measure();
+    if (mbStart->isMeasure() && toMeasure(mbStart)->isMMRest()) {
+        mbStart = toMeasure(mbStart)->mmRestFirst();
     }
     Segment* seg    = selection().endSegment();
-    MeasureBase* ie;
+    MeasureBase* mbEnd;
 
     // choose the correct last measure based on the end segment
     // this depends on whether a whole measure is selected or only a few notes within it
     if (seg) {
-        ie = seg->prev() ? seg->measure() : seg->measure()->prev();
+        mbEnd = seg->prev() ? seg->measure() : seg->measure()->prev();
     } else {
-        ie = lastMeasure();
+        mbEnd = lastMeasure();
     }
 #endif
 
@@ -2228,10 +2228,10 @@ void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie)
 
     // createEndBar if last measure is deleted
     bool createEndBar = false;
-    if (ie->isMeasure()) {
-        Measure* iem = toMeasure(ie);
-        if (iem->isMMRest()) {
-            ie = iem = iem->mmRestLast();
+    if (mbEnd->isMeasure()) {
+        Measure* mbEndMeasure = toMeasure(mbEnd);
+        if (mbEndMeasure->isMMRest()) {
+            mbEnd = mbEndMeasure = mbEndMeasure->mmRestLast();
         }
 //TODO            createEndBar = (iem == lastMeasureMM()) && (iem->endBarLineType() == BarLineType::END);
         createEndBar = false;
@@ -2243,7 +2243,7 @@ void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie)
     KeySig* lastDeletedKeySig = 0;
     bool transposeKeySigEvent = false;
 
-    for (MeasureBase* mb = ie;; mb = mb->prev()) {
+    for (MeasureBase* mb = mbEnd;; mb = mb->prev()) {
         if (mb->isMeasure()) {
             Measure* m = toMeasure(mb);
             Segment* sts = m->findSegment(SegmentType::TimeSig, m->tick());
@@ -2271,22 +2271,22 @@ void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie)
                 break;
             }
         }
-        if (mb == is) {
+        if (mb == mbStart) {
             break;
         }
     }
-    Fraction startTick = is->tick();
-    Fraction endTick   = ie->tick();
+    Fraction startTick = mbStart->tick();
+    Fraction endTick   = mbEnd->tick();
 
-    undoInsertTime(is->tick(), -(ie->endTick() - is->tick()));
+    undoInsertTime(mbStart->tick(), -(mbEnd->endTick() - mbStart->tick()));
     for (Score* score : scoreList()) {
-        Measure* mis = score->tick2measure(startTick);
-        Measure* mie = score->tick2measure(endTick);
+        Measure* startMeasure = score->tick2measure(startTick);
+        Measure* endMeasure = score->tick2measure(endTick);
 
-        score->undoRemoveMeasures(mis, mie);
+        score->undoRemoveMeasures(startMeasure, endMeasure);
 
         // adjust views
-        Measure* focusOn = mis->prevMeasure() ? mis->prevMeasure() : score->firstMeasure();
+        Measure* focusOn = startMeasure->prevMeasure() ? startMeasure->prevMeasure() : score->firstMeasure();
         for (MuseScoreView* v : score->viewer) {
             v->adjustCanvasPosition(focusOn, false);
         }
@@ -2298,7 +2298,7 @@ void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie)
         }
 
         // insert correct timesig after deletion
-        Measure* mBeforeSel = mis->prevMeasure();
+        Measure* mBeforeSel = startMeasure->prevMeasure();
         Measure* mAfterSel  = mBeforeSel ? mBeforeSel->nextMeasure() : score->firstMeasure();
         if (mAfterSel && lastDeletedSig) {
             bool changed = true;
@@ -3362,7 +3362,7 @@ static constexpr SegmentType CR_TYPE = SegmentType::ChordRest;
 
 bool Score::checkTimeDelete(Segment* startSegment, Segment* endSegment)
 {
-    Measure* m = startSegment->measure();
+    Measure* startMeasure = startSegment->measure();
     Measure* endMeasure;
 
     if (endSegment) {
@@ -3371,15 +3371,28 @@ bool Score::checkTimeDelete(Segment* startSegment, Segment* endSegment)
         endMeasure = lastMeasure();
     }
 
+    // check for MeasureRepeat
+    bool startsAtBeginningOfMeasure = (startMeasure->first(CR_TYPE) == startSegment);
+    bool endsAtEndOfMeasure = (endSegment->tick() == endMeasure->endTick());
+    for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
+        if ((startMeasure->measureRepeatCount(staffIdx) && !startsAtBeginningOfMeasure)
+            || (endMeasure->measureRepeatCount(staffIdx) && !endsAtEndOfMeasure)
+            || startMeasure->isMeasureRepeatGroupWithPrevM(staffIdx)
+            || endMeasure->isMeasureRepeatGroupWithNextM(staffIdx)) {
+            MScore::setError(CANNOT_REMOVE_TIME_MEASURE_REPEAT);
+            return false;
+        }
+    }
+
     Fraction endTick = endSegment ? endSegment->tick() : endMeasure->endTick();
     Fraction tick = startSegment->tick();
-    Fraction etick = (m == endMeasure ? endTick : m->endTick());
+    Fraction etick = (startMeasure == endMeasure ? endTick : startMeasure->endTick());
     bool canDeleteTime = true;
 
     while (canDeleteTime) {
         for (int track = 0; canDeleteTime && track < _staves.size() * VOICES; ++track) {
-            if (m->hasVoice(track)) {
-                Segment* fs = m->first(CR_TYPE);
+            if (startMeasure->hasVoice(track)) {
+                Segment* fs = startMeasure->first(CR_TYPE);
                 for (Segment* s = fs; s; s = s->next(CR_TYPE)) {
                     if (s->element(track)) {
                         ChordRest* cr       = toChordRest(s->element(track));
@@ -3401,17 +3414,15 @@ bool Score::checkTimeDelete(Segment* startSegment, Segment* endSegment)
                 }
             }
         }
-        if (m == endMeasure) {
+        if (startMeasure == endMeasure) {
             break;
         }
-        m     = endMeasure;
-        tick  = m->tick();
+        startMeasure = endMeasure;
+        tick  = startMeasure->tick();
         etick = endTick;
     }
     if (!canDeleteTime) {
-        QMessageBox::information(0, "MuseScore",
-                                 tr("Please select the complete tuplet and retry the command"),
-                                 QMessageBox::Ok, QMessageBox::NoButton);
+        MScore::setError(CANNOT_REMOVE_TIME_TUPLET);
         return false;
     }
     return true;
@@ -3460,45 +3471,45 @@ void Score::localTimeDelete()
         return;
     }
 
-    MeasureBase* is = startSegment->measure();
-    if (is->isMeasure() && toMeasure(is)->isMMRest()) {
-        is = toMeasure(is)->mmRestFirst();
+    MeasureBase* mbStart = startSegment->measure();
+    if (mbStart->isMeasure() && toMeasure(mbStart)->isMMRest()) {
+        mbStart = toMeasure(mbStart)->mmRestFirst();
     }
-    MeasureBase* ie;
+    MeasureBase* mbEnd;
 
     if (endSegment) {
-        ie = endSegment->prev() ? endSegment->measure() : endSegment->measure()->prev();
+        mbEnd = endSegment->prev() ? endSegment->measure() : endSegment->measure()->prev();
     } else {
-        ie = lastMeasure();
+        mbEnd = lastMeasure();
     }
 
-    Fraction endTick = endSegment ? endSegment->tick() : ie->endTick();
+    Fraction endTick = endSegment ? endSegment->tick() : mbEnd->endTick();
 
     for (;;) {
-        if (is->tick() != startSegment->tick()) {
+        if (mbStart->tick() != startSegment->tick()) {
             Fraction tick = startSegment->tick();
             Fraction len;
-            if (ie == is) {
+            if (mbEnd == mbStart) {
                 len = endTick - tick;
             } else {
-                len = is->endTick() - tick;
+                len = mbStart->endTick() - tick;
             }
-            timeDelete(toMeasure(is), startSegment, len);
-            if (is == ie) {
+            timeDelete(toMeasure(mbStart), startSegment, len);
+            if (mbStart == mbEnd) {
                 break;
             }
-            is = is->next();
+            mbStart = mbStart->next();
         }
-        endTick = endSegment ? endSegment->tick() : ie->endTick();
-        if (ie->endTick() != endTick) {
-            Fraction len = endTick - ie->tick();
-            timeDelete(toMeasure(ie), toMeasure(ie)->first(), len);
-            if (is == ie) {
+        endTick = endSegment ? endSegment->tick() : mbEnd->endTick();
+        if (mbEnd->endTick() != endTick) {
+            Fraction len = endTick - mbEnd->tick();
+            timeDelete(toMeasure(mbEnd), toMeasure(mbEnd)->first(), len);
+            if (mbStart == mbEnd) {
                 break;
             }
-            ie = ie->prev();
+            mbEnd = mbEnd->prev();
         }
-        deleteMeasures(is, ie);
+        deleteMeasures(mbStart, mbEnd);
         break;
     }
 
