@@ -602,8 +602,12 @@ void Score::pasteChordRest(ChordRest* cr, const Fraction& t, const Interval& src
     if (cr->isMeasureRepeat()) {
         MeasureRepeat* mr = toMeasureRepeat(cr);
         Measure* m = (mr->numMeasures() == 4 ? measure->prevMeasure() : measure);
-        if (!makeMeasureRepeatGroup(m, mr->numMeasures(), mr->staffIdx())) {
-            return;
+        for (int i = 1; i <= mr->numMeasures(); ++i) {
+            undo(new ChangeMeasureRepeatCount(m, i, mr->staffIdx()));
+            if (i < mr->numMeasures()) {
+                m->undoSetNoBreak(true);
+            }
+            m = m->nextMeasure();
         }
     }
 
