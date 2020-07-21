@@ -902,6 +902,9 @@ void Score::cmdAddTimeSig(Measure* fm, int staffIdx, TimeSig* ts, bool local)
                 endStaffIdx   = score->nstaves();
             }
             for (int si = startStaffIdx; si < endStaffIdx; ++si) {
+                if (fm->measureRepeatCount(si)) {
+                    deleteItem(fm->measureRepeatElement(si));
+                }
                 TimeSig* nsig = toTimeSig(seg->element(si * VOICES));
                 if (nsig == 0) {
                     nsig = new TimeSig(*ts);

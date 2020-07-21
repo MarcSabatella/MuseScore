@@ -178,7 +178,13 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
     //
     bool empty = true;
     for (auto m : measures) {
-        for (auto seg = m->first(); seg; seg = seg->next()) {
+        if (m != measures.back()) {
+            if (m->endBarLineType() != BarLineType::NORMAL) {
+                empty = false;
+                break;
+            }
+        }
+        for (auto seg = m->first(); seg && empty; seg = seg->next()) {
             if (seg->segmentType() & SegmentType::ChordRest) {
                 int strack = staffIdx * VOICES;
                 int etrack = strack + VOICES;
@@ -217,13 +223,15 @@ bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx
             deleteItem(m->measureRepeatElement(staffIdx)); // reset measures related to an earlier MeasureRepeat
         }
         score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
+        if (m != measures.front()) {
+            m->undoChangeProperty(Pid::REPEAT_START, false);
+        }
         if (m != measures.back()) {
             m->undoSetNoBreak(true);
+            deleteItem(const_cast<BarLine*>(m->endBarLine())); // also takes care of Pid::REPEAT_END
         }
     }
-    if (!empty) {
-        cmdDeleteSelection();
-    }
+    cmdDeleteSelection();
     return true;
 }
 
@@ -3759,7 +3767,7 @@ BarLineType Measure::endBarLineType() const
 }
 
 //---------------------------------------------------------
-//   endBarLineType
+//   endBarLineVisible
 //    Assume all barlines have same visibility if there is more
 //    than one.
 //---------------------------------------------------------
