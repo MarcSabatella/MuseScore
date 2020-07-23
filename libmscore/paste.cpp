@@ -122,6 +122,8 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff, Fraction scale)
         e.setTickOffset(dstTick - tickStart);
         e.setTick(Fraction(0,1));
 
+        int measureRepeatTotalMeasures = 0;
+        int measureRepeatMeasuresSoFar = 0;
         while (e.readNextStartElement()) {
             if (done) {
                 break;
@@ -234,9 +236,18 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff, Fraction scale)
                         MScore::setError(DEST_LOCAL_TIME_SIGNATURE);
                         return false;
                     }
+                    if (tag == "MeasureRepeat") {
+                        measureRepeatTotalMeasures = toMeasureRepeat(cr)->numMeasures();
+                    }
                     if (tick2measure(tick)->isMeasureRepeatGroup(dstStaffIdx)) {
-                        MeasureRepeat* mr = tick2measure(tick)->measureRepeatElement(dstStaffIdx);
-                        score()->deleteItem(mr);    // resets any measures related to mr
+                        if (measureRepeatMeasuresSoFar < measureRepeatTotalMeasures) {
+                            measureRepeatMeasuresSoFar++;
+                        } else {
+                            MeasureRepeat* mr = tick2measure(tick)->measureRepeatElement(dstStaffIdx);
+                            score()->deleteItem(mr);    // resets any measures related to mr
+                            measureRepeatTotalMeasures = 0;
+                            measureRepeatMeasuresSoFar = 0;
+                        }
                     }
                     if (startingBeam) {
                         startingBeam->add(cr);             // also calls cr->setBeam(startingBeam)
