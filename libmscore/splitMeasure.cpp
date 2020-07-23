@@ -50,7 +50,7 @@ void Score::splitMeasure(Segment* segment)
     }
     Measure* measure = segment->measure();
     for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
-        if (measure->measureRepeatCount(staffIdx)) {
+        if (measure->isMeasureRepeatGroup(staffIdx)) {
             MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
             return;
         }

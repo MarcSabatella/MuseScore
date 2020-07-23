@@ -153,89 +153,6 @@ void MStaff::setTrack(int track)
 }
 
 //---------------------------------------------------------
-//   makeMeasureRepeatGroup
-///   clear measures, apply noBreak, set measureRepeatCount
-///   returns false if these measures won't work or user aborted
-//---------------------------------------------------------
-
-bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx) {
-    //
-    // check that sufficient measures exist, with equal durations
-    //
-    std::vector<Measure*> measures;
-    Measure* m = first;
-    for (int i = 1; i <= numMeasures; ++i) {
-        if (!m || m->ticks() != first->ticks()) {
-            MScore::setError(INSUFFICIENT_MEASURES);
-            return false;
-        }
-        measures.push_back(m);
-        m = m->nextMeasure();
-    }
-
-    //
-    // warn user if things will have to be deleted to make room for measure repeat
-    //
-    bool empty = true;
-    for (auto m : measures) {
-        if (m != measures.back()) {
-            if (m->endBarLineType() != BarLineType::NORMAL) {
-                empty = false;
-                break;
-            }
-        }
-        for (auto seg = m->first(); seg && empty; seg = seg->next()) {
-            if (seg->segmentType() & SegmentType::ChordRest) {
-                int strack = staffIdx * VOICES;
-                int etrack = strack + VOICES;
-                for (int track = strack; track < etrack; ++track) {
-                    Element* e = seg->element(track);
-                    if (e && !e->generated() && !e->isRest()) {
-                        empty = false;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    if (!empty) {
-        auto b = QMessageBox::warning(0, QObject::tr("Current contents of measures will be replaced"),
-                                      // QMessageBox titles aren't being shown, so include in message
-                                      QObject::tr("Current contents of measures will be replaced.")
-                                      + QObject::tr("\nContinue with inserting measure repeat?"),
-                                      QMessageBox::Cancel | QMessageBox::Ok,
-                                      QMessageBox::Ok);
-        if (b == QMessageBox::Cancel) {
-            return false;
-        }
-    }
-
-    //
-    // group measures and clear current contents
-    //
-
-    deselectAll();
-    int i = 1;
-    for (auto m : measures) {
-        select(m, SelectType::RANGE, staffIdx);
-        if (m->measureRepeatCount(staffIdx)) {
-            deleteItem(m->measureRepeatElement(staffIdx)); // reset measures related to an earlier MeasureRepeat
-        }
-        score()->undo(new ChangeMeasureRepeatCount(m, i++, staffIdx));
-        if (m != measures.front()) {
-            m->undoChangeProperty(Pid::REPEAT_START, false);
-        }
-        if (m != measures.back()) {
-            m->undoSetNoBreak(true);
-            deleteItem(const_cast<BarLine*>(m->endBarLine())); // also takes care of Pid::REPEAT_END
-        }
-    }
-    cmdDeleteSelection();
-    return true;
-}
-
-//---------------------------------------------------------
 //   Measure
 //---------------------------------------------------------
 
@@ -1708,7 +1625,7 @@ Element* Measure::drop(EditData& data)
     {
         int numMeasures = toMeasureRepeat(e)->numMeasures();
         delete e;
-        cmdAddMeasureRepeat(staffIdx, numMeasures);
+        score()->cmdAddMeasureRepeat(this, numMeasures, staffIdx);
         break;
     }
     case ElementType::ICON:
@@ -1747,45 +1664,6 @@ Element* Measure::drop(EditData& data)
         break;
     }
     return 0;
-}
-
-//---------------------------------------------------------
-//   cmdAddMeasureRepeat
-//---------------------------------------------------------
-
-void Measure::cmdAddMeasureRepeat(int staffIdx, int numMeasures)
-{
-    //
-    // make measures into group
-    //
-    if (!score()->makeMeasureRepeatGroup(this, numMeasures, staffIdx)) {
-        return;
-    }
-
-    //
-    // add repeat measure
-    //
-    MeasureRepeat* mr = new MeasureRepeat(score());
-    mr->setNumMeasures(numMeasures);
-    mr->setTrack(staffIdx * VOICES);
-    switch (numMeasures) {
-    case 4: {
-        Measure* nextM = nextMeasure(); // four-measure repeat anchored to second measure of group
-        Segment* nextSeg = undoGetSegment(SegmentType::ChordRest, nextM->tick());
-        mr->setParent(nextSeg);
-        mr->setDurationType(TDuration::DurationType::V_MEASURE); // TODO: does this duration type matter at all?
-        mr->setTicks(nextM->stretchedLen(score()->staff(staffIdx)));
-        score()->undoAddCR(mr, nextM, nextM->tick());
-        break;
-    }
-    default:
-        Segment* seg = undoGetSegment(SegmentType::ChordRest, tick());
-        mr->setParent(seg);
-        mr->setDurationType(TDuration::DurationType::V_MEASURE);
-        mr->setTicks(stretchedLen(score()->staff(staffIdx)));
-        score()->undoAddCR(mr, this, tick());
-        break;
-    }
 }
 
 //---------------------------------------------------------
@@ -3394,7 +3272,7 @@ const Measure* Measure::mmRest1() const
 
 bool Measure::isMeasureRepeatGroupWithNextM(int staffIdx) const
 {
-    if (!measureRepeatCount(staffIdx) || !nextMeasure() || !nextMeasure()->measureRepeatCount(staffIdx)) {
+    if (!isMeasureRepeatGroup(staffIdx) || !nextMeasure() || !nextMeasure()->isMeasureRepeatGroup(staffIdx)) {
         return false;
     }
     if (measureRepeatCount(staffIdx) == nextMeasure()->measureRepeatCount(staffIdx) - 1) {
@@ -3421,7 +3299,7 @@ bool Measure::isMeasureRepeatGroupWithPrevM(int staffIdx) const
 
 Measure* Measure::firstOfMeasureRepeatGroup(int staffIdx) const
 {
-    if (!measureRepeatCount(staffIdx)) {
+    if (!isMeasureRepeatGroup(staffIdx)) {
         return nullptr;
     }
     Measure* m = const_cast<Measure*>(this);

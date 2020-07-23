@@ -167,7 +167,7 @@ Note* Score::addPitch(NoteVal& nval, bool addFlag, InputState* externalInputStat
         return 0;
     }
     Measure* measure = is.segment()->measure();
-    if (measure->measureRepeatCount(track2staff(track))) {
+    if (measure->isMeasureRepeatGroup(track2staff(track))) {
         MeasureRepeat* mr = measure->measureRepeatElement(track2staff(track));
         deleteItem(mr); // resets any measures related to mr
     }
@@ -352,7 +352,7 @@ void Score::putNote(const Position& p, bool replace)
     // warn and delete MeasureRepeat if necessary
     Measure* m = _is.segment()->measure();
     int staffIdx = track2staff(_is.track());
-    if (m->measureRepeatCount(staffIdx)) {
+    if (m->isMeasureRepeatGroup(staffIdx)) {
         auto b = QMessageBox::warning(0, QObject::tr("Note input will remove measure repeat"),
                                       QObject::tr("There is a measure repeat here.")
                                         + QObject::tr("\nContinue with adding note and delete measure repeat?"),

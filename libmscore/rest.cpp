@@ -218,7 +218,7 @@ Element* Rest::drop(EditData& data)
         int numMeasures = toMeasureRepeat(e)->numMeasures();
         delete e;
         if (durationType().type() == TDuration::DurationType::V_MEASURE) {
-            measure()->cmdAddMeasureRepeat(staffIdx(), numMeasures);
+            score()->cmdAddMeasureRepeat(measure(), numMeasures, staffIdx());
         }
         break;
     }

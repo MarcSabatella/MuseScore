@@ -902,7 +902,7 @@ void Score::cmdAddTimeSig(Measure* fm, int staffIdx, TimeSig* ts, bool local)
                 endStaffIdx   = score->nstaves();
             }
             for (int si = startStaffIdx; si < endStaffIdx; ++si) {
-                if (fm->measureRepeatCount(si)) {
+                if (fm->isMeasureRepeatGroup(si)) {
                     deleteItem(fm->measureRepeatElement(si));
                 }
                 TimeSig* nsig = toTimeSig(seg->element(si * VOICES));
@@ -1821,8 +1821,8 @@ void Score::deleteItem(Element* el)
             // don't remove grouping if within measure repeat group on another staff
             bool otherStavesStillNeedGroup = false;
             for (auto s : staves()) {
-                if (s->idx() != mr->staffIdx()
-                    && m->measureRepeatCount(s->idx()) && m->nextMeasure() && m->nextMeasure()->measureRepeatCount(s->idx())) {
+                if (s->idx() != mr->staffIdx() && m->isMeasureRepeatGroup(s->idx())
+                    && m->nextMeasure() && m->nextMeasure()->isMeasureRepeatGroup(s->idx())) {
                     otherStavesStillNeedGroup = true;
                 }
             }
@@ -3378,8 +3378,8 @@ bool Score::checkTimeDelete(Segment* startSegment, Segment* endSegment)
     bool startsAtBeginningOfMeasure = (startMeasure->first(CR_TYPE) == startSegment);
     bool endsAtEndOfMeasure = (endSegment->tick() == endMeasure->endTick());
     for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
-        if ((startMeasure->measureRepeatCount(staffIdx) && !startsAtBeginningOfMeasure)
-            || (endMeasure->measureRepeatCount(staffIdx) && !endsAtEndOfMeasure)
+        if ((startMeasure->isMeasureRepeatGroup(staffIdx) && !startsAtBeginningOfMeasure)
+            || (endMeasure->isMeasureRepeatGroup(staffIdx) && !endsAtEndOfMeasure)
             || startMeasure->isMeasureRepeatGroupWithPrevM(staffIdx)
             || endMeasure->isMeasureRepeatGroupWithNextM(staffIdx)) {
             MScore::setError(CANNOT_REMOVE_TIME_MEASURE_REPEAT);

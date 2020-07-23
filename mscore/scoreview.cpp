@@ -4949,7 +4949,7 @@ void ScoreView::cmdRepeatSelection()
         if (e) {
             ChordRest* cr = toChordRest(e);
             _score->startCmd();
-            if (cr->measure()->measureRepeatCount(dStaff)) {
+            if (cr->measure()->isMeasureRepeatGroup(dStaff)) {
                 MeasureRepeat* mr = cr->measure()->measureRepeatElement(dStaff);
                 _score->deleteItem(mr); // resets any measures related to mr
             }

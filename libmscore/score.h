@@ -656,6 +656,8 @@ public:
     void cmdIncDurationDotted() { cmdIncDecDuration(-1, true); }
     void cmdDecDurationDotted() { cmdIncDecDuration(1, true); }
     void cmdToggleLayoutBreak(LayoutBreak::Type);
+    void cmdAddMeasureRepeat(Measure*, int numMeasures, int staffIdx);
+    bool makeMeasureRepeatGroup(Measure*, int numMeasures, int staffIdx);
 
     void addRemoveBreaks(int interval, bool lock);
 
@@ -1131,7 +1133,7 @@ public:
     void cmdSplitMeasure(ChordRest*);
     void splitMeasure(Segment*);
     void cmdJoinMeasure(Measure*, Measure*);
-    bool makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx);
+
     int pageNumberOffset() const { return _pageNumberOffset; }
     void setPageNumberOffset(int v) { _pageNumberOffset = v; }
 

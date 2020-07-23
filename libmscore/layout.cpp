@@ -2303,7 +2303,8 @@ static bool breakMultiMeasureRest(Measure* m)
 
     // break for MeasureRepeat group
     for (int staffIdx = 0; staffIdx < m->score()->nstaves(); ++staffIdx) {
-        if (m->measureRepeatCount(staffIdx) || (m->prevMeasure() && m->prevMeasure()->measureRepeatCount(staffIdx))) {
+        if (m->isMeasureRepeatGroup(staffIdx)
+            || (m->prevMeasure() && m->prevMeasure()->isMeasureRepeatGroup(staffIdx))) {
             return true;
         }
     }

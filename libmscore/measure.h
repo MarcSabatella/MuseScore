@@ -289,12 +289,12 @@ public:
 
     int measureRepeatCount(int staffIdx) const      { return m_mstaves[staffIdx]->measureRepeatCount(); }
     void setMeasureRepeatCount(int n, int staffIdx) { m_mstaves[staffIdx]->setMeasureRepeatCount(n); }
+    bool isMeasureRepeatGroup(int staffIdx) const   { return measureRepeatCount(staffIdx); } // alias for convenience
     bool isMeasureRepeatGroupWithNextM(int staffIdx) const;
     bool isMeasureRepeatGroupWithPrevM(int staffIdx) const;
     Measure* firstOfMeasureRepeatGroup(int staffIdx) const;     // used to find beginning of group
     MeasureRepeat* measureRepeatElement(int staffIdx) const;    // get measure repeat element from anywhere within group
     MeasureRepeat* containsMeasureRepeat(int staffIdx) const;
-    void cmdAddMeasureRepeat(int staffIdx, int numMeasures);
 
     Element* nextElementStaff(int staff);
     Element* prevElementStaff(int staff);
