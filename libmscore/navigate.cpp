@@ -23,6 +23,7 @@
 #include "utils.h"
 #include "input.h"
 #include "measure.h"
+#include "measurerepeat.h"
 #include "page.h"
 #include "spanner.h"
 #include "system.h"
@@ -95,6 +96,9 @@ ChordRest* nextChordRest(ChordRest* cr, bool skipGrace)
     for (Segment* seg = cr->segment()->next1MM(st); seg; seg = seg->next1MM(st)) {
         ChordRest* e = toChordRest(seg->element(track));
         if (e) {
+            if (e->isRest() && e->measure()->isMeasureRepeatGroup(track2staff(track))) {
+                continue; // these rests are not shown, skip them
+            }
             if (e->isChord() && !skipGrace) {
                 Chord* c = toChord(e);
                 if (!c->graceNotes().empty()) {
@@ -124,9 +128,6 @@ ChordRest* prevChordRest(ChordRest* cr, bool skipGrace)
     }
 
     if (cr->isGrace()) {
-        //
-        // cr is a grace note
-
         Chord* c  = toChord(cr);
         Chord* pc = toChord(cr->parent());
 
@@ -172,7 +173,10 @@ ChordRest* prevChordRest(ChordRest* cr, bool skipGrace)
     for (Segment* seg = cr->segment()->prev1MM(st); seg; seg = seg->prev1MM(st)) {
         ChordRest* e = toChordRest(seg->element(track));
         if (e) {
-            if (e->type() == ElementType::CHORD && !skipGrace) {
+            if (e->isRest() && e->measure()->isMeasureRepeatGroup(track2staff(track))) {
+                continue; // these rests are not shown, skip them
+            }
+            if (e->isChord() && !skipGrace) {
                 QVector<Chord*> cl = toChord(e)->graceNotesAfter();
                 if (!cl.empty()) {
                     return cl.last();

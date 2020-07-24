@@ -344,7 +344,9 @@ void Rest::layout()
     int yo;
     m_sym = getSymbol(durationType().type(), lineOffset / 2 + userLine, lines, &yo);
     rypos() = (qreal(yo) + qreal(lineOffset) * .5) * lineDist * _spatium;
-    setbbox(symBbox(m_sym));
+    if (!shouldNotBeDrawn()) {
+        setbbox(symBbox(m_sym));
+    }
     layoutDots();
 }
 
