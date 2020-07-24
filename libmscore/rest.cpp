@@ -755,7 +755,7 @@ QString Rest::accessibleInfo() const
 }
 
 //---------------------------------------------------------
-//   accessibleInfo
+//   screenReaderInfo
 //---------------------------------------------------------
 
 QString Rest::screenReaderInfo() const

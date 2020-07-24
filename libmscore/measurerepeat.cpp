@@ -175,6 +175,6 @@ Fraction MeasureRepeat::ticks() const
 
 QString MeasureRepeat::accessibleInfo() const
 {
-    return Element::accessibleInfo();
+    return QObject::tr("%1; Duration: %2 measure(s)").arg(Element::accessibleInfo()).arg(numMeasures());
 }
 }
