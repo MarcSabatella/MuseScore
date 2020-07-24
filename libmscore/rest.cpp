@@ -1033,7 +1033,7 @@ bool Rest::shouldNotBeDrawn() const
     if (generated()
         || (st && st->isTabStaff() && (!st->showRests() || st->genDurations())
             && (!measure() || !measure()->isMMRest()))
-            || measure()->measureRepeatCount(staffIdx())) {    // measures covered by MeasureRepeat show no rests
+        || measure()->measureRepeatCount(staffIdx())) {    // measures covered by MeasureRepeat show no rests
         return true;
     }
     return false;

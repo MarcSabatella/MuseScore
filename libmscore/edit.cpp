@@ -1815,7 +1815,7 @@ void Score::deleteItem(Element* el)
         undoAddCR(rest, segment->measure(), segment->tick());
 
         // tell measures they're not part of measure repeat group anymore
-        Measure * m = mr->firstMeasureOfGroup();
+        Measure* m = mr->firstMeasureOfGroup();
         for (int i = 1; i <= mr->numMeasures(); ++i) {
             score()->undo(new ChangeMeasureRepeatCount(m, 0, mr->staffIdx()));
             // don't remove grouping if within measure repeat group on another staff

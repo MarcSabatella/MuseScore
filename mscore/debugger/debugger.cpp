@@ -1336,7 +1336,7 @@ void ShowNoteWidget::accidentalClicked()
 //---------------------------------------------------------
 
 MeasureRepeatView::MeasureRepeatView()
-: ShowElementBase()
+    : ShowElementBase()
 {
     crb.setupUi(addWidget());
     mrb.setupUi(addWidget());

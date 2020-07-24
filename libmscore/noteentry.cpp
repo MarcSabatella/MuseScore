@@ -355,7 +355,7 @@ void Score::putNote(const Position& p, bool replace)
     if (m->isMeasureRepeatGroup(staffIdx)) {
         auto b = QMessageBox::warning(0, QObject::tr("Note input will remove measure repeat"),
                                       QObject::tr("There is a measure repeat here.")
-                                        + QObject::tr("\nContinue with adding note and delete measure repeat?"),
+                                      + QObject::tr("\nContinue with adding note and delete measure repeat?"),
                                       QMessageBox::Cancel | QMessageBox::Ok,
                                       QMessageBox::Ok);
         if (b == QMessageBox::Cancel) {

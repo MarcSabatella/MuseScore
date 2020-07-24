@@ -76,18 +76,18 @@ void MeasureRepeat::layout()
     }
 
     switch (m_numMeasures) {
-        case 1:
-            setSymId(SymId::repeat1Bar);
-            break;
-        case 2:
-            setSymId(SymId::repeat2Bars);
-            break;
-        case 4:
-            setSymId(SymId::repeat4Bars);
-            break;
-        default:
-            m_symId = SymId::noSym; // should never happen
-            break;
+    case 1:
+        setSymId(SymId::repeat1Bar);
+        break;
+    case 2:
+        setSymId(SymId::repeat2Bars);
+        break;
+    case 4:
+        setSymId(SymId::repeat4Bars);
+        break;
+    default:
+        m_symId = SymId::noSym; // should never happen
+        break;
     }
 
     if (track() != -1) {    // in score rather than palette
@@ -127,7 +127,6 @@ Shape MeasureRepeat::shape() const
     shape.add(symBbox(m_symId));
     return shape;
 }
-
 
 //---------------------------------------------------------
 //   write

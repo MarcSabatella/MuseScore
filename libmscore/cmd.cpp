@@ -2816,22 +2816,22 @@ void Score::cmdAddMeasureRepeat(Measure* first, int numMeasures, int staffIdx)
     mr->setNumMeasures(numMeasures);
     mr->setTrack(staffIdx * VOICES);
     switch (numMeasures) {
-        case 4: {
-            Measure* nextM = first->nextMeasure(); // four-measure repeat anchored to second measure of group
-            Segment* nextSeg = first->undoGetSegment(SegmentType::ChordRest, nextM->tick());
-            mr->setParent(nextSeg);
-            mr->setDurationType(TDuration::DurationType::V_MEASURE); // TODO: does this duration type matter at all?
-            mr->setTicks(nextM->stretchedLen(staff(staffIdx)));
-            undoAddCR(mr, nextM, nextM->tick());
-            break;
-        }
-        default:
-            Segment* seg = first->undoGetSegment(SegmentType::ChordRest, first->tick());
-            mr->setParent(seg);
-            mr->setDurationType(TDuration::DurationType::V_MEASURE);
-            mr->setTicks(first->stretchedLen(staff(staffIdx)));
-            undoAddCR(mr, first, first->tick());
-            break;
+    case 4: {
+        Measure* nextM = first->nextMeasure(); // four-measure repeat anchored to second measure of group
+        Segment* nextSeg = first->undoGetSegment(SegmentType::ChordRest, nextM->tick());
+        mr->setParent(nextSeg);
+        mr->setDurationType(TDuration::DurationType::V_MEASURE); // TODO: does this duration type matter at all?
+        mr->setTicks(nextM->stretchedLen(staff(staffIdx)));
+        undoAddCR(mr, nextM, nextM->tick());
+        break;
+    }
+    default:
+        Segment* seg = first->undoGetSegment(SegmentType::ChordRest, first->tick());
+        mr->setParent(seg);
+        mr->setDurationType(TDuration::DurationType::V_MEASURE);
+        mr->setTicks(first->stretchedLen(staff(staffIdx)));
+        undoAddCR(mr, first, first->tick());
+        break;
     }
 }
 
@@ -2841,7 +2841,8 @@ void Score::cmdAddMeasureRepeat(Measure* first, int numMeasures, int staffIdx)
 ///   returns false if these measures won't work or user aborted
 //---------------------------------------------------------
 
-bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx) {
+bool Score::makeMeasureRepeatGroup(Measure* first, int numMeasures, int staffIdx)
+{
     //
     // check that sufficient measures exist, with equal durations
     //

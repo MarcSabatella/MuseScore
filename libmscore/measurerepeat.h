@@ -59,7 +59,6 @@ public:
 private:
     int m_numMeasures;
     SymId m_symId;
-
 };
 }     // namespace Ms
 #endif

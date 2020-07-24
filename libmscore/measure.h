@@ -344,9 +344,6 @@ private:
 
     int m_repeatCount;          ///< end repeat marker and repeat count
 
-//    int m_measureRepeatCount;   // 0 if this is not a measure repeat
-                                // > 0 if this measure is a measure repeat, or is within group
-
     MeasureNumberMode m_noMode;
     bool m_breakMultiMeasureRest;
 };

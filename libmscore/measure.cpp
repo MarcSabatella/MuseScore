@@ -1560,7 +1560,7 @@ Element* Measure::drop(EditData& data)
             }
         } else if (bl->barLineType() == BarLineType::START_REPEAT) {
             Measure* m2 = isMMRest() ? mmRestFirst() : this;
-            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++ staffIdx) {
+            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
                 if (m2->isMeasureRepeatGroupWithPrevM(staffIdx)) {
                     MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
                     return nullptr;
@@ -1574,7 +1574,7 @@ Element* Measure::drop(EditData& data)
             }
         } else if (bl->barLineType() == BarLineType::END_REPEAT) {
             Measure* m2 = isMMRest() ? mmRestLast() : this;
-            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++ staffIdx) {
+            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
                 if (m2->isMeasureRepeatGroupWithNextM(staffIdx)) {
                     MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
                     return nullptr;
@@ -1588,7 +1588,7 @@ Element* Measure::drop(EditData& data)
             }
         } else if (bl->barLineType() == BarLineType::END_START_REPEAT) {
             Measure* m2 = isMMRest() ? mmRestLast() : this;
-            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++ staffIdx) {
+            for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
                 if (m2->isMeasureRepeatGroupWithNextM(staffIdx)) {
                     MScore::setError(CANNOT_SPLIT_MEASURE_REPEAT);
                     return nullptr;
