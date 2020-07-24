@@ -258,7 +258,6 @@ static constexpr PropertyMetaData propertyList[] = {
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "dynamic type") },
     { Pid::DYNAMIC_RANGE,           true,  "dynType",               P_TYPE::INT,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "dynamic range") },
-//100
     { Pid::SINGLE_NOTE_DYNAMICS,    true,  "singleNoteDynamics",    P_TYPE::BOOL,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "single note dynamics") },
     { Pid::CHANGE_METHOD,           true,  "changeMethod",          P_TYPE::CHANGE_METHOD,
@@ -334,6 +333,10 @@ static constexpr PropertyMetaData propertyList[] = {
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "vertical position of multimeasure rest number") },
     { Pid::MMREST_NUMBER_VISIBLE,   false, "mmRestNumberVisible",   P_TYPE::BOOL,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "visibility of multimeasure rest number") },
+    { Pid::MEASURE_REPEAT_SHOW_NUMBER, true, "measureRepeatShowNumber", P_TYPE::BOOL,
+      DUMMY_QT_TRANSLATE_NOOP("propertyName", "visibility of measure repeat number") },
+    { Pid::MEASURE_REPEAT_SHOW_EXTENDERS, true, "measureRepeatShowExtenders", P_TYPE::BOOL,
+      DUMMY_QT_TRANSLATE_NOOP("propertyName", "measure repeat extenders") },
     { Pid::REPEAT_COUNT,            true,  "endRepeat",             P_TYPE::INT,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "end repeat") },
 
@@ -473,7 +476,6 @@ static constexpr PropertyMetaData propertyList[] = {
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "family") },
     { Pid::FONT_SIZE,               false, "size",                  P_TYPE::REAL,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "size") },
-//200
     { Pid::FONT_STYLE,              false, "fontStyle",             P_TYPE::INT,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "font style") },
 

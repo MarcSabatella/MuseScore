@@ -3403,7 +3403,14 @@
            <string>Measure Repeats</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_47">
-           <item row="2" column="0">
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="fourMeasureRepeatShowExtenders">
+             <property name="text">
+              <string>Show extenders on 4-measure repeats</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
             <spacer name="verticalSpacer_11">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -3416,14 +3423,7 @@
              </property>
             </spacer>
            </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="fourMeasureRepeatShowExtenders">
-             <property name="text">
-              <string>Show extenders on 4-measure repeats</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
+           <item row="1" column="1">
             <widget class="QToolButton" name="resetFourMeasureRepeatShowExtenders">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -3437,6 +3437,24 @@
              <property name="icon">
               <iconset resource="musescore.qrc">
                <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="oneMeasureRepeatShowNumber">
+             <property name="text">
+              <string>Show number on 1-measure repeats</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QToolButton" name="resetOneMeasureRepeatShowNumber">
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>data/icons/edit-reset.svg</normaloff>data/icons/edit-reset.svg</iconset>
              </property>
             </widget>
            </item>

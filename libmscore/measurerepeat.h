@@ -51,14 +51,21 @@ public:
 
     QRectF numberRect() const override;
     Shape shape() const override;
+    
+    QVariant propertyDefault(Pid) const override;
+    bool setProperty(Pid, const QVariant&) override;
+    QVariant getProperty(Pid) const override;
 
     QString accessibleInfo() const override;
 
     bool placeMultiple() const override     { return numMeasures() == 1; } // prevent overlapping additions with range selection
 
 private:
+    Sid getPropertyStyle(Pid) const override;
     int m_numMeasures;
     SymId m_symId;
+    bool m_showExtenders;
+    bool m_showNumber;
 };
 }     // namespace Ms
 #endif

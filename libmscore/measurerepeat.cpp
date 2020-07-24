@@ -26,7 +26,7 @@ namespace Ms {
 //---------------------------------------------------------
 
 MeasureRepeat::MeasureRepeat(Score* score)
-    : Rest(score), m_numMeasures(0), m_symId(SymId::noSym)
+    : Rest(score), m_numMeasures(0), m_symId(SymId::noSym), m_showNumber(true), m_showExtenders(false)
 {
 }
 
@@ -39,12 +39,14 @@ void MeasureRepeat::draw(QPainter* painter) const
     painter->setPen(curColor());
     drawSymbol(m_symId, painter);
 
-    if (m_numMeasures > 1 && track() != -1) { // in score rather than palette
-        std::vector<SymId>&& numberSym = toTimeSigString(QString("%1").arg(m_numMeasures));
-        qreal x = (symBbox(m_symId).width() - symBbox(numberSym).width()) * .5;
-        qreal y = -1.5 * spatium() - staff()->height() * .5;
-        drawSymbols(numberSym, painter, QPointF(x, y));
-        if (score()->styleB(Sid::fourMeasureRepeatShowExtenders) && m_numMeasures == 4) {
+    if (track() != -1) { // in score rather than palette
+        if (m_showNumber) {
+            std::vector<SymId>&& numberSym = toTimeSigString(QString("%1").arg(m_numMeasures));
+            qreal x = (symBbox(m_symId).width() - symBbox(numberSym).width()) * .5;
+            qreal y = -1.5 * spatium() - staff()->height() * .5;
+            drawSymbols(numberSym, painter, QPointF(x, y));
+        }
+        if (m_showExtenders) {
             // TODO: add style settings specific to measure repeats
             // for now, using thickness and margin same as mmrests
             qreal hBarThickness = score()->styleP(Sid::mmRestHBarThickness);
@@ -78,6 +80,9 @@ void MeasureRepeat::layout()
     switch (m_numMeasures) {
     case 1:
         setSymId(SymId::repeat1Bar);
+            if (!score()->styleB(Sid::oneMeasureRepeatShowNumber)) {
+                m_showNumber = false;
+            }
         break;
     case 2:
         setSymId(SymId::repeat2Bars);
@@ -170,6 +175,59 @@ Fraction MeasureRepeat::ticks() const
 }
 
 //---------------------------------------------------------
+//   propertyDefault
+//---------------------------------------------------------
+
+QVariant MeasureRepeat::propertyDefault(Pid propertyId) const
+{
+    switch (propertyId) {
+        case Pid::MEASURE_REPEAT_SHOW_EXTENDERS:
+            return false;
+        case Pid::MEASURE_REPEAT_SHOW_NUMBER:
+            return (m_numMeasures > 1);
+        default:
+            return Rest::propertyDefault(propertyId);
+    }
+}
+
+//---------------------------------------------------------
+//   getProperty
+//---------------------------------------------------------
+
+QVariant MeasureRepeat::getProperty(Pid propertyId) const
+{
+    switch (propertyId) {
+        case Pid::MEASURE_REPEAT_SHOW_EXTENDERS:
+            return m_showExtenders;
+        case Pid::MEASURE_REPEAT_SHOW_NUMBER:
+            return m_showNumber;
+        default:
+            return Rest::getProperty(propertyId);
+    }
+}
+
+//---------------------------------------------------------
+//   setProperty
+//---------------------------------------------------------
+
+bool MeasureRepeat::setProperty(Pid propertyId, const QVariant& v)
+{
+    switch (propertyId) {
+        case Pid::MEASURE_REPEAT_SHOW_EXTENDERS:
+            m_showExtenders = v.toDouble();
+            triggerLayout();
+            break;
+        case Pid::MEASURE_REPEAT_SHOW_NUMBER:
+            m_showNumber = v.toBool();
+            triggerLayout();
+            break;
+        default:
+            return Rest::setProperty(propertyId, v);
+    }
+    return true;
+}
+
+//---------------------------------------------------------
 //   accessibleInfo
 //---------------------------------------------------------
 
@@ -177,4 +235,17 @@ QString MeasureRepeat::accessibleInfo() const
 {
     return QObject::tr("%1; Duration: %2 measure(s)").arg(Element::accessibleInfo()).arg(numMeasures());
 }
+
+//---------------------------------------------------------
+//   getPropertyStyle
+//---------------------------------------------------------
+
+Sid MeasureRepeat::getPropertyStyle(Pid propertyId) const
+{
+    if (propertyId == Pid::MEASURE_REPEAT_SHOW_EXTENDERS) {
+        return (Sid::fourMeasureRepeatShowExtenders);
+    }
+    return Rest::getPropertyStyle(propertyId);
+}
+
 }
