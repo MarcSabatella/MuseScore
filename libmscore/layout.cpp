@@ -3541,7 +3541,7 @@ System* Score::collectSystem(LayoutContext& lc)
     system->setWidth(systemWidth);
 
     // save state of measure
-    qreal curWidth = lc.curMeasure->width();
+    lc.curMeasure->setOldWidth(lc.curMeasure->width());
     bool curHeader = lc.curMeasure->header();
     bool curTrailer = lc.curMeasure->trailer();
 
@@ -3549,7 +3549,7 @@ System* Score::collectSystem(LayoutContext& lc)
         System* oldSystem = lc.curMeasure->system();
         system->appendMeasure(lc.curMeasure);
 
-        qreal ww  = 0;          // width of current measure
+        qreal ww = 0;          // width of current measure
 
         if (lc.curMeasure->isMeasure()) {
             Measure* m = toMeasure(lc.curMeasure);
@@ -3607,6 +3607,8 @@ System* Score::collectSystem(LayoutContext& lc)
                     lc.nextMeasure = lc.curMeasure;
                     lc.curMeasure  = lc.prevMeasure;
                     lc.prevMeasure = lc.curMeasure->prevMeasure();
+                    lc.curMeasure->setOldWidth(lc.curMeasure->width());
+                    curHeader = lc.curMeasure->header();
                 }
                 break;
             } else if (!lc.prevMeasure->noBreak()) {
@@ -3669,11 +3671,16 @@ System* Score::collectSystem(LayoutContext& lc)
                 }
             }
             if (!lc.curMeasure->noBreak()) {
-                curWidth = nmb->width();
+                nmb->setOldWidth(nmb->width());
                 curHeader = nmb->header();
                 curTrailer = nmb->trailer();
             } else {
-                // TODO: measure widths within nobreak group are distorted after edit on previous system
+                curHeader = nmb->header();
+                while (nmb->noBreak()) {
+                    nmb->setOldWidth(nmb->width());
+                    nmb = nmb->nextMeasure();
+                }
+                curTrailer = nmb->trailer();
             }
         }
 
@@ -3706,19 +3713,41 @@ System* Score::collectSystem(LayoutContext& lc)
                     }
                 }
                 bool firstSystem = lc.prevMeasure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
-                if (curHeader) {
-                    m->addSystemHeader(firstSystem);
-                } else {
-                    m->removeSystemHeader();
+                if (!m->noBreak()) {
+                    if (curHeader) {
+                        m->addSystemHeader(firstSystem);
+                    } else {
+                        m->removeSystemHeader();
+                    }
+                    if (curTrailer) {
+                        m->addSystemTrailer(m->nextMeasure());
+                    } else {
+                        m->removeSystemTrailer();
+                    }
+                    m->computeMinWidth();
+                    m->stretchMeasure(m->oldWidth());
+                    restoreBeams(m);
+                } else { // m is beginning of nobreak group
+                    if (curTrailer) {
+                        m->addSystemTrailer(m->nextMeasure());
+                    } else {
+                        m->removeSystemTrailer();
+                    }
+                    while (m->noBreak()) {
+                        m->computeMinWidth();
+                        m->stretchMeasure(m->oldWidth());
+                        restoreBeams(m);
+                        m = m->prevMeasure();
+                    }
+                    if (curHeader) {
+                        m->addSystemHeader(firstSystem);
+                    } else {
+                        m->removeSystemHeader();
+                    }
+                    m->computeMinWidth();
+                    m->stretchMeasure(m->oldWidth());
+                    restoreBeams(m);
                 }
-                if (curTrailer) {
-                    m->addSystemTrailer(m->nextMeasure());
-                } else {
-                    m->removeSystemTrailer();
-                }
-                m->computeMinWidth();
-                m->stretchMeasure(curWidth);
-                restoreBeams(m);
             }
             lc.rangeDone = true;
         }
