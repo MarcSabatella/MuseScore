@@ -3544,6 +3544,7 @@ System* Score::collectSystem(LayoutContext& lc)
     lc.curMeasure->setOldWidth(lc.curMeasure->width());
     bool curHeader = lc.curMeasure->header();
     bool curTrailer = lc.curMeasure->trailer();
+    MeasureBase* breakMeasure = nullptr;
 
     while (lc.curMeasure) {      // collect measure for system
         System* oldSystem = lc.curMeasure->system();
@@ -3576,7 +3577,13 @@ System* Score::collectSystem(LayoutContext& lc)
             }
 
             m->createEndBarLines(true);
-            m->addSystemTrailer(m->nextMeasure());
+            // measures with nobreak cannot end a system
+            // thus they will not contain a trailer
+            if (m->noBreak()) {
+                m->removeSystemTrailer();
+            } else {
+                m->addSystemTrailer(m->nextMeasure());
+            }
             m->computeMinWidth();
             ww = m->width();
         } else if (lc.curMeasure->isHBox()) {
@@ -3594,12 +3601,19 @@ System* Score::collectSystem(LayoutContext& lc)
 
         bool doBreak = (system->measures().size() > 1) && ((minWidth + ww) > systemWidth);
         if (doBreak) {
+            breakMeasure = lc.curMeasure;
             if (lc.prevMeasure->noBreak() && system->measures().size() > 2) {
+                // TODO: why 2? should this really be the total size of the nobreak group?
+                // to make sure we don't remove everything?
+                // TODO: what about the case where nobreak is set, but system size is only 2 (or whatever size of nobreak group is)?
+                //
                 // remove however many measures are grouped with nobreak
                 system->removeLastMeasure();
                 while (lc.prevMeasure && lc.prevMeasure->noBreak() && system->measures().size() > 1) {
                     minWidth -= system->lastMeasure()->width();
                     system->removeLastMeasure();
+                    // TODO: this seems kludgy, seems like it means we set for the same measure
+                    // on two separate iterations of the loop
                     lc.curMeasure->setSystem(oldSystem);
                     lc.prevMeasure->setSystem(oldSystem);
                     lc.tick -= lc.curMeasure->ticks();
@@ -3607,11 +3621,14 @@ System* Score::collectSystem(LayoutContext& lc)
                     lc.nextMeasure = lc.curMeasure;
                     lc.curMeasure  = lc.prevMeasure;
                     lc.prevMeasure = lc.curMeasure->prevMeasure();
-                    lc.curMeasure->setOldWidth(lc.curMeasure->width());
-                    curHeader = lc.curMeasure->header();
+//                    lc.curMeasure->setOldWidth(lc.curMeasure->width());
+//                    curHeader = lc.curMeasure->header();
                 }
                 break;
             } else if (!lc.prevMeasure->noBreak()) {
+                // TODO: is it really necessary to have a separate clause here?
+                // it seems we should be able to handle this within the if clause above
+                //
                 // remove last measure
                 system->removeLastMeasure();
                 lc.curMeasure->setSystem(oldSystem);
@@ -3670,16 +3687,15 @@ System* Score::collectSystem(LayoutContext& lc)
                     nmb = nm->mmRest();
                 }
             }
+            nmb->setOldWidth(nmb->width());
             if (!lc.curMeasure->noBreak()) {
-                nmb->setOldWidth(nmb->width());
+                // current measure is not a nobreak,
+                // so next measure could possibly start a system
                 curHeader = nmb->header();
-                curTrailer = nmb->trailer();
-            } else {
-                curHeader = nmb->header();
-                while (nmb->noBreak()) {
-                    nmb->setOldWidth(nmb->width());
-                    nmb = nmb->nextMeasure();
-                }
+            }
+            if (!nmb->noBreak()) {
+                // next measure is not a nobreak
+                // so it could possibly end a system
                 curTrailer = nmb->trailer();
             }
         }
@@ -3703,8 +3719,8 @@ System* Score::collectSystem(LayoutContext& lc)
             // this system ends in the same place as the previous layout
             // ok to stop
             if (lc.curMeasure && lc.curMeasure->isMeasure()) {
-                // we may have previously processed first measure of next system
-                // so now we must restore it to its original state
+                // we may have previously processed first measure(s) of next system
+                // so now we must restore to original state
                 Measure* m = toMeasure(lc.curMeasure);
                 if (m->repeatStart()) {
                     Segment* s = m->findSegmentR(SegmentType::StartRepeatBarLine, Fraction(0,1));
@@ -3713,13 +3729,15 @@ System* Score::collectSystem(LayoutContext& lc)
                     }
                 }
                 bool firstSystem = lc.prevMeasure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
-                if (!m->noBreak()) {
-                    if (curHeader) {
-                        m->addSystemHeader(firstSystem);
-                    } else {
-                        m->removeSystemHeader();
-                    }
-                    if (curTrailer) {
+                MeasureBase* nm = breakMeasure ? breakMeasure : m;
+                if (curHeader) {
+                    m->addSystemHeader(firstSystem);
+                } else {
+                    m->removeSystemHeader();
+                }
+                while (true) {
+                    // TODO: what if the nobreak group takes the entire system - is this correct?
+                    if (curTrailer && !m->noBreak()) {
                         m->addSystemTrailer(m->nextMeasure());
                     } else {
                         m->removeSystemTrailer();
@@ -3727,26 +3745,9 @@ System* Score::collectSystem(LayoutContext& lc)
                     m->computeMinWidth();
                     m->stretchMeasure(m->oldWidth());
                     restoreBeams(m);
-                } else { // m is beginning of nobreak group
-                    if (curTrailer) {
-                        m->addSystemTrailer(m->nextMeasure());
-                    } else {
-                        m->removeSystemTrailer();
-                    }
-                    while (m->noBreak()) {
-                        m->computeMinWidth();
-                        m->stretchMeasure(m->oldWidth());
-                        restoreBeams(m);
-                        m = m->prevMeasure();
-                    }
-                    if (curHeader) {
-                        m->addSystemHeader(firstSystem);
-                    } else {
-                        m->removeSystemHeader();
-                    }
-                    m->computeMinWidth();
-                    m->stretchMeasure(m->oldWidth());
-                    restoreBeams(m);
+                    if (m == nm || !m->noBreak())
+                        break;
+                    m = m->nextMeasure();
                 }
             }
             lc.rangeDone = true;
