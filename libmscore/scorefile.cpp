@@ -306,6 +306,10 @@ void Score::readStaff(XmlReader& e)
 
                         measure->read(e, staff);
                         measure->checkMeasure(staff);
+                        if (!measure->links() && masterScore() && masterScore() != this) {
+                              Measure* masterMeasure = masterScore()->tick2measure(measure->tick());
+                              measure->linkTo(masterMeasure);
+                              }
                         if (!measure->isMMRest()) {
                               measures()->add(measure);
                               e.setLastMeasure(measure);
@@ -350,6 +354,10 @@ void Score::readStaff(XmlReader& e)
                         e.setCurrentMeasureIndex(measureIdx++);
                         measure->read(e, staff);
                         measure->checkMeasure(staff);
+                        if (!measure->links() && masterScore() && masterScore() != this) {
+                              Measure* masterMeasure = masterScore()->tick2measure(measure->tick());
+                              measure->linkTo(masterMeasure);
+                              }
                         if (measure->isMMRest())
                               measure = e.lastMeasure()->nextMeasure();
                         else {
