@@ -4645,7 +4645,7 @@ void LayoutContext::collectPage()
             //  check for page break or if next system will fit on page
             //
             bool collected = false;
-            if (rangeDone && !score->enableVerticalSpread()) {
+            if (rangeDone /*&& !score->enableVerticalSpread()*/) {
                   // take next system unchanged
                   if (systemIdx > 0) {
                         nextSystem = score->systems().value(systemIdx++);
@@ -4901,10 +4901,17 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
       if (!layoutAll && m->system()) {
             System* system  = m->system();
             if (enableVerticalSpread()) {
+                  // be sure to layout full pages
                   system = system->page()->systems().first();
-                  lc.endTick = system->page()->systems().last()->endTick();
+                  Measure* endMeasure = tick2measure(lc.endTick);
+                  if (!endMeasure)
+                        endMeasure = lastMeasure();
+                  System *endSystem = endMeasure->system();
+                  if (endSystem)
+                        lc.endTick = endSystem->page()->systems().last()->endTick();
+                  else
+                        lc.endTick = last()->endTick();
                   }
-
             int systemIndex = _systems.indexOf(system);
             lc.page         = system->page();
             lc.curPage      = pageIdx(lc.page);
