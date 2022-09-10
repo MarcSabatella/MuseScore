@@ -1044,7 +1044,7 @@ void PlaybackController::updateMuteStates()
 
         const Part* part = notationParts->part(instrumentTrackId.partId);
         bool isPart = part;
-        
+
         auto soloMuteState = audioSettings()->soloMuteState(instrumentTrackId);
 
         bool shouldBeMuted = soloMuteState.mute
