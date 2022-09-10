@@ -1043,12 +1043,12 @@ void PlaybackController::updateMuteStates()
         }
 
         const Part* part = notationParts->part(instrumentTrackId.partId);
-        bool isPartVisible = part && part->show();
-
+        
         auto soloMuteState = audioSettings()->soloMuteState(instrumentTrackId);
 
         bool shouldBeMuted = soloMuteState.mute
-                             || (hasSolo && !soloMuteState.solo);
+                             || (hasSolo && !soloMuteState.solo)
+                             || (!part);
 
         if (isRangePlaybackMode && !shouldBeMuted) {
             shouldBeMuted = !mu::contains(allowedInstrumentTrackIdSet, instrumentTrackId);
