@@ -223,21 +223,16 @@ bool Read302::readScore302(Score* score, XmlReader& e, ReadContext& ctx)
 
     score->_fileDivision = Constants::division;
 
-    for (Part* part : score->parts()) {
-        // convert hidden instruments into invisible staves to preserve playback
-        if (!part->show()) {
-            part->setShow(true);
-            for (Staff* staff : part->staves()) {
-                staff->setVisible(false);
-            }
-        }
-        if (score->mscVersion() == 302) {
-            // MuseScore 3.6.x scores had some wrong instrument IDs
+    if (score->mscVersion() == 302) {
+        // MuseScore 3.6.x scores had some wrong instrument IDs
+        for (Part* part : score->parts()) {
             for (const auto& pair : part->instruments()) {
                 fixInstrumentId(pair.second);
             }
-        } else {
-            // Older scores had no IDs at all
+        }
+    } else {
+        // Older scores had no IDs at all
+        for (Part* part : score->parts()) {
             for (const auto& pair : part->instruments()) {
                 pair.second->updateInstrumentId();
             }
@@ -248,6 +243,13 @@ bool Read302::readScore302(Score* score, XmlReader& e, ReadContext& ctx)
 
     for (Part* p : score->_parts) {
         p->updateHarmonyChannels(false);
+        if (!p->show()) {
+            // convert hidden instruments into hidden staves, to preserve playback
+            p->setShow(true);
+            for (Staff* s : p->staves()) {
+                s->setVisible(true);
+            }
+        }
     }
 
     score->masterScore()->rebuildMidiMapping();
