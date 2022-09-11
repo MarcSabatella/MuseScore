@@ -247,7 +247,7 @@ bool Read302::readScore302(Score* score, XmlReader& e, ReadContext& ctx)
             // convert hidden instruments into hidden staves, to preserve playback
             p->setShow(true);
             for (Staff* s : p->staves()) {
-                s->setVisible(true);
+                s->setVisible(false);
             }
         }
     }
