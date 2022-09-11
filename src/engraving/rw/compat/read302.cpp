@@ -224,8 +224,15 @@ bool Read302::readScore302(Score* score, XmlReader& e, ReadContext& ctx)
     score->_fileDivision = Constants::division;
 
     if (score->mscVersion() == 302) {
-        // MuseScore 3.6.x scores had some wrong instrument IDs
         for (Part* part : score->parts()) {
+            // convert hidden instruments into invisible staves to preserve playback
+            if (!part->show()) {
+                part->setVisible(true);
+                for (Staff* staff : part->staves()) {
+                    staff->setVisible(false);
+                }
+            }
+            // MuseScore 3.6.x scores had some wrong instrument IDs
             for (const auto& pair : part->instruments()) {
                 fixInstrumentId(pair.second);
             }
